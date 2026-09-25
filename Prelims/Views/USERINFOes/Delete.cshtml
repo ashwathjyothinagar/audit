@@ -1,0 +1,160 @@
+﻿@model Prelims.USERINFO
+
+@{
+    ViewBag.Title = "Delete";
+}
+
+<h2>Delete</h2>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>USERINFO</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.USERNAME)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.USERNAME)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FULLNAME)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FULLNAME)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PASSWORD)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PASSWORD)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FIRSTNAME)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FIRSTNAME)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LASTNAME)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LASTNAME)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VENDORID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VENDORID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CUSTOMERID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CUSTOMERID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ROLEID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ROLEID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DT_ADDED)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DT_ADDED)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.LOGINDATE)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.LOGINDATE)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ISACTIVE)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ISACTIVE)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EMAIL)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EMAIL)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.USERTYPE)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.USERTYPE)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ASSIGNCUSTOMER)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ASSIGNCUSTOMER)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ISDELETED)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ISDELETED)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ISREVIEWER)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ISREVIEWER)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsSupportingServicesReviewer)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsSupportingServicesReviewer)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-default" /> |
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    }
+</div>

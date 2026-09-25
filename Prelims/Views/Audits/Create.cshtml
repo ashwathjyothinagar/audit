@@ -1,0 +1,173 @@
+@model Prelims.Audit
+
+@{
+    ViewBag.PageTitle = "NEW ORDER";
+}
+
+<style type="text/css">
+   .table > tbody > tr.active > td {
+  background-color:#428bca;
+  color: white;
+  font-weight: bold;
+}
+</style>
+
+<div class="row" ng-controller="AuditController as ctrl">
+
+
+    <div class="col-lg-6">
+
+
+
+        @using (Html.BeginForm("Create", "Audits", FormMethod.Post, new { enctype = "multipart/form-data", name = "productionForm", id = "productionForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+
+            @if (ViewBag.SuccessMessage != null)
+            {
+                <div class="alert alert-info" role="alert">@ViewBag.SuccessMessage</div>
+            }
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+            <div class="form-group">
+                @Html.LabelFor(model => model.OrderNo, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.OrderNo, new { htmlAttributes = new { @class = "form-control", ng_model = "ctrl.OrderNo", required = "required" } })
+                    @Html.ValidationMessageFor(model => model.OrderNo, "", new { @class = "text-danger" })
+                    <span style="color: red;" ng-show="productionForm.OrderNo.$error.required">Order No is required</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="SenderId">Office Name</label>
+                <div class="col-md-10">
+                    <select class="form-control" id="CrnId" name="CrnId" ng-model="ctrl.CrnId" ng-change="ctrl.onCrnChange()" ng-required="true">
+                        <option value="" selected>--Please select--</option>
+                        <option ng-repeat="option in ctrl.Crns" value="{{option.CRNID}}">{{option.CRNNAME}}</option>
+                    </select>
+                    <span style="color: red;" ng-show="productionForm.CrnId.$error.required">Office Name is required</span>
+                    @Html.ValidationMessageFor(model => model.CrnId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            @*<div class="form-group">
+            @Html.LabelFor(model => model.OwnerNames, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.OwnerNames, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.OwnerNames, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+
+            @*<div class="form-group">
+            @Html.LabelFor(model => model.PropertyAddress, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.PropertyAddress, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.PropertyAddress, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+
+            @*<div class="form-group">
+            @Html.LabelFor(model => model.APNNo, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.APNNo, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.APNNo, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.RequestTypeId, "Product Type", htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DropDownList("RequestTypeId", null, htmlAttributes: new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.RequestTypeId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="SenderId">Request By</label>
+                <div class="col-md-10">
+                    <select class="form-control" id="SenderId" name="SenderId" ng-model="ctrl.SenderId" ng-required="true">
+                        <option value="">--Please select--</option>
+                        <option ng-repeat="option in ctrl.FilteredSenders" value="{{option.Id}}">{{option.Name}}</option>
+                    </select>
+                    <span style="color: red;" ng-show="productionForm.SenderId.$error.required">Request By is required</span>
+                    @Html.ValidationMessageFor(model => model.SenderId, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.ClientInstructions, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.ClientInstructions, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.ClientInstructions, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.IsRushOrder, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.IsRushOrder, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.IsRushOrder, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="SenderId">County</label>
+                <div class="col-md-10">
+                    <input type="text" list="Counties" id="County" name="County" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-md-2" for="SenderId">Received Date Time</label>
+                <div class="col-md-10">
+                    <input type="datetime-local" name="DateCreated" id="DateCreated" class="form-control" ng-required="true" ng-model="ctrl.DateCreated">
+                    <span style="color: red;" ng-show="productionForm.DateCreated.$error.required">Received Date Time is required</span>
+                </div>
+            </div>
+
+
+            @*<div class="form-group">
+            @Html.LabelFor(model => model.StatusId, "Status", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("StatusId", null, htmlAttributes: new { @class = "form-control", @disabled = "disabled" })
+                @Html.ValidationMessageFor(model => model.StatusId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TaskId, "Task", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("TaskId", null, htmlAttributes: new { @class = "form-control", @disabled = "disabled" })
+                @Html.ValidationMessageFor(model => model.TaskId, "", new { @class = "text-danger" })
+            </div>
+        </div>*@
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+
+                    <input type="submit" value="Create & New" class="btn btn-default" ng-click="ctrl.onSubmitClick($event)" ng-disabled="!productionForm.$valid" />
+
+                    @if (ViewBag.LastOrder != null)
+                    {
+                        <div style="display: inline; padding-left: 5px;">
+                            Last Order - @ViewBag.LastOrder.OrderNo - (@ViewBag.LastOrder.DateCreated.ToString())
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+
+    </div>
+    <datalist id="Counties">
+        @foreach (var county in ViewBag.Counties)
+        {
+            <option value="@county"></option>
+        }
+    </datalist>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

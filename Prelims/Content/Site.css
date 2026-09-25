@@ -1,0 +1,71 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 500px;
+}
+
+
+.header-box {
+    background-color: #b9b9b9;
+    margin-bottom: 10px;
+    height: 34px;
+    padding: 0;
+}
+
+.header-text{
+    float: left;
+    padding: 8px 15px;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.alert {
+    padding: 6px;
+}
+
+.production-label{
+    font-weight: bold;
+    text-align: right;    
+    border-right: 1px solid #b9b9b9;      
+
+}
+
+.production-row{
+        padding: 10px;
+}
+
+.check-box{
+    width: 18px;
+       
+}
+
+.email-header-cell{
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.email-detail-cell{
+    margin-bottom: 10px;
+}

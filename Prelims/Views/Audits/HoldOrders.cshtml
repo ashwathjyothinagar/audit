@@ -1,0 +1,42 @@
+﻿
+@model List<Prelims.Models.Reports.HoldOrderReportViewModel>
+@{
+    ViewBag.PageTitle = "Hold Orders";
+}
+<div class="row">
+    <div class="col-lg-4"></div>
+    <div class="col-lg-3">
+        <table class="table table-condensed table-striped">
+            <tr>
+                <th>
+                    Office Name
+                </th>
+                <th style="text-align:center;">
+                    Count
+                </th>
+            </tr>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.OfficeName
+                    </td>
+                    <td style="text-align:center;">
+                        @Html.ActionLink(@item.Count.ToString(), "HoldOrderDetails", new { crnId=item.CrnId })
+                    </td>
+                </tr>
+            }
+            <tr>
+                <th>
+                    Total
+                </th>
+                <th style="text-align:center;">
+                    @Html.ActionLink(Model.Sum(x => x.Count).ToString(), "HoldOrderDetails", new { })
+                </th>
+            </tr>
+
+        </table>
+    </div>
+    <div class="col-lg-4"></div>
+</div>

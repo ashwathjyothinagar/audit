@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="40dfc992f7774d98979bc32c46e8e622" Name="Diagram1" ZoomLevel="82">
+        <EntityTypeShape EntityType="FntModel.CRN" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.AuditDocument" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateHoldReason" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateHold" Width="1.5" PointX="3" PointY="8.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateRejectReason" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateReject" Width="1.5" PointX="11.25" PointY="8.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateRequestType" Width="1.5" PointX="3.75" PointY="13.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateSender" Width="1.5" PointX="3.75" PointY="15.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateStatus" Width="1.5" PointX="3.75" PointY="18.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateTask" Width="1.5" PointX="0.75" PointY="9" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateTimeEntry" Width="1.5" PointX="8.25" PointY="4.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateUpdate" Width="1.5" PointX="8.25" PointY="11.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.UserFilter" Width="1.5" PointX="3" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.USERINFO" Width="1.5" PointX="0.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FntModel.USERROLE" Width="1.5" PointX="7.75" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateSenders_CRN" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateHolds_FNTUpdateTasks" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateHolds_USERINFO" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateRejects_USERINFO" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateTimeEntries_FNTUpdateTasks" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateUpdates_FNTUpdateTasks" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateTimeEntries_FNTUpdateTimeEntries" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateTimeEntries_USERINFO" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateUpdates_USERINFO" ManuallyRouted="false" />
+        <AssociationConnector Association="FntModel.FK_UserFilters_UserFilters" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdate" Width="1.5" PointX="6" PointY="7.375" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdates_CRN" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateDocuments_FNTUpdates" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateHolds_FNTUpdates" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateRejects_FNTUpdates" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdates_FNTUpdateRequestTypes" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdates_FNTUpdateSenders" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdates_FNTUpdateStatuses" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdates_FNTUpdateTasks" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateTimeEntries_FNTUpdates" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateUpdates_FNTUpdates" />
+        <EntityTypeShape EntityType="FntModel.STATECOUNTY" Width="1.5" PointX="2.75" PointY="7.75" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateErrorCategory" Width="1.5" PointX="10.375" PointY="1.125" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateErrorJson" Width="1.5" PointX="11.25" PointY="12.25" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateErrorType" Width="1.5" PointX="12.625" PointY="0.875" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateErrorTypes_FNTUpdateErrorCategories" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateErrorJson_FNTUpdates" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateErrorJson_FNTUpdateTasks" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateCheckCrn" Width="2.375" PointX="8.25" PointY="21.125" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateCheck" Width="2.25" PointX="5.375" PointY="21" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateCheckTask" Width="2.25" PointX="8.25" PointY="23.625" />
+        <EntityTypeShape EntityType="FntModel.FNTUpdateCheckValue" Width="2.75" PointX="8.25" PointY="18.375" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateChecks_CRN" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateCheckCrns_FNTUpdateChecks" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateCheckTasks_FNTUpdateChecks" />
+        <AssociationConnector Association="FntModel.FK_FNTUpdateCheckValues_FNTUpdateChecks" />
+        <EntityTypeShape EntityType="FntModel.CWTRequestedOffice" Width="1.5" PointX="7.75" PointY="3.75" />
+        <EntityTypeShape EntityType="FntModel.CWTTitleOfficerName" Width="1.5" PointX="7.75" PointY="6.75" />
+        <EntityTypeShape EntityType="FntModel.UserCrn" Width="1.5" PointX="9.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FntModel.Audit" Width="1.5" PointX="8" PointY="17.125" />
+        <AssociationConnector Association="FntModel.FK_Audits_CRN" />
+        <AssociationConnector Association="FntModel.FK_AuditDocuments_Audits" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

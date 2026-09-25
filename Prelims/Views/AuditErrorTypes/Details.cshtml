@@ -1,0 +1,38 @@
+@model Prelims.AuditErrorType
+
+@{
+    ViewBag.PageTitle = "Error Type - DETAILS";
+}
+
+<div>
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsCritical)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsCritical)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AuditErrorCategory.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AuditErrorCategory.Name)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

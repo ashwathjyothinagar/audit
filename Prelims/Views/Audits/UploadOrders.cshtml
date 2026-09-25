@@ -1,0 +1,82 @@
+@model Prelims.Controllers.OrderUploadViewModel
+
+@{
+    ViewBag.PageTitle = "UPLOAD";
+}
+<div>
+    @using (Html.BeginForm("UploadOrders", "Audits", FormMethod.Post, new { enctype = "multipart/form-data", name = "productionForm", id = "productionForm" }))
+    {
+
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Excel
+        </div>
+        <div class="col-lg-4">
+            <div class="form-group">
+                <div class="col-md-12">
+                    <input type="file" name="file" id="file" class="form-control col-md-2" multiple="multiple" />
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <input type="submit" id="submitButton" value="Upload" class="btn btn-primary" />
+            <a href="@Url.Action("DownloadSampleExcel", "Audits" )" class="btn-link">Download Sample</a>
+
+        </div>
+
+        <div class="col-lg-2">
+            @if (Model.Items != null && !Model.AnyErrors)
+            {
+            @Html.ActionLink("Save", "SaveUploadedOrders", new { }, new { @class = "btn btn-success" })
+            }
+        </div>
+    </div>
+
+
+    if (Model.Items != null)
+    {
+    <div id="uploadOrdersTable">
+        <table class="table table-striped">
+            <tr>
+                <th>
+                    Message
+                </th>
+                <th>
+                    Customer
+                </th>
+                <th>
+                    Order Number
+                </th>
+                <th>
+                    Date Time
+                </th>
+
+            </tr>
+
+            @foreach (var item in Model.Items)
+            {
+            <tr>
+                <td>
+                    @item.Message
+                </td>
+                <td>
+                    @item.Customer
+                </td>
+                <td>
+                    @item.OrderNumber
+                </td>
+                <td>
+                    @item.ReceivedDateTime
+                </td>
+            </tr>
+            }
+
+        </table>
+    </div>
+    }
+
+    }
+</div>
+
+
+@ViewBag.ValidationErrors

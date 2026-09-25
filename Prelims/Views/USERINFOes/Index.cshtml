@@ -1,0 +1,129 @@
+﻿@model IEnumerable<Prelims.USERINFO>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.USERNAME)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FULLNAME)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.PASSWORD)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FIRSTNAME)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LASTNAME)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.VENDORID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CUSTOMERID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ROLEID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DT_ADDED)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LOGINDATE)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ISACTIVE)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EMAIL)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.USERTYPE)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ASSIGNCUSTOMER)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ISDELETED)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ISREVIEWER)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsSupportingServicesReviewer)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.USERNAME)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FULLNAME)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.PASSWORD)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FIRSTNAME)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.LASTNAME)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.VENDORID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CUSTOMERID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ROLEID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.DT_ADDED)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.LOGINDATE)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ISACTIVE)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.EMAIL)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.USERTYPE)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ASSIGNCUSTOMER)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ISDELETED)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ISREVIEWER)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.IsSupportingServicesReviewer)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.USERID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.USERID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.USERID })
+        </td>
+    </tr>
+}
+
+</table>

@@ -1,0 +1,60 @@
+﻿@using Newtonsoft.Json;
+
+<!--
+    This control requires following details and it should be passed through ViewBag properties
+
+    ViewBag.OfficeGroups - List of office groups.
+    ViewBag.Crns - List of CRNs (Refer TitleOrder Index screen)
+    ViewBag.GroupName - Selected Group Name
+    ViewBag.CrnId.SelectedValue = Selected CRN
+
+-->
+<div>
+    <select id="groupName" name="groupName" class="form-control" style="width: 48%; float: left; margin-right: 2px; ">
+        <option value="">Select Office Group</option>
+        @foreach (var group in ViewBag.OfficeGroups as List<string>)
+        {
+            <option value="@group">@group</option>
+        }
+    </select>
+    <select id="CrnId" name="CrnId" class="form-control" style="width: 50%; ">
+        <option value="">Select Office</option>
+    </select>
+</div>
+
+<script>
+        var officeData = @Html.Raw(JsonConvert.SerializeObject(ViewBag.Crns));
+        var officeGroupDropdown = document.getElementById('groupName');
+        var officeNameDropdown = document.getElementById('CrnId');
+        var viewBagGroupName = "@ViewBag.GroupName";
+        var viewBagCrnId = "@ViewBag.CrnId.SelectedValue";
+
+        if (viewBagGroupName) {
+            officeGroupDropdown.value = viewBagGroupName;
+            setCrns(viewBagGroupName);
+            officeNameDropdown.value = viewBagCrnId;
+        }
+
+        officeGroupDropdown.addEventListener('change', function () {
+            setCrns(this.value);
+        });
+
+        function setCrns(groupId) {
+            if (groupId) {
+                var offices = officeData.filter(function (group) {
+                    return group.GroupName == groupId;
+                });
+
+                officeNameDropdown.innerHTML = '<option value="">Select Office</option>';
+                offices.forEach(function (office) {
+                    var option = document.createElement('option');
+                    option.text = office.CRNNAME;
+                    option.value = office.CRNID;
+                    officeNameDropdown.appendChild(option);
+                });
+            } else {
+                officeNameDropdown.innerHTML = '<option value="">Select Office</option>';
+            }
+        }
+
+</script>

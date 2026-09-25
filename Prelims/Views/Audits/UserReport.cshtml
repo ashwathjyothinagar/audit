@@ -1,0 +1,212 @@
+﻿@model List<Prelims.Models.UserReportViewModel>
+@{
+    ViewBag.PageTitle = "USER REPORT";
+}
+<style>
+    .office-multiselect {
+        border: 1px solid #f3f3f3;
+        padding: 10px;
+        max-width: 300px;
+        overflow-y: auto;
+        max-height: 300px;
+    }
+
+    .group {
+        margin-bottom: 10px;
+    }
+
+        .group label {
+            font-weight: bold;
+        }
+
+    .options {
+        margin-left: 20px;
+    }
+</style>
+
+
+<form name="searchForm">
+    <div ng-controller="UserReportController as $ctrl">
+        <input type="hidden" value="" name="startDateTime" id="startDateTime" />
+        <input type="hidden" value="" name="endDateTime" id="endDateTime" />
+
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">Start Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="startDate" id="startDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.userFilter.startDate" ng-click="$ctrl.openStartPopup()" is-open="$ctrl.startOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="searchForm.startDate.$touched && searchForm.startDate.$error.required">Start Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" id="CrnId1" name="CrnId1" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.startDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" id="CrnId2" name="CrnId2" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.startDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">End Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="endDate" id="endDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.userFilter.endDate" ng-click="$ctrl.openEndPopup()" is-open="$ctrl.endOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="searchForm.endDate.$touched &&searchForm.endDate.$error.required">End Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" id="CrnId3" name="CrnId3" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.endDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" id="CrnId4" name="CrnId4" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.endDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="LOCATION">Location</label>
+                            <div class="col-md-10">
+                                <select name="LOCATION" id="LOCATION" class="form-control" ng-model="$ctrl.userFilter.location">
+                                    <option value="">ALL</option>
+                                    <option value="BANGALORE">BANGALORE</option>
+                                    <option value="CHENNAI">CHENNAI</option>
+                                    <option value="HOSPET">HOSPET</option>
+                                    <option value="VENDOR">VENDOR</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <input type="hidden" id="SelectedOffices" name="SelectedOffices" />
+                            <label class="control-label col-md-2" for="BranchCity">Office Name</label>
+                            <div class="col-md-5">
+                                <div id="office-multiselect" class="office-multiselect">
+                                    @foreach (var group in ((List<CRN>
+                                        )ViewBag.Offices).GroupBy(x => x.GroupName))
+                                    {
+                                        <div class="group">
+                                            <label>
+                                                <input type="checkbox" class="group-checkbox" data-group="@group.Key.Replace(" ", " ")">
+                                                @group.Key
+                                            </label>
+                                            <div class="options">
+                                                @foreach (var office in group)
+                                                {
+                                                    <label><input type="checkbox" class="office-checkbox" data-group="@group.Key.Replace(" ", " ")" value="@office.CRNID"> @office.CRNNAME</label>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="SenderId"></label>
+                            <div class="col-md-10">
+                                <input type="button" class="btn btn-success" ng-click="$ctrl.loadReport()" value="Search" ng-disabled="!searchForm.$valid" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2"></div>
+        </div>
+        <div class="row" style="padding-top: 10px;">
+            <div class="col-lg-12" id="userReportTable">
+                <table class="table table-condensed">
+                    <tr>
+                        <th>
+
+                        </th>
+                        <th>
+
+                        </th>
+                        <th colspan="3" style="text-align:center;">
+                            Processing
+                        </th>
+                        <th colspan="3" style="text-align:center;">QC</th>
+                        <th colspan="3" style="text-align:center;">
+                            Delivery
+                            <div class="pull-right">
+                                <i class="fa fa-file-excel-o exportToExcelButton" table-id="userReportTable" title="Export to Excel" aria-hidden="true" file-name="User Report"></i>
+                            </div>
+
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>
+                            User Name
+                        </th>
+                        <th>
+                            Location
+                        </th>
+
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Other</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Other</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Other</th>
+                    </tr>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @item.UserName
+                            </td>
+                            <td>
+                                @item.Location
+                            </td>
+
+                            <td style="text-align:center;">
+                                @item.ProcessingUpdatesCount
+                            </td>
+                            <td style="text-align:center;">@item.ProcessingDatedownsCount</td>
+                            <td style="text-align:center;">@item.ProcessingOtherCount</td>
+                            <td style="text-align:center;">@item.QCUpdatesCount</td>
+                            <td style="text-align:center;">@item.QCDatedownsCount</td>
+                            <td style="text-align:center;">@item.QCOtherCount</td>
+                            <td style="text-align:center;">@item.DeliveryUpdatesCount</td>
+                            <td style="text-align:center;">@item.DeliveryDatedownsCount</td>
+                            <td style="text-align:center;">@item.DeliveryOtherCount</td>
+                        </tr>
+
+                    }
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+    <datalist id="locations">
+        <option value="BANGALORE">
+        <option value="CHENNAI">
+        <option value="HOSPET">
+        <option value="VENDOR">
+    </datalist>
+</form>
+
+
+

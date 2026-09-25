@@ -1,0 +1,118 @@
+@model IEnumerable<Prelims.Audit>
+
+@{
+    ViewBag.PageTitle = "Uploaded Orders";
+}
+<form name="searchForm">
+    <div ng-controller="CompleteReportController as $ctrl">
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">Start Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="startDate" id="startDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.startDate" ng-click="$ctrl.openStartPopup()" is-open="$ctrl.startOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="searchForm.startDate.$touched && searchForm.startDate.$error.required">Start Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.startDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.startDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">End Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="endDate" id="endDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.endDate" ng-click="$ctrl.openEndPopup()" is-open="$ctrl.endOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="searchForm.endDate.$touched &&searchForm.endDate.$error.required">End Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.endDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.endDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="SenderId"></label>
+                            <div class="col-md-10">
+                                <input type="button" class="btn btn-success" ng-click="$ctrl.loadReport()" value="Search" ng-disabled="!searchForm.$valid" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2"></div>
+        </div>
+        <div class="row" ng-if="$ctrl.CompletedOrders.length > 0" style="padding-top: 10px;">
+            <div class="col-lg-12">
+                <table class="table table-striped">
+                    <tr>
+                        <th>
+                            Sl. No.
+                        </th>
+                        <th>
+                            Order No
+                        </th>
+                        <th>
+                            Office Name
+                        </th>
+                        <th>
+                            Order Type
+                        </th>
+                        <th>
+                            Uploaded By
+                        </th>
+                        <th>
+                            Recieved Time
+                        </th>
+                        <th>
+                            Uploaded Time
+                        </th>
+                    </tr>
+                    <tr ng-repeat="order in $ctrl.CompletedOrders">
+                        <td>
+                            {{order.SerialNumber}}
+                        </td>
+                        <td>
+                            {{order.OrderNo}}
+                        </td>
+                        <td>
+                            {{order.OfficeName}}
+                        </td>
+                        <td>
+                            {{order.OrderType}}
+                        </td>
+                        <td>
+                            {{order.UploadedBy}}
+                        </td>
+                        <td>
+                            {{order.RecievedDateTime}}
+                        </td>
+                        <td>
+                            {{order.UploadDateTime}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</form>
+

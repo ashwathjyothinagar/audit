@@ -1,0 +1,57 @@
+@model Prelims.AuditCheck
+
+@{
+    ViewBag.PageTitle = "CHECKS - DETAILS";
+}
+
+
+<div>
+    <h4>Check</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            Name
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            Task
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TaskId)
+        </dd>
+
+        <dt>
+            Office
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OfficeId)
+        </dd>
+
+        <dt>
+            Order Number Series
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OrderNumberSeries)
+        </dd>
+
+        <dt>
+            Check Values
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CheckValues)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,63 @@
+@model Prelims.Audit
+@{
+    ViewBag.Title = "Reject";
+    ViewBag.PageTitle = "REJECT";
+}
+
+@if (ViewBag.ValidationErrors != null)
+{
+    @ViewBag.ValidationErrors
+}
+
+@using (Html.BeginForm())
+{
+    @Html.HiddenFor(model => model.Id)
+    <div ng-controller="AuditRejectController as $ctrl">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="row production-row">
+
+            <div class="col-lg-2 production-label">
+                Order No
+            </div>
+            <div class="col-lg-2">
+                @Html.DisplayFor(model => model.OrderNo)
+            </div>
+        </div>
+        <div class="row production-row">
+
+            <div class="col-lg-2 production-label">
+
+            </div>
+            <div class="col-lg-4">
+                <select class="form-control" ng-model="$ctrl.drpReason" ng-change="$ctrl.onReasonChange()">
+                    <option value="">--Please select--</option>
+                    <option ng-repeat="option in $ctrl.rejectReasons" value="{{option.Name}}">{{option.Name}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="row production-row">
+            <div class="col-lg-2 production-label">
+                Reject Reason
+            </div>
+
+            <div class="col-lg-4">
+                <textarea class="form-control col-md-2 text-box multi-line" data-val="true"
+                          data-val-length="The field Updates must be a string with a maximum length of 1000."
+                          data-val-length-max="1000"
+                          id="RejectReason"
+                          ng-model="$ctrl.rejectReason"
+                          name="RejectReason"></textarea>
+            </div>
+        </div>
+        <div class="row production-row">
+            <div class="col-lg-2 production-label">
+            </div>
+
+            <div class="col-lg-4">
+                <input type="submit" value="Reject" class="btn btn-danger" />
+            </div>
+        </div>
+
+    </div>
+}

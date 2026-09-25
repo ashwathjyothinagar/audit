@@ -1,0 +1,2066 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="FntModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="AuditCheckCrns">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditCheckId" Type="int" Nullable="false" />
+          <Property Name="CrnId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditChecks">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="TaskId" Type="int" />
+          <Property Name="OfficeId" Type="int" />
+          <Property Name="OrderNumberSeries" Type="nvarchar" MaxLength="1000" />
+          <Property Name="AuditCheckValues" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="AuditCheckTasks">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditCheckId" Type="int" Nullable="false" />
+          <Property Name="TaskId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditCheckValues">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditCheckId" Type="int" Nullable="false" />
+          <Property Name="TitleOrderId" Type="int" Nullable="false" />
+          <Property Name="AuditCheckValue" Type="nvarchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditDocuments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+          <Property Name="DocumentPath" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="FileName" Type="nvarchar" MaxLength="500" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditErrorCategories">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditErrorJson">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="OrderErrorJson" Type="varchar(max)" Nullable="false" />
+          <Property Name="TaskId" Type="int" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditErrorTypes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="AuditErrorCategoryId" Type="int" Nullable="false" />
+          <Property Name="IsCritical" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditHoldReasons">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="1000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditHolds">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+          <Property Name="AuditTaskId" Type="int" Nullable="false" />
+          <Property Name="HoldBy" Type="int" Nullable="false" />
+          <Property Name="HoldDateTime" Type="datetime" Nullable="false" />
+          <Property Name="HoldRelievedBy" Type="int" />
+          <Property Name="HoldRelivedDateTime" Type="datetime" />
+          <Property Name="Comment" Type="varchar" MaxLength="1000" />
+        </EntityType>
+        <EntityType Name="AuditRejectReasons">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="1000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditRejects">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+          <Property Name="RejectedBy" Type="int" Nullable="false" />
+          <Property Name="RejectedDateTime" Type="datetime" Nullable="false" />
+          <Property Name="AcceptedBy" Type="int" />
+          <Property Name="AcceptedDateTime" Type="datetime" />
+          <Property Name="Reason" Type="varchar" MaxLength="1000" />
+        </EntityType>
+        <EntityType Name="AuditRequestTypes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Audits">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="OrderNo" Type="varchar" MaxLength="200" Nullable="false" />
+          <Property Name="OwnerNames" Type="varchar" MaxLength="300" />
+          <Property Name="PropertyAddress" Type="varchar" MaxLength="1000" />
+          <Property Name="APNNo" Type="varchar" MaxLength="200" />
+          <Property Name="RequestTypeId" Type="int" Nullable="false" />
+          <Property Name="StatusId" Type="int" Nullable="false" />
+          <Property Name="TaskId" Type="int" Nullable="false" />
+          <Property Name="SenderId" Type="int" />
+          <Property Name="CrnId" Type="int" Nullable="false" />
+          <Property Name="RequestedByEmailId" Type="varchar" MaxLength="500" />
+          <Property Name="ClientInstructions" Type="varchar(max)" />
+          <Property Name="CheckOwnerSearchCount" Type="int" />
+          <Property Name="CheckDirectHitUploaded" Type="bit" />
+          <Property Name="UploadDateTime" Type="datetime" />
+          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="UserCreated" Type="int" />
+          <Property Name="DateModified" Type="datetime" />
+          <Property Name="UserModified" Type="int" />
+          <Property Name="IsQcRequired" Type="bit" />
+          <Property Name="EffectiveDateChanged" Type="bit" />
+          <Property Name="AnyChangeInVesting" Type="bit" />
+          <Property Name="AnyUpdateOnTaxInformation" Type="bit" />
+          <Property Name="AnyUpdateOnNewPIDocs" Type="bit" />
+          <Property Name="AnyUpdateOnNewGIDocs" Type="bit" />
+          <Property Name="DidYouReviewTwentyFourMonthChainOfTitle" Type="bit" />
+          <Property Name="DidYouUploadPrelimAndSPToSmartView" Type="bit" />
+          <Property Name="DidYouSendCompletionEmailToClient" Type="bit" />
+          <Property Name="County" Type="nvarchar" MaxLength="300" />
+          <Property Name="IsRushOrder" Type="bit" Nullable="false" />
+          <Property Name="RushOrderComments" Type="varchar" MaxLength="1000" />
+          <Property Name="UserAssigned" Type="int" />
+          <Property Name="OrderMovementComments" Type="varchar" MaxLength="2000" />
+          <Property Name="ReasonToAccept" Type="varchar" MaxLength="2000" />
+          <Property Name="ReasonToAcceptCompletedOrder" Type="varchar" MaxLength="2000" />
+          <Property Name="CWLTTitleOfficeName" Type="varchar" MaxLength="1000" />
+          <Property Name="CWLTTitleOfficerName" Type="varchar" MaxLength="1000" />
+          <Property Name="AnyPostingFoundInPIGI" Type="bit" />
+          <Property Name="AmendmentDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="AuditSenders">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="EmailAddress" Type="varchar" MaxLength="200" Nullable="false" />
+          <Property Name="CrnId" Type="int" Nullable="false" />
+          <Property Name="AttachmentRequired" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditStatuses">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="200" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditTasks">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="200" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditTimeEntries">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+          <Property Name="AuditTaskId" Type="int" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="StartTime" Type="datetime" Nullable="false" />
+          <Property Name="EndTime" Type="datetime" />
+          <Property Name="IsInprogress" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditUpdates">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AuditId" Type="int" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="AuditTaskId" Type="int" Nullable="false" />
+          <Property Name="Updates" Type="varchar" MaxLength="1000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CRN">
+          <Key>
+            <PropertyRef Name="CRNID" />
+          </Key>
+          <Property Name="CRNID" Type="int" Nullable="false" />
+          <Property Name="CRNNAME" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="CRNNO" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="DESCP" Type="varchar" MaxLength="500" />
+          <Property Name="FTPADDRESS" Type="nvarchar" MaxLength="50" />
+          <Property Name="USERNAME" Type="nvarchar" MaxLength="50" />
+          <Property Name="PASSWORD" Type="nvarchar" MaxLength="50" />
+          <Property Name="DESTINATIONPATH" Type="nvarchar" MaxLength="200" />
+          <Property Name="SOURCEPATH" Type="nvarchar" MaxLength="200" />
+          <Property Name="LOCALPATH" Type="nvarchar" MaxLength="200" />
+          <Property Name="MAILTO" Type="nvarchar" MaxLength="500" />
+          <Property Name="MAILCC" Type="nvarchar" MaxLength="500" />
+          <Property Name="MAILBCC" Type="nvarchar" MaxLength="500" />
+          <Property Name="ALERTDURATION" Type="int" />
+          <Property Name="ORDERSTATUSDURATION" Type="int" />
+          <Property Name="MAILTOFORREJECT" Type="nvarchar" MaxLength="500" />
+          <Property Name="MAILCCFORREJECT" Type="nvarchar" MaxLength="500" />
+          <Property Name="AUTODOWNLOADSTATUS" Type="varchar" MaxLength="1" />
+          <Property Name="CRNDISPLAYNAME" Type="varchar" MaxLength="500" />
+          <Property Name="PolicyKeyDisplayName" Type="varchar" MaxLength="1000" />
+          <Property Name="PayoffDisplayName" Type="varchar" MaxLength="1000" />
+          <Property Name="GroupName" Type="nvarchar" MaxLength="1000" />
+          <Property Name="IsVisibleInMainApplication" Type="bit" />
+          <Property Name="LegalVerificationEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="LegalVerificationEmailCCAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="NoOpenDOTEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="NoOpenDOTCCEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="PropertyTypeEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="PropertyTypeCCEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="EasementsEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="EasementsCCEmailAddress" Type="nvarchar" MaxLength="500" />
+          <Property Name="HoldCCEmailAddresses" Type="varchar" MaxLength="500" />
+          <Property Name="HoldToEmailAddresses" Type="varchar" MaxLength="500" />
+          <Property Name="RejectCCEmailAddresses" Type="varchar" MaxLength="500" />
+          <Property Name="RejectToEmailAddresses" Type="varchar" MaxLength="500" />
+          <Property Name="HoldEmailTo" Type="nvarchar(max)" />
+          <Property Name="RejectEmailTo" Type="nvarchar(max)" />
+          <Property Name="HoldEmailToOct" Type="nvarchar(max)" />
+          <Property Name="HoldEmailCcOct" Type="nvarchar(max)" />
+          <Property Name="ErrorEmailTo" Type="nvarchar(max)" />
+          <Property Name="CourtOrderEmailTo" Type="nvarchar(max)" />
+          <Property Name="DailyProductionEmailTo" Type="nvarchar(max)" />
+          <Property Name="ForeclosureOrderEmailTo" Type="nvarchar(max)" />
+          <Property Name="CttoxnardCc" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="CWTRequestedOffices">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="2000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CWTTitleOfficerNames">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="2000" Nullable="false" />
+        </EntityType>
+        <EntityType Name="STATECOUNTY">
+          <Key>
+            <PropertyRef Name="COUNTYID" />
+          </Key>
+          <Property Name="COUNTYID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="STATE" Type="varchar" MaxLength="2" Nullable="false" />
+          <Property Name="SEQ" Type="int" />
+          <Property Name="COUNTYNAME" Type="varchar" MaxLength="50" />
+          <Property Name="TaxURL" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="UserCrns">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="CrnId" />
+          </Key>
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="CrnId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UserFilters">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FilerCode" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="FilterJson" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="USERINFO">
+          <Key>
+            <PropertyRef Name="USERID" />
+          </Key>
+          <Property Name="USERID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="USERNAME" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FULLNAME" Type="varchar" MaxLength="50" />
+          <Property Name="PASSWORD" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FIRSTNAME" Type="varchar" MaxLength="50" />
+          <Property Name="LASTNAME" Type="varchar" MaxLength="50" />
+          <Property Name="VENDORID" Type="int" />
+          <Property Name="CUSTOMERID" Type="int" />
+          <Property Name="ROLEID" Type="int" Nullable="false" />
+          <Property Name="DT_ADDED" Type="datetime" />
+          <Property Name="LOGINDATE" Type="datetime" />
+          <Property Name="ISACTIVE" Type="tinyint" />
+          <Property Name="EMAIL" Type="nvarchar" MaxLength="50" />
+          <Property Name="USERTYPE" Type="varchar" MaxLength="50" />
+          <Property Name="ASSIGNCUSTOMER" Type="nvarchar" MaxLength="255" />
+          <Property Name="ISDELETED" Type="tinyint" />
+          <Property Name="ISREVIEWER" Type="bit" Nullable="false" />
+          <Property Name="LOCATION" Type="varchar" MaxLength="200" />
+          <Property Name="IsSupportingServicesReviewer" Type="bit" />
+          <Property Name="TitleOrderRoleId" Type="int" />
+          <Property Name="IsAllowedToAccept" Type="bit" Nullable="false" />
+          <Property Name="IsAllowedToChangeOffice" Type="bit" Nullable="false" />
+          <Property Name="IsAllowedToMoveToPreviousTask" Type="bit" Nullable="false" />
+          <Property Name="IsAllowedToChangeOrderType" Type="bit" Nullable="false" />
+          <Property Name="IsAllowedToChangePriority" Type="bit" Nullable="false" />
+          <Property Name="IsAllowedToEditRequiredTasks" Type="bit" Nullable="false" />
+          <Property Name="IsSupportingServicesProcessor" Type="bit" Nullable="false" />
+          <Property Name="IsSupportingServicesReviewerTwo" Type="bit" Nullable="false" />
+          <Property Name="UserLevel" Type="int" Nullable="false" />
+          <Property Name="PrimaryOperationName" Type="varchar" MaxLength="1000" />
+          <Property Name="IsAllowedToViewInprogressOrders" Type="bit" Nullable="false" />
+          <Property Name="ReportingManagerId" Type="int" />
+          <Property Name="EmployeeCode" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="USERROLES">
+          <Key>
+            <PropertyRef Name="RoleID" />
+          </Key>
+          <Property Name="RoleID" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_AuditCheckCrns_AuditChecks">
+          <End Role="AuditChecks" Type="Self.AuditChecks" Multiplicity="1" />
+          <End Role="AuditCheckCrns" Type="Self.AuditCheckCrns" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditChecks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckCrns">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditChecks_CRN">
+          <End Role="CRN" Type="Self.CRN" Multiplicity="0..1" />
+          <End Role="AuditChecks" Type="Self.AuditChecks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="AuditChecks">
+              <PropertyRef Name="OfficeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditCheckTasks_AuditChecks">
+          <End Role="AuditChecks" Type="Self.AuditChecks" Multiplicity="1" />
+          <End Role="AuditCheckTasks" Type="Self.AuditCheckTasks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditChecks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckTasks">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditCheckValues_AuditChecks">
+          <End Role="AuditChecks" Type="Self.AuditChecks" Multiplicity="1" />
+          <End Role="AuditCheckValues" Type="Self.AuditCheckValues" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditChecks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckValues">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditDocuments_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditDocuments" Type="Self.AuditDocuments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditDocuments">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditErrorJson_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditErrorJson" Type="Self.AuditErrorJson" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorJson">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditErrorJson_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTasks" Multiplicity="1" />
+          <End Role="AuditErrorJson" Type="Self.AuditErrorJson" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorJson">
+              <PropertyRef Name="TaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditErrorTypes_AuditErrorCategories">
+          <End Role="AuditErrorCategories" Type="Self.AuditErrorCategories" Multiplicity="1" />
+          <End Role="AuditErrorTypes" Type="Self.AuditErrorTypes" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditErrorCategories">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorTypes">
+              <PropertyRef Name="AuditErrorCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditHolds" Type="Self.AuditHolds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditHolds">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTasks" Multiplicity="1" />
+          <End Role="AuditHolds" Type="Self.AuditHolds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditHolds">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditHolds" Type="Self.AuditHolds" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditHolds">
+              <PropertyRef Name="HoldBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditRejects_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditRejects" Type="Self.AuditRejects" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditRejects">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditRejects_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditRejects" Type="Self.AuditRejects" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditRejects">
+              <PropertyRef Name="RejectedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditRequestTypes">
+          <End Role="AuditRequestTypes" Type="Self.AuditRequestTypes" Multiplicity="1" />
+          <End Role="Audits" Type="Self.Audits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditRequestTypes">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audits">
+              <PropertyRef Name="RequestTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditSenders">
+          <End Role="AuditSenders" Type="Self.AuditSenders" Multiplicity="0..1" />
+          <End Role="Audits" Type="Self.Audits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditSenders">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audits">
+              <PropertyRef Name="SenderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditStatuses">
+          <End Role="AuditStatuses" Type="Self.AuditStatuses" Multiplicity="1" />
+          <End Role="Audits" Type="Self.Audits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditStatuses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audits">
+              <PropertyRef Name="StatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTasks" Multiplicity="1" />
+          <End Role="Audits" Type="Self.Audits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audits">
+              <PropertyRef Name="TaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_CRN">
+          <End Role="CRN" Type="Self.CRN" Multiplicity="1" />
+          <End Role="Audits" Type="Self.Audits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="Audits">
+              <PropertyRef Name="CrnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditSenders_CRN">
+          <End Role="CRN" Type="Self.CRN" Multiplicity="1" />
+          <End Role="AuditSenders" Type="Self.AuditSenders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="AuditSenders">
+              <PropertyRef Name="CrnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntries" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTasks" Multiplicity="1" />
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntries" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_AuditTimeEntries">
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntries" Multiplicity="1" />
+          <End Role="AuditTimeEntries1" Type="Self.AuditTimeEntries" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTimeEntries">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntries" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_Audits">
+          <End Role="Audits" Type="Self.Audits" Multiplicity="1" />
+          <End Role="AuditUpdates" Type="Self.AuditUpdates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audits">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditUpdates">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTasks" Multiplicity="1" />
+          <End Role="AuditUpdates" Type="Self.AuditUpdates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditUpdates">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditUpdates" Type="Self.AuditUpdates" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditUpdates">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserFilters_UserFilters">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="UserFilters" Type="Self.UserFilters" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="UserFilters">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="FntModelStoreContainer">
+          <EntitySet Name="AuditCheckCrns" EntityType="Self.AuditCheckCrns" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditChecks" EntityType="Self.AuditChecks" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditCheckTasks" EntityType="Self.AuditCheckTasks" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditCheckValues" EntityType="Self.AuditCheckValues" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditDocuments" EntityType="Self.AuditDocuments" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditErrorCategories" EntityType="Self.AuditErrorCategories" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditErrorJson" EntityType="Self.AuditErrorJson" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditErrorTypes" EntityType="Self.AuditErrorTypes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditHoldReasons" EntityType="Self.AuditHoldReasons" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditHolds" EntityType="Self.AuditHolds" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditRejectReasons" EntityType="Self.AuditRejectReasons" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditRejects" EntityType="Self.AuditRejects" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditRequestTypes" EntityType="Self.AuditRequestTypes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Audits" EntityType="Self.Audits" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditSenders" EntityType="Self.AuditSenders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditStatuses" EntityType="Self.AuditStatuses" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditTasks" EntityType="Self.AuditTasks" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditTimeEntries" EntityType="Self.AuditTimeEntries" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AuditUpdates" EntityType="Self.AuditUpdates" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CRN" EntityType="Self.CRN" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CWTRequestedOffices" EntityType="Self.CWTRequestedOffices" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CWTTitleOfficerNames" EntityType="Self.CWTTitleOfficerNames" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="STATECOUNTY" EntityType="Self.STATECOUNTY" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserCrns" EntityType="Self.UserCrns" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserFilters" EntityType="Self.UserFilters" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="USERINFO" EntityType="Self.USERINFO" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="USERROLES" EntityType="Self.USERROLES" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_AuditCheckCrns_AuditChecks" Association="Self.FK_AuditCheckCrns_AuditChecks">
+            <End Role="AuditChecks" EntitySet="AuditChecks" />
+            <End Role="AuditCheckCrns" EntitySet="AuditCheckCrns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditChecks_CRN" Association="Self.FK_AuditChecks_CRN">
+            <End Role="CRN" EntitySet="CRN" />
+            <End Role="AuditChecks" EntitySet="AuditChecks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditCheckTasks_AuditChecks" Association="Self.FK_AuditCheckTasks_AuditChecks">
+            <End Role="AuditChecks" EntitySet="AuditChecks" />
+            <End Role="AuditCheckTasks" EntitySet="AuditCheckTasks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditCheckValues_AuditChecks" Association="Self.FK_AuditCheckValues_AuditChecks">
+            <End Role="AuditChecks" EntitySet="AuditChecks" />
+            <End Role="AuditCheckValues" EntitySet="AuditCheckValues" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditDocuments_Audits" Association="Self.FK_AuditDocuments_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditDocuments" EntitySet="AuditDocuments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditErrorJson_Audits" Association="Self.FK_AuditErrorJson_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditErrorJson" EntitySet="AuditErrorJson" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditErrorJson_AuditTasks" Association="Self.FK_AuditErrorJson_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditErrorJson" EntitySet="AuditErrorJson" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditErrorTypes_AuditErrorCategories" Association="Self.FK_AuditErrorTypes_AuditErrorCategories">
+            <End Role="AuditErrorCategories" EntitySet="AuditErrorCategories" />
+            <End Role="AuditErrorTypes" EntitySet="AuditErrorTypes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_Audits" Association="Self.FK_AuditHolds_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditHolds" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_AuditTasks" Association="Self.FK_AuditHolds_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditHolds" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_USERINFO" Association="Self.FK_AuditHolds_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFO" />
+            <End Role="AuditHolds" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditRejects_Audits" Association="Self.FK_AuditRejects_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditRejects" EntitySet="AuditRejects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditRejects_USERINFO" Association="Self.FK_AuditRejects_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFO" />
+            <End Role="AuditRejects" EntitySet="AuditRejects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditRequestTypes" Association="Self.FK_Audits_AuditRequestTypes">
+            <End Role="AuditRequestTypes" EntitySet="AuditRequestTypes" />
+            <End Role="Audits" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditSenders" Association="Self.FK_Audits_AuditSenders">
+            <End Role="AuditSenders" EntitySet="AuditSenders" />
+            <End Role="Audits" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditStatuses" Association="Self.FK_Audits_AuditStatuses">
+            <End Role="AuditStatuses" EntitySet="AuditStatuses" />
+            <End Role="Audits" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditTasks" Association="Self.FK_Audits_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="Audits" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_CRN" Association="Self.FK_Audits_CRN">
+            <End Role="CRN" EntitySet="CRN" />
+            <End Role="Audits" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditSenders_CRN" Association="Self.FK_AuditSenders_CRN">
+            <End Role="CRN" EntitySet="CRN" />
+            <End Role="AuditSenders" EntitySet="AuditSenders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_Audits" Association="Self.FK_AuditTimeEntries_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_AuditTasks" Association="Self.FK_AuditTimeEntries_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_AuditTimeEntries" Association="Self.FK_AuditTimeEntries_AuditTimeEntries">
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+            <End Role="AuditTimeEntries1" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_USERINFO" Association="Self.FK_AuditTimeEntries_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFO" />
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_Audits" Association="Self.FK_AuditUpdates_Audits">
+            <End Role="Audits" EntitySet="Audits" />
+            <End Role="AuditUpdates" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_AuditTasks" Association="Self.FK_AuditUpdates_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditUpdates" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_USERINFO" Association="Self.FK_AuditUpdates_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFO" />
+            <End Role="AuditUpdates" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserFilters_UserFilters" Association="Self.FK_UserFilters_UserFilters">
+            <End Role="USERINFO" EntitySet="USERINFO" />
+            <End Role="UserFilters" EntitySet="UserFilters" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="FntModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="CRN">
+          <Key>
+            <PropertyRef Name="CRNID" />
+          </Key>
+          <Property Name="CRNID" Type="Int32" Nullable="false" />
+          <Property Name="CRNNAME" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CRNNO" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DESCP" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="FTPADDRESS" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="USERNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PASSWORD" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="DESTINATIONPATH" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="SOURCEPATH" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="LOCALPATH" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="MAILTO" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="MAILCC" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="MAILBCC" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ALERTDURATION" Type="Int32" />
+          <Property Name="ORDERSTATUSDURATION" Type="Int32" />
+          <Property Name="MAILTOFORREJECT" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="MAILCCFORREJECT" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="AUTODOWNLOADSTATUS" Type="String" MaxLength="1" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditSenders" Relationship="Self.FK_AuditSenders_CRN" FromRole="CRN" ToRole="AuditSenders" />
+          <NavigationProperty Name="Audits" Relationship="FntModel.FK_Audits_CRN" FromRole="CRN" ToRole="Audit" />
+          <Property Name="CRNDISPLAYNAME" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="PolicyKeyDisplayName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="PayoffDisplayName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="GroupName" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="IsVisibleInMainApplication" Type="Boolean" />
+          <Property Name="LegalVerificationEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="LegalVerificationEmailCCAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="NoOpenDOTEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="NoOpenDOTCCEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="PropertyTypeEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="PropertyTypeCCEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="EasementsEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="EasementsCCEmailAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HoldCCEmailAddresses" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="HoldToEmailAddresses" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="RejectCCEmailAddresses" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="RejectToEmailAddresses" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditChecks" Relationship="FntModel.FK_AuditChecks_CRN" FromRole="CRN" ToRole="AuditCheck" />
+          <Property Name="HoldEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="RejectEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HoldEmailToOct" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HoldEmailCcOct" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ErrorEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CourtOrderEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="DailyProductionEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ForeclosureOrderEmailTo" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CttoxnardCc" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="AuditDocument">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <Property Name="DocumentPath" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="FileName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditDocuments_Audits" FromRole="AuditDocument" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditHoldReason">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditHold">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <Property Name="AuditTaskId" Type="Int32" Nullable="false" />
+          <Property Name="HoldBy" Type="Int32" Nullable="false" />
+          <Property Name="HoldDateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="HoldRelievedBy" Type="Int32" />
+          <Property Name="HoldRelivedDateTime" Type="DateTime" Precision="3" />
+          <Property Name="Comment" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditTask" Relationship="Self.FK_AuditHolds_AuditTasks" FromRole="AuditHolds" ToRole="AuditTasks" />
+          <NavigationProperty Name="USERINFO" Relationship="Self.FK_AuditHolds_USERINFO" FromRole="AuditHolds" ToRole="USERINFO" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditHolds_Audits" FromRole="AuditHold" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditRejectReason">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="AuditReject">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <Property Name="RejectedBy" Type="Int32" Nullable="false" />
+          <Property Name="RejectedDateTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AcceptedBy" Type="Int32" />
+          <Property Name="AcceptedDateTime" Type="DateTime" Precision="3" />
+          <Property Name="Reason" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="USERINFO" Relationship="Self.FK_AuditRejects_USERINFO" FromRole="AuditRejects" ToRole="USERINFO" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditRejects_Audits" FromRole="AuditReject" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditRequestType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Audits" Relationship="FntModel.FK_Audits_AuditRequestTypes" FromRole="AuditRequestType" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditSender">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="EmailAddress" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CrnId" Type="Int32" Nullable="false" />
+          <Property Name="AttachmentRequired" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="CRN" Relationship="Self.FK_AuditSenders_CRN" FromRole="AuditSenders" ToRole="CRN" />
+          <NavigationProperty Name="Audits" Relationship="FntModel.FK_Audits_AuditSenders" FromRole="AuditSender" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditStatus">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Audits" Relationship="FntModel.FK_Audits_AuditStatuses" FromRole="AuditStatus" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="AuditHolds" Relationship="Self.FK_AuditHolds_AuditTasks" FromRole="AuditTasks" ToRole="AuditHolds" />
+          <NavigationProperty Name="AuditTimeEntries" Relationship="Self.FK_AuditTimeEntries_AuditTasks" FromRole="AuditTasks" ToRole="AuditTimeEntries" />
+          <NavigationProperty Name="AuditUpdates" Relationship="Self.FK_AuditUpdates_AuditTasks" FromRole="AuditTasks" ToRole="AuditUpdates" />
+          <NavigationProperty Name="Audits" Relationship="FntModel.FK_Audits_AuditTasks" FromRole="AuditTask" ToRole="Audit" />
+          <NavigationProperty Name="AuditErrorJsons" Relationship="FntModel.FK_AuditErrorJson_AuditTasks" FromRole="AuditTask" ToRole="AuditErrorJson" />
+        </EntityType>
+        <EntityType Name="AuditTimeEntry">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <Property Name="AuditTaskId" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="StartTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EndTime" Type="DateTime" Precision="3" />
+          <Property Name="IsInprogress" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="AuditTask" Relationship="Self.FK_AuditTimeEntries_AuditTasks" FromRole="AuditTimeEntries" ToRole="AuditTasks" />
+          <NavigationProperty Name="AuditTimeEntries1" Relationship="Self.FK_AuditTimeEntries_AuditTimeEntries" FromRole="AuditTimeEntries" ToRole="AuditTimeEntries1" />
+          <NavigationProperty Name="AuditTimeEntry1" Relationship="Self.FK_AuditTimeEntries_AuditTimeEntries" FromRole="AuditTimeEntries1" ToRole="AuditTimeEntries" />
+          <NavigationProperty Name="USERINFO" Relationship="Self.FK_AuditTimeEntries_USERINFO" FromRole="AuditTimeEntries" ToRole="USERINFO" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditTimeEntries_Audits" FromRole="AuditTimeEntry" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="AuditUpdate">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="AuditTaskId" Type="Int32" Nullable="false" />
+          <Property Name="Updates" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="AuditTask" Relationship="Self.FK_AuditUpdates_AuditTasks" FromRole="AuditUpdates" ToRole="AuditTasks" />
+          <NavigationProperty Name="USERINFO" Relationship="Self.FK_AuditUpdates_USERINFO" FromRole="AuditUpdates" ToRole="USERINFO" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditUpdates_Audits" FromRole="AuditUpdate" ToRole="Audit" />
+        </EntityType>
+        <EntityType Name="UserFilter">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FilerCode" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="FilterJson" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="USERINFO" Relationship="Self.FK_UserFilters_UserFilters" FromRole="UserFilters" ToRole="USERINFO" />
+        </EntityType>
+        <EntityType Name="USERINFO">
+          <Key>
+            <PropertyRef Name="USERID" />
+          </Key>
+          <Property Name="USERID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="USERNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="FULLNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="PASSWORD" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="FIRSTNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LASTNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="VENDORID" Type="Int32" />
+          <Property Name="CUSTOMERID" Type="Int32" />
+          <Property Name="ROLEID" Type="Int32" Nullable="false" />
+          <Property Name="DT_ADDED" Type="DateTime" Precision="3" />
+          <Property Name="LOGINDATE" Type="DateTime" Precision="3" />
+          <Property Name="ISACTIVE" Type="Byte" />
+          <Property Name="EMAIL" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="USERTYPE" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ASSIGNCUSTOMER" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="ISDELETED" Type="Byte" />
+          <Property Name="ISREVIEWER" Type="Boolean" Nullable="false" />
+          <Property Name="IsSupportingServicesReviewer" Type="Boolean" />
+          <Property Name="LOCATION" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditHolds" Relationship="Self.FK_AuditHolds_USERINFO" FromRole="USERINFO" ToRole="AuditHolds" />
+          <NavigationProperty Name="AuditRejects" Relationship="Self.FK_AuditRejects_USERINFO" FromRole="USERINFO" ToRole="AuditRejects" />
+          <NavigationProperty Name="AuditTimeEntries" Relationship="Self.FK_AuditTimeEntries_USERINFO" FromRole="USERINFO" ToRole="AuditTimeEntries" />
+          <NavigationProperty Name="AuditUpdates" Relationship="Self.FK_AuditUpdates_USERINFO" FromRole="USERINFO" ToRole="AuditUpdates" />
+          <NavigationProperty Name="UserFilters" Relationship="Self.FK_UserFilters_UserFilters" FromRole="USERINFO" ToRole="UserFilters" />
+          <Property Name="TitleOrderRoleId" Type="Int32" />
+          <Property Name="IsAllowedToAccept" Type="Boolean" Nullable="false" />
+          <Property Name="IsAllowedToChangeOffice" Type="Boolean" Nullable="false" />
+          <Property Name="IsAllowedToMoveToPreviousTask" Type="Boolean" Nullable="false" />
+          <Property Name="IsAllowedToChangeOrderType" Type="Boolean" Nullable="false" />
+          <Property Name="IsAllowedToChangePriority" Type="Boolean" Nullable="false" />
+          <Property Name="IsAllowedToEditRequiredTasks" Type="Boolean" Nullable="false" />
+          <Property Name="IsSupportingServicesReviewerTwo" Type="Boolean" Nullable="false" />
+          <Property Name="IsSupportingServicesProcessor" Type="Boolean" Nullable="false" />
+          <Property Name="UserLevel" Type="Int32" Nullable="false" />
+          <Property Name="PrimaryOperationName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="IsAllowedToViewInprogressOrders" Type="Boolean" Nullable="false" />
+          <Property Name="ReportingManagerId" Type="Int32" />
+          <Property Name="EmployeeCode" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="USERROLE">
+          <Key>
+            <PropertyRef Name="RoleID" />
+          </Key>
+          <Property Name="RoleID" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_AuditSenders_CRN">
+          <End Role="CRN" Type="Self.CRN" Multiplicity="1" />
+          <End Role="AuditSenders" Type="Self.AuditSender" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="AuditSenders">
+              <PropertyRef Name="CrnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTask" Multiplicity="1" />
+          <End Role="AuditHolds" Type="Self.AuditHold" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditHolds">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditHolds" Type="Self.AuditHold" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditHolds">
+              <PropertyRef Name="HoldBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditRejects_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditRejects" Type="Self.AuditReject" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditRejects">
+              <PropertyRef Name="RejectedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTask" Multiplicity="1" />
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntry" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_AuditTasks">
+          <End Role="AuditTasks" Type="Self.AuditTask" Multiplicity="1" />
+          <End Role="AuditUpdates" Type="Self.AuditUpdate" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTasks">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditUpdates">
+              <PropertyRef Name="AuditTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_AuditTimeEntries">
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntry" Multiplicity="1" />
+          <End Role="AuditTimeEntries1" Type="Self.AuditTimeEntry" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTimeEntries">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditTimeEntries" Type="Self.AuditTimeEntry" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditTimeEntries">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_USERINFO">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="AuditUpdates" Type="Self.AuditUpdate" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="AuditUpdates">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_UserFilters_UserFilters">
+          <End Role="USERINFO" Type="Self.USERINFO" Multiplicity="1" />
+          <End Role="UserFilters" Type="Self.UserFilter" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERINFO">
+              <PropertyRef Name="USERID" />
+            </Principal>
+            <Dependent Role="UserFilters">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="FntEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="CRNs" EntityType="Self.CRN" />
+          <EntitySet Name="AuditDocuments" EntityType="Self.AuditDocument" />
+          <EntitySet Name="AuditHoldReasons" EntityType="Self.AuditHoldReason" />
+          <EntitySet Name="AuditHolds" EntityType="Self.AuditHold" />
+          <EntitySet Name="AuditRejectReasons" EntityType="Self.AuditRejectReason" />
+          <EntitySet Name="AuditRejects" EntityType="Self.AuditReject" />
+          <EntitySet Name="AuditRequestTypes" EntityType="Self.AuditRequestType" />
+          <EntitySet Name="AuditSenders" EntityType="Self.AuditSender" />
+          <EntitySet Name="AuditStatuses" EntityType="Self.AuditStatus" />
+          <EntitySet Name="AuditTasks" EntityType="Self.AuditTask" />
+          <EntitySet Name="AuditTimeEntries" EntityType="Self.AuditTimeEntry" />
+          <EntitySet Name="AuditUpdates" EntityType="Self.AuditUpdate" />
+          <EntitySet Name="UserFilters" EntityType="Self.UserFilter" />
+          <EntitySet Name="USERINFOes" EntityType="Self.USERINFO" />
+          <EntitySet Name="USERROLES" EntityType="Self.USERROLE" />
+          <AssociationSet Name="FK_AuditSenders_CRN" Association="Self.FK_AuditSenders_CRN">
+            <End Role="CRN" EntitySet="CRNs" />
+            <End Role="AuditSenders" EntitySet="AuditSenders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_AuditTasks" Association="Self.FK_AuditHolds_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditHolds" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_USERINFO" Association="Self.FK_AuditHolds_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFOes" />
+            <End Role="AuditHolds" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditRejects_USERINFO" Association="Self.FK_AuditRejects_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFOes" />
+            <End Role="AuditRejects" EntitySet="AuditRejects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_AuditTasks" Association="Self.FK_AuditTimeEntries_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_AuditTasks" Association="Self.FK_AuditUpdates_AuditTasks">
+            <End Role="AuditTasks" EntitySet="AuditTasks" />
+            <End Role="AuditUpdates" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_AuditTimeEntries" Association="Self.FK_AuditTimeEntries_AuditTimeEntries">
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+            <End Role="AuditTimeEntries1" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_USERINFO" Association="Self.FK_AuditTimeEntries_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFOes" />
+            <End Role="AuditTimeEntries" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_USERINFO" Association="Self.FK_AuditUpdates_USERINFO">
+            <End Role="USERINFO" EntitySet="USERINFOes" />
+            <End Role="AuditUpdates" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <AssociationSet Name="FK_UserFilters_UserFilters" Association="Self.FK_UserFilters_UserFilters">
+            <End Role="USERINFO" EntitySet="USERINFOes" />
+            <End Role="UserFilters" EntitySet="UserFilters" />
+          </AssociationSet>
+          <EntitySet Name="Audits" EntityType="FntModel.Audit" />
+          <AssociationSet Name="FK_Audits_CRN" Association="FntModel.FK_Audits_CRN">
+            <End Role="CRN" EntitySet="CRNs" />
+            <End Role="Audit" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditDocuments_Audits" Association="FntModel.FK_AuditDocuments_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditDocument" EntitySet="AuditDocuments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditHolds_Audits" Association="FntModel.FK_AuditHolds_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditHold" EntitySet="AuditHolds" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditRejects_Audits" Association="FntModel.FK_AuditRejects_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditReject" EntitySet="AuditRejects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditRequestTypes" Association="FntModel.FK_Audits_AuditRequestTypes">
+            <End Role="AuditRequestType" EntitySet="AuditRequestTypes" />
+            <End Role="Audit" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditSenders" Association="FntModel.FK_Audits_AuditSenders">
+            <End Role="AuditSender" EntitySet="AuditSenders" />
+            <End Role="Audit" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditStatuses" Association="FntModel.FK_Audits_AuditStatuses">
+            <End Role="AuditStatus" EntitySet="AuditStatuses" />
+            <End Role="Audit" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Audits_AuditTasks" Association="FntModel.FK_Audits_AuditTasks">
+            <End Role="AuditTask" EntitySet="AuditTasks" />
+            <End Role="Audit" EntitySet="Audits" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditTimeEntries_Audits" Association="FntModel.FK_AuditTimeEntries_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditTimeEntry" EntitySet="AuditTimeEntries" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditUpdates_Audits" Association="FntModel.FK_AuditUpdates_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditUpdate" EntitySet="AuditUpdates" />
+          </AssociationSet>
+          <EntitySet Name="STATECOUNTies" EntityType="FntModel.STATECOUNTY" />
+          <EntitySet Name="AuditErrorCategories" EntityType="FntModel.AuditErrorCategory" />
+          <EntitySet Name="AuditErrorJsons" EntityType="FntModel.AuditErrorJson" />
+          <EntitySet Name="AuditErrorTypes" EntityType="FntModel.AuditErrorType" />
+          <AssociationSet Name="FK_AuditErrorTypes_AuditErrorCategories" Association="FntModel.FK_AuditErrorTypes_AuditErrorCategories">
+            <End Role="AuditErrorCategory" EntitySet="AuditErrorCategories" />
+            <End Role="AuditErrorType" EntitySet="AuditErrorTypes" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditErrorJson_Audits" Association="FntModel.FK_AuditErrorJson_Audits">
+            <End Role="Audit" EntitySet="Audits" />
+            <End Role="AuditErrorJson" EntitySet="AuditErrorJsons" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditErrorJson_AuditTasks" Association="FntModel.FK_AuditErrorJson_AuditTasks">
+            <End Role="AuditTask" EntitySet="AuditTasks" />
+            <End Role="AuditErrorJson" EntitySet="AuditErrorJsons" />
+          </AssociationSet>
+          <EntitySet Name="AuditCheckCrns" EntityType="FntModel.AuditCheckCrn" />
+          <EntitySet Name="AuditChecks" EntityType="FntModel.AuditCheck" />
+          <EntitySet Name="AuditCheckTasks" EntityType="FntModel.AuditCheckTask" />
+          <EntitySet Name="AuditCheckValues" EntityType="FntModel.AuditCheckValue" />
+          <AssociationSet Name="FK_AuditChecks_CRN" Association="FntModel.FK_AuditChecks_CRN">
+            <End Role="CRN" EntitySet="CRNs" />
+            <End Role="AuditCheck" EntitySet="AuditChecks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditCheckCrns_AuditChecks" Association="FntModel.FK_AuditCheckCrns_AuditChecks">
+            <End Role="AuditCheck" EntitySet="AuditChecks" />
+            <End Role="AuditCheckCrn" EntitySet="AuditCheckCrns" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditCheckTasks_AuditChecks" Association="FntModel.FK_AuditCheckTasks_AuditChecks">
+            <End Role="AuditCheck" EntitySet="AuditChecks" />
+            <End Role="AuditCheckTask" EntitySet="AuditCheckTasks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AuditCheckValues_AuditChecks" Association="FntModel.FK_AuditCheckValues_AuditChecks">
+            <End Role="AuditCheck" EntitySet="AuditChecks" />
+            <End Role="AuditCheckValue" EntitySet="AuditCheckValues" />
+          </AssociationSet>
+          <EntitySet Name="CWTRequestedOffices" EntityType="FntModel.CWTRequestedOffice" />
+          <EntitySet Name="CWTTitleOfficerNames" EntityType="FntModel.CWTTitleOfficerName" />
+          <EntitySet Name="UserCrns" EntityType="FntModel.UserCrn" />
+        </EntityContainer>
+        <EntityType Name="Audit">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OrderNo" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="OwnerNames" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="PropertyAddress" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="APNNo" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="RequestTypeId" Type="Int32" Nullable="false" />
+          <Property Name="StatusId" Type="Int32" Nullable="false" />
+          <Property Name="TaskId" Type="Int32" Nullable="false" />
+          <Property Name="SenderId" Type="Int32" />
+          <Property Name="CrnId" Type="Int32" Nullable="false" />
+          <Property Name="RequestedByEmailId" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="ClientInstructions" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="CheckOwnerSearchCount" Type="Int32" />
+          <Property Name="CheckDirectHitUploaded" Type="Boolean" />
+          <Property Name="UploadDateTime" Type="DateTime" Precision="3" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="UserCreated" Type="Int32" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="UserModified" Type="Int32" />
+          <Property Name="IsQcRequired" Type="Boolean" />
+          <Property Name="EffectiveDateChanged" Type="Boolean" />
+          <Property Name="AnyChangeInVesting" Type="Boolean" />
+          <Property Name="AnyUpdateOnTaxInformation" Type="Boolean" />
+          <Property Name="AnyUpdateOnNewPIDocs" Type="Boolean" />
+          <Property Name="AnyUpdateOnNewGIDocs" Type="Boolean" />
+          <NavigationProperty Name="CRN" Relationship="FntModel.FK_Audits_CRN" FromRole="Audit" ToRole="CRN" />
+          <NavigationProperty Name="AuditDocuments" Relationship="FntModel.FK_AuditDocuments_Audits" FromRole="Audit" ToRole="AuditDocument" />
+          <NavigationProperty Name="AuditHolds" Relationship="FntModel.FK_AuditHolds_Audits" FromRole="Audit" ToRole="AuditHold" />
+          <NavigationProperty Name="AuditRejects" Relationship="FntModel.FK_AuditRejects_Audits" FromRole="Audit" ToRole="AuditReject" />
+          <NavigationProperty Name="AuditRequestType" Relationship="FntModel.FK_Audits_AuditRequestTypes" FromRole="Audit" ToRole="AuditRequestType" />
+          <NavigationProperty Name="AuditSender" Relationship="FntModel.FK_Audits_AuditSenders" FromRole="Audit" ToRole="AuditSender" />
+          <NavigationProperty Name="AuditStatus" Relationship="FntModel.FK_Audits_AuditStatuses" FromRole="Audit" ToRole="AuditStatus" />
+          <NavigationProperty Name="AuditTask" Relationship="FntModel.FK_Audits_AuditTasks" FromRole="Audit" ToRole="AuditTask" />
+          <NavigationProperty Name="AuditTimeEntries" Relationship="FntModel.FK_AuditTimeEntries_Audits" FromRole="Audit" ToRole="AuditTimeEntry" />
+          <NavigationProperty Name="AuditUpdates" Relationship="FntModel.FK_AuditUpdates_Audits" FromRole="Audit" ToRole="AuditUpdate" />
+          <Property Name="DidYouReviewTwentyFourMonthChainOfTitle" Type="Boolean" />
+          <Property Name="DidYouUploadPrelimAndSPToSmartView" Type="Boolean" />
+          <Property Name="DidYouSendCompletionEmailToClient" Type="Boolean" />
+          <Property Name="County" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="IsRushOrder" Type="Boolean" Nullable="false" />
+          <Property Name="RushOrderComments" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="UserAssigned" Type="Int32" />
+          <Property Name="OrderMovementComments" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="ReasonToAccept" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <Property Name="ReasonToAcceptCompletedOrder" Type="String" MaxLength="2000" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditErrorJsons" Relationship="FntModel.FK_AuditErrorJson_Audits" FromRole="Audit" ToRole="AuditErrorJson" />
+          <Property Name="CWLTTitleOfficeName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="CWLTTitleOfficerName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="AnyPostingFoundInPIGI" Type="Boolean" />
+          <Property Name="AmendmentDate" Type="DateTime" Precision="3" />
+        </EntityType>
+        <Association Name="FK_Audits_CRN">
+          <End Type="FntModel.CRN" Role="CRN" Multiplicity="1" />
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="Audit">
+              <PropertyRef Name="CrnId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditDocuments_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditDocument" Role="AuditDocument" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditDocument">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditHolds_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditHold" Role="AuditHold" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditHold">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditRejects_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditReject" Role="AuditReject" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditReject">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditRequestTypes">
+          <End Type="FntModel.AuditRequestType" Role="AuditRequestType" Multiplicity="1" />
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditRequestType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audit">
+              <PropertyRef Name="RequestTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditSenders">
+          <End Type="FntModel.AuditSender" Role="AuditSender" Multiplicity="0..1" />
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditSender">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audit">
+              <PropertyRef Name="SenderId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditStatuses">
+          <End Type="FntModel.AuditStatus" Role="AuditStatus" Multiplicity="1" />
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditStatus">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audit">
+              <PropertyRef Name="StatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Audits_AuditTasks">
+          <End Type="FntModel.AuditTask" Role="AuditTask" Multiplicity="1" />
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Audit">
+              <PropertyRef Name="TaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditTimeEntries_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditTimeEntry" Role="AuditTimeEntry" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditTimeEntry">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditUpdates_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditUpdate" Role="AuditUpdate" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditUpdate">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="STATECOUNTY">
+          <Key>
+            <PropertyRef Name="COUNTYID" />
+          </Key>
+          <Property Name="COUNTYID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="STATE" Type="String" Nullable="false" MaxLength="2" FixedLength="false" Unicode="false" />
+          <Property Name="SEQ" Type="Int32" />
+          <Property Name="COUNTYNAME" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TaxURL" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="AuditErrorCategory">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AuditErrorTypes" Relationship="FntModel.FK_AuditErrorTypes_AuditErrorCategories" FromRole="AuditErrorCategory" ToRole="AuditErrorType" />
+        </EntityType>
+        <EntityType Name="AuditErrorJson">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OrderErrorJson" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="TaskId" Type="Int32" Nullable="false" />
+          <Property Name="AuditId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Audit" Relationship="FntModel.FK_AuditErrorJson_Audits" FromRole="AuditErrorJson" ToRole="Audit" />
+          <NavigationProperty Name="AuditTask" Relationship="FntModel.FK_AuditErrorJson_AuditTasks" FromRole="AuditErrorJson" ToRole="AuditTask" />
+        </EntityType>
+        <EntityType Name="AuditErrorType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="AuditErrorCategoryId" Type="Int32" Nullable="false" />
+          <Property Name="IsCritical" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="AuditErrorCategory" Relationship="FntModel.FK_AuditErrorTypes_AuditErrorCategories" FromRole="AuditErrorType" ToRole="AuditErrorCategory" />
+        </EntityType>
+        <Association Name="FK_AuditErrorTypes_AuditErrorCategories">
+          <End Type="FntModel.AuditErrorCategory" Role="AuditErrorCategory" Multiplicity="1" />
+          <End Type="FntModel.AuditErrorType" Role="AuditErrorType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditErrorCategory">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorType">
+              <PropertyRef Name="AuditErrorCategoryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditErrorJson_Audits">
+          <End Type="FntModel.Audit" Role="Audit" Multiplicity="1" />
+          <End Type="FntModel.AuditErrorJson" Role="AuditErrorJson" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Audit">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorJson">
+              <PropertyRef Name="AuditId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditErrorJson_AuditTasks">
+          <End Type="FntModel.AuditTask" Role="AuditTask" Multiplicity="1" />
+          <End Type="FntModel.AuditErrorJson" Role="AuditErrorJson" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditErrorJson">
+              <PropertyRef Name="TaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AuditCheckCrn">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditCheckId" Type="Int32" Nullable="false" />
+          <Property Name="CrnId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="AuditCheck" Relationship="FntModel.FK_AuditCheckCrns_AuditChecks" FromRole="AuditCheckCrn" ToRole="AuditCheck" />
+        </EntityType>
+        <EntityType Name="AuditCheck">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="TaskId" Type="Int32" />
+          <Property Name="OfficeId" Type="Int32" />
+          <Property Name="OrderNumberSeries" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="AuditCheckValues" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="CRN" Relationship="FntModel.FK_AuditChecks_CRN" FromRole="AuditCheck" ToRole="CRN" />
+          <NavigationProperty Name="AuditCheckCrns" Relationship="FntModel.FK_AuditCheckCrns_AuditChecks" FromRole="AuditCheck" ToRole="AuditCheckCrn" />
+          <NavigationProperty Name="AuditCheckTasks" Relationship="FntModel.FK_AuditCheckTasks_AuditChecks" FromRole="AuditCheck" ToRole="AuditCheckTask" />
+          <NavigationProperty Name="AuditCheckValues1" Relationship="FntModel.FK_AuditCheckValues_AuditChecks" FromRole="AuditCheck" ToRole="AuditCheckValue" />
+        </EntityType>
+        <EntityType Name="AuditCheckTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditCheckId" Type="Int32" Nullable="false" />
+          <Property Name="TaskId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="AuditCheck" Relationship="FntModel.FK_AuditCheckTasks_AuditChecks" FromRole="AuditCheckTask" ToRole="AuditCheck" />
+        </EntityType>
+        <EntityType Name="AuditCheckValue">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AuditCheckId" Type="Int32" Nullable="false" />
+          <Property Name="TitleOrderId" Type="Int32" Nullable="false" />
+          <Property Name="AuditCheckValue1" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="AuditCheck" Relationship="FntModel.FK_AuditCheckValues_AuditChecks" FromRole="AuditCheckValue" ToRole="AuditCheck" />
+        </EntityType>
+        <Association Name="FK_AuditChecks_CRN">
+          <End Type="FntModel.CRN" Role="CRN" Multiplicity="0..1" />
+          <End Type="FntModel.AuditCheck" Role="AuditCheck" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CRN">
+              <PropertyRef Name="CRNID" />
+            </Principal>
+            <Dependent Role="AuditCheck">
+              <PropertyRef Name="OfficeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditCheckCrns_AuditChecks">
+          <End Type="FntModel.AuditCheck" Role="AuditCheck" Multiplicity="1" />
+          <End Type="FntModel.AuditCheckCrn" Role="AuditCheckCrn" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditCheck">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckCrn">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditCheckTasks_AuditChecks">
+          <End Type="FntModel.AuditCheck" Role="AuditCheck" Multiplicity="1" />
+          <End Type="FntModel.AuditCheckTask" Role="AuditCheckTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditCheck">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckTask">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AuditCheckValues_AuditChecks">
+          <End Type="FntModel.AuditCheck" Role="AuditCheck" Multiplicity="1" />
+          <End Type="FntModel.AuditCheckValue" Role="AuditCheckValue" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AuditCheck">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AuditCheckValue">
+              <PropertyRef Name="AuditCheckId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="CWTRequestedOffice">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="2000" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="CWTTitleOfficerName">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="2000" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="UserCrn">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="CrnId" />
+          </Key>
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="CrnId" Type="Int32" Nullable="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="FntModelStoreContainer" CdmEntityContainer="FntEntities">
+          <EntitySetMapping Name="CRNs">
+            <EntityTypeMapping TypeName="FntModel.CRN">
+              <MappingFragment StoreEntitySet="CRN">
+                <ScalarProperty Name="CttoxnardCc" ColumnName="CttoxnardCc" />
+                <ScalarProperty Name="ForeclosureOrderEmailTo" ColumnName="ForeclosureOrderEmailTo" />
+                <ScalarProperty Name="DailyProductionEmailTo" ColumnName="DailyProductionEmailTo" />
+                <ScalarProperty Name="CourtOrderEmailTo" ColumnName="CourtOrderEmailTo" />
+                <ScalarProperty Name="ErrorEmailTo" ColumnName="ErrorEmailTo" />
+                <ScalarProperty Name="HoldEmailCcOct" ColumnName="HoldEmailCcOct" />
+                <ScalarProperty Name="HoldEmailToOct" ColumnName="HoldEmailToOct" />
+                <ScalarProperty Name="RejectEmailTo" ColumnName="RejectEmailTo" />
+                <ScalarProperty Name="HoldEmailTo" ColumnName="HoldEmailTo" />
+                <ScalarProperty Name="RejectToEmailAddresses" ColumnName="RejectToEmailAddresses" />
+                <ScalarProperty Name="RejectCCEmailAddresses" ColumnName="RejectCCEmailAddresses" />
+                <ScalarProperty Name="HoldToEmailAddresses" ColumnName="HoldToEmailAddresses" />
+                <ScalarProperty Name="HoldCCEmailAddresses" ColumnName="HoldCCEmailAddresses" />
+                <ScalarProperty Name="EasementsCCEmailAddress" ColumnName="EasementsCCEmailAddress" />
+                <ScalarProperty Name="EasementsEmailAddress" ColumnName="EasementsEmailAddress" />
+                <ScalarProperty Name="PropertyTypeCCEmailAddress" ColumnName="PropertyTypeCCEmailAddress" />
+                <ScalarProperty Name="PropertyTypeEmailAddress" ColumnName="PropertyTypeEmailAddress" />
+                <ScalarProperty Name="NoOpenDOTCCEmailAddress" ColumnName="NoOpenDOTCCEmailAddress" />
+                <ScalarProperty Name="NoOpenDOTEmailAddress" ColumnName="NoOpenDOTEmailAddress" />
+                <ScalarProperty Name="LegalVerificationEmailCCAddress" ColumnName="LegalVerificationEmailCCAddress" />
+                <ScalarProperty Name="LegalVerificationEmailAddress" ColumnName="LegalVerificationEmailAddress" />
+                <ScalarProperty Name="IsVisibleInMainApplication" ColumnName="IsVisibleInMainApplication" />
+                <ScalarProperty Name="GroupName" ColumnName="GroupName" />
+                <ScalarProperty Name="PayoffDisplayName" ColumnName="PayoffDisplayName" />
+                <ScalarProperty Name="PolicyKeyDisplayName" ColumnName="PolicyKeyDisplayName" />
+                <ScalarProperty Name="CRNDISPLAYNAME" ColumnName="CRNDISPLAYNAME" />
+                <ScalarProperty Name="CRNID" ColumnName="CRNID" />
+                <ScalarProperty Name="CRNNAME" ColumnName="CRNNAME" />
+                <ScalarProperty Name="CRNNO" ColumnName="CRNNO" />
+                <ScalarProperty Name="DESCP" ColumnName="DESCP" />
+                <ScalarProperty Name="FTPADDRESS" ColumnName="FTPADDRESS" />
+                <ScalarProperty Name="USERNAME" ColumnName="USERNAME" />
+                <ScalarProperty Name="PASSWORD" ColumnName="PASSWORD" />
+                <ScalarProperty Name="DESTINATIONPATH" ColumnName="DESTINATIONPATH" />
+                <ScalarProperty Name="SOURCEPATH" ColumnName="SOURCEPATH" />
+                <ScalarProperty Name="LOCALPATH" ColumnName="LOCALPATH" />
+                <ScalarProperty Name="MAILTO" ColumnName="MAILTO" />
+                <ScalarProperty Name="MAILCC" ColumnName="MAILCC" />
+                <ScalarProperty Name="MAILBCC" ColumnName="MAILBCC" />
+                <ScalarProperty Name="ALERTDURATION" ColumnName="ALERTDURATION" />
+                <ScalarProperty Name="ORDERSTATUSDURATION" ColumnName="ORDERSTATUSDURATION" />
+                <ScalarProperty Name="MAILTOFORREJECT" ColumnName="MAILTOFORREJECT" />
+                <ScalarProperty Name="MAILCCFORREJECT" ColumnName="MAILCCFORREJECT" />
+                <ScalarProperty Name="AUTODOWNLOADSTATUS" ColumnName="AUTODOWNLOADSTATUS" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditDocuments">
+            <EntityTypeMapping TypeName="FntModel.AuditDocument">
+              <MappingFragment StoreEntitySet="AuditDocuments">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="DocumentPath" ColumnName="DocumentPath" />
+                <ScalarProperty Name="FileName" ColumnName="FileName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditHoldReasons">
+            <EntityTypeMapping TypeName="FntModel.AuditHoldReason">
+              <MappingFragment StoreEntitySet="AuditHoldReasons">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditHolds">
+            <EntityTypeMapping TypeName="FntModel.AuditHold">
+              <MappingFragment StoreEntitySet="AuditHolds">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="AuditTaskId" ColumnName="AuditTaskId" />
+                <ScalarProperty Name="HoldBy" ColumnName="HoldBy" />
+                <ScalarProperty Name="HoldDateTime" ColumnName="HoldDateTime" />
+                <ScalarProperty Name="HoldRelievedBy" ColumnName="HoldRelievedBy" />
+                <ScalarProperty Name="HoldRelivedDateTime" ColumnName="HoldRelivedDateTime" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditRejectReasons">
+            <EntityTypeMapping TypeName="FntModel.AuditRejectReason">
+              <MappingFragment StoreEntitySet="AuditRejectReasons">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditRejects">
+            <EntityTypeMapping TypeName="FntModel.AuditReject">
+              <MappingFragment StoreEntitySet="AuditRejects">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="RejectedBy" ColumnName="RejectedBy" />
+                <ScalarProperty Name="RejectedDateTime" ColumnName="RejectedDateTime" />
+                <ScalarProperty Name="AcceptedBy" ColumnName="AcceptedBy" />
+                <ScalarProperty Name="AcceptedDateTime" ColumnName="AcceptedDateTime" />
+                <ScalarProperty Name="Reason" ColumnName="Reason" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditRequestTypes">
+            <EntityTypeMapping TypeName="FntModel.AuditRequestType">
+              <MappingFragment StoreEntitySet="AuditRequestTypes">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditSenders">
+            <EntityTypeMapping TypeName="FntModel.AuditSender">
+              <MappingFragment StoreEntitySet="AuditSenders">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="EmailAddress" ColumnName="EmailAddress" />
+                <ScalarProperty Name="CrnId" ColumnName="CrnId" />
+                <ScalarProperty Name="AttachmentRequired" ColumnName="AttachmentRequired" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditStatuses">
+            <EntityTypeMapping TypeName="FntModel.AuditStatus">
+              <MappingFragment StoreEntitySet="AuditStatuses">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditTasks">
+            <EntityTypeMapping TypeName="FntModel.AuditTask">
+              <MappingFragment StoreEntitySet="AuditTasks">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditTimeEntries">
+            <EntityTypeMapping TypeName="FntModel.AuditTimeEntry">
+              <MappingFragment StoreEntitySet="AuditTimeEntries">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="AuditTaskId" ColumnName="AuditTaskId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+                <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+                <ScalarProperty Name="IsInprogress" ColumnName="IsInprogress" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditUpdates">
+            <EntityTypeMapping TypeName="FntModel.AuditUpdate">
+              <MappingFragment StoreEntitySet="AuditUpdates">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="AuditTaskId" ColumnName="AuditTaskId" />
+                <ScalarProperty Name="Updates" ColumnName="Updates" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserFilters">
+            <EntityTypeMapping TypeName="FntModel.UserFilter">
+              <MappingFragment StoreEntitySet="UserFilters">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="FilerCode" ColumnName="FilerCode" />
+                <ScalarProperty Name="FilterJson" ColumnName="FilterJson" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="USERINFOes">
+            <EntityTypeMapping TypeName="FntModel.USERINFO">
+              <MappingFragment StoreEntitySet="USERINFO">
+                <ScalarProperty Name="EmployeeCode" ColumnName="EmployeeCode" />
+                <ScalarProperty Name="ReportingManagerId" ColumnName="ReportingManagerId" />
+                <ScalarProperty Name="IsAllowedToViewInprogressOrders" ColumnName="IsAllowedToViewInprogressOrders" />
+                <ScalarProperty Name="PrimaryOperationName" ColumnName="PrimaryOperationName" />
+                <ScalarProperty Name="UserLevel" ColumnName="UserLevel" />
+                <ScalarProperty Name="IsSupportingServicesProcessor" ColumnName="IsSupportingServicesProcessor" />
+                <ScalarProperty Name="IsSupportingServicesReviewerTwo" ColumnName="IsSupportingServicesReviewerTwo" />
+                <ScalarProperty Name="IsAllowedToEditRequiredTasks" ColumnName="IsAllowedToEditRequiredTasks" />
+                <ScalarProperty Name="IsAllowedToChangePriority" ColumnName="IsAllowedToChangePriority" />
+                <ScalarProperty Name="IsAllowedToChangeOrderType" ColumnName="IsAllowedToChangeOrderType" />
+                <ScalarProperty Name="IsAllowedToMoveToPreviousTask" ColumnName="IsAllowedToMoveToPreviousTask" />
+                <ScalarProperty Name="IsAllowedToChangeOffice" ColumnName="IsAllowedToChangeOffice" />
+                <ScalarProperty Name="IsAllowedToAccept" ColumnName="IsAllowedToAccept" />
+                <ScalarProperty Name="TitleOrderRoleId" ColumnName="TitleOrderRoleId" />
+                <ScalarProperty Name="USERID" ColumnName="USERID" />
+                <ScalarProperty Name="USERNAME" ColumnName="USERNAME" />
+                <ScalarProperty Name="FULLNAME" ColumnName="FULLNAME" />
+                <ScalarProperty Name="PASSWORD" ColumnName="PASSWORD" />
+                <ScalarProperty Name="FIRSTNAME" ColumnName="FIRSTNAME" />
+                <ScalarProperty Name="LASTNAME" ColumnName="LASTNAME" />
+                <ScalarProperty Name="VENDORID" ColumnName="VENDORID" />
+                <ScalarProperty Name="CUSTOMERID" ColumnName="CUSTOMERID" />
+                <ScalarProperty Name="ROLEID" ColumnName="ROLEID" />
+                <ScalarProperty Name="DT_ADDED" ColumnName="DT_ADDED" />
+                <ScalarProperty Name="LOGINDATE" ColumnName="LOGINDATE" />
+                <ScalarProperty Name="ISACTIVE" ColumnName="ISACTIVE" />
+                <ScalarProperty Name="EMAIL" ColumnName="EMAIL" />
+                <ScalarProperty Name="USERTYPE" ColumnName="USERTYPE" />
+                <ScalarProperty Name="ASSIGNCUSTOMER" ColumnName="ASSIGNCUSTOMER" />
+                <ScalarProperty Name="ISDELETED" ColumnName="ISDELETED" />
+                <ScalarProperty Name="ISREVIEWER" ColumnName="ISREVIEWER" />
+                <ScalarProperty Name="IsSupportingServicesReviewer" ColumnName="IsSupportingServicesReviewer" />
+                <ScalarProperty Name="LOCATION" ColumnName="LOCATION" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="USERROLES">
+            <EntityTypeMapping TypeName="FntModel.USERROLE">
+              <MappingFragment StoreEntitySet="USERROLES">
+                <ScalarProperty Name="RoleID" ColumnName="RoleID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Audits">
+            <EntityTypeMapping TypeName="FntModel.Audit">
+              <MappingFragment StoreEntitySet="Audits">
+                <ScalarProperty Name="AmendmentDate" ColumnName="AmendmentDate" />
+                <ScalarProperty Name="AnyPostingFoundInPIGI" ColumnName="AnyPostingFoundInPIGI" />
+                <ScalarProperty Name="CWLTTitleOfficerName" ColumnName="CWLTTitleOfficerName" />
+                <ScalarProperty Name="CWLTTitleOfficeName" ColumnName="CWLTTitleOfficeName" />
+                <ScalarProperty Name="ReasonToAcceptCompletedOrder" ColumnName="ReasonToAcceptCompletedOrder" />
+                <ScalarProperty Name="ReasonToAccept" ColumnName="ReasonToAccept" />
+                <ScalarProperty Name="OrderMovementComments" ColumnName="OrderMovementComments" />
+                <ScalarProperty Name="UserAssigned" ColumnName="UserAssigned" />
+                <ScalarProperty Name="RushOrderComments" ColumnName="RushOrderComments" />
+                <ScalarProperty Name="IsRushOrder" ColumnName="IsRushOrder" />
+                <ScalarProperty Name="County" ColumnName="County" />
+                <ScalarProperty Name="DidYouSendCompletionEmailToClient" ColumnName="DidYouSendCompletionEmailToClient" />
+                <ScalarProperty Name="DidYouUploadPrelimAndSPToSmartView" ColumnName="DidYouUploadPrelimAndSPToSmartView" />
+                <ScalarProperty Name="DidYouReviewTwentyFourMonthChainOfTitle" ColumnName="DidYouReviewTwentyFourMonthChainOfTitle" />
+                <ScalarProperty Name="AnyUpdateOnNewGIDocs" ColumnName="AnyUpdateOnNewGIDocs" />
+                <ScalarProperty Name="AnyUpdateOnNewPIDocs" ColumnName="AnyUpdateOnNewPIDocs" />
+                <ScalarProperty Name="AnyUpdateOnTaxInformation" ColumnName="AnyUpdateOnTaxInformation" />
+                <ScalarProperty Name="AnyChangeInVesting" ColumnName="AnyChangeInVesting" />
+                <ScalarProperty Name="EffectiveDateChanged" ColumnName="EffectiveDateChanged" />
+                <ScalarProperty Name="IsQcRequired" ColumnName="IsQcRequired" />
+                <ScalarProperty Name="UserModified" ColumnName="UserModified" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="UserCreated" ColumnName="UserCreated" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="UploadDateTime" ColumnName="UploadDateTime" />
+                <ScalarProperty Name="CheckDirectHitUploaded" ColumnName="CheckDirectHitUploaded" />
+                <ScalarProperty Name="CheckOwnerSearchCount" ColumnName="CheckOwnerSearchCount" />
+                <ScalarProperty Name="ClientInstructions" ColumnName="ClientInstructions" />
+                <ScalarProperty Name="RequestedByEmailId" ColumnName="RequestedByEmailId" />
+                <ScalarProperty Name="CrnId" ColumnName="CrnId" />
+                <ScalarProperty Name="SenderId" ColumnName="SenderId" />
+                <ScalarProperty Name="TaskId" ColumnName="TaskId" />
+                <ScalarProperty Name="StatusId" ColumnName="StatusId" />
+                <ScalarProperty Name="RequestTypeId" ColumnName="RequestTypeId" />
+                <ScalarProperty Name="APNNo" ColumnName="APNNo" />
+                <ScalarProperty Name="PropertyAddress" ColumnName="PropertyAddress" />
+                <ScalarProperty Name="OwnerNames" ColumnName="OwnerNames" />
+                <ScalarProperty Name="OrderNo" ColumnName="OrderNo" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="STATECOUNTies">
+            <EntityTypeMapping TypeName="FntModel.STATECOUNTY">
+              <MappingFragment StoreEntitySet="STATECOUNTY">
+                <ScalarProperty Name="TaxURL" ColumnName="TaxURL" />
+                <ScalarProperty Name="COUNTYNAME" ColumnName="COUNTYNAME" />
+                <ScalarProperty Name="SEQ" ColumnName="SEQ" />
+                <ScalarProperty Name="STATE" ColumnName="STATE" />
+                <ScalarProperty Name="COUNTYID" ColumnName="COUNTYID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditErrorCategories">
+            <EntityTypeMapping TypeName="FntModel.AuditErrorCategory">
+              <MappingFragment StoreEntitySet="AuditErrorCategories">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditErrorJsons">
+            <EntityTypeMapping TypeName="FntModel.AuditErrorJson">
+              <MappingFragment StoreEntitySet="AuditErrorJson">
+                <ScalarProperty Name="AuditId" ColumnName="AuditId" />
+                <ScalarProperty Name="TaskId" ColumnName="TaskId" />
+                <ScalarProperty Name="OrderErrorJson" ColumnName="OrderErrorJson" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditErrorTypes">
+            <EntityTypeMapping TypeName="FntModel.AuditErrorType">
+              <MappingFragment StoreEntitySet="AuditErrorTypes">
+                <ScalarProperty Name="IsCritical" ColumnName="IsCritical" />
+                <ScalarProperty Name="AuditErrorCategoryId" ColumnName="AuditErrorCategoryId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditCheckCrns">
+            <EntityTypeMapping TypeName="FntModel.AuditCheckCrn">
+              <MappingFragment StoreEntitySet="AuditCheckCrns">
+                <ScalarProperty Name="CrnId" ColumnName="CrnId" />
+                <ScalarProperty Name="AuditCheckId" ColumnName="AuditCheckId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditChecks">
+            <EntityTypeMapping TypeName="FntModel.AuditCheck">
+              <MappingFragment StoreEntitySet="AuditChecks">
+                <ScalarProperty Name="AuditCheckValues" ColumnName="AuditCheckValues" />
+                <ScalarProperty Name="OrderNumberSeries" ColumnName="OrderNumberSeries" />
+                <ScalarProperty Name="OfficeId" ColumnName="OfficeId" />
+                <ScalarProperty Name="TaskId" ColumnName="TaskId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditCheckTasks">
+            <EntityTypeMapping TypeName="FntModel.AuditCheckTask">
+              <MappingFragment StoreEntitySet="AuditCheckTasks">
+                <ScalarProperty Name="TaskId" ColumnName="TaskId" />
+                <ScalarProperty Name="AuditCheckId" ColumnName="AuditCheckId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AuditCheckValues">
+            <EntityTypeMapping TypeName="FntModel.AuditCheckValue">
+              <MappingFragment StoreEntitySet="AuditCheckValues">
+                <ScalarProperty Name="AuditCheckValue1" ColumnName="AuditCheckValue" />
+                <ScalarProperty Name="TitleOrderId" ColumnName="TitleOrderId" />
+                <ScalarProperty Name="AuditCheckId" ColumnName="AuditCheckId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CWTRequestedOffices">
+            <EntityTypeMapping TypeName="FntModel.CWTRequestedOffice">
+              <MappingFragment StoreEntitySet="CWTRequestedOffices">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CWTTitleOfficerNames">
+            <EntityTypeMapping TypeName="FntModel.CWTTitleOfficerName">
+              <MappingFragment StoreEntitySet="CWTTitleOfficerNames">
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserCrns">
+            <EntityTypeMapping TypeName="FntModel.UserCrn">
+              <MappingFragment StoreEntitySet="UserCrns">
+                <ScalarProperty Name="CrnId" ColumnName="CrnId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

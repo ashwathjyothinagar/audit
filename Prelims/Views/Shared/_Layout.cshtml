@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style type="text/css">
+        .container-full {
+  margin: 0 auto;
+  width: 100%;
+}
+    </style>
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-full">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("FNT UPDATES", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Orders", "Index", "Audits")</li>
+                    <li>@Html.ActionLink("Loading", "Create", "Audits")</li>
+                    <li>@Html.ActionLink("Bulk Loading", "UploadOrders", "Audits")</li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("EOD", "EOD", "Audits")</li>
+                            <li>@Html.ActionLink("Production + QC", "ProductionReport", "Audits")</li>
+                            <li>@Html.ActionLink("Uploaded Orders", "OrderCompleted", "Audits")</li>
+                            <li>@Html.ActionLink("Completed Orders", "OrderCompleted", "Audits")</li>
+                            <li>@Html.ActionLink("User Report", "UserReport", "Audits")</li>
+                            <li>@Html.ActionLink("Hourly Count  Report", "HourTasks", "Audits")</li>
+
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Live Status <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Hold Orders", "HoldOrders", "Audits")</li>
+                            <li>@Html.ActionLink("Rejected Orders", "RejectedOrders", "Audits")</li>
+                            <li>@Html.ActionLink("Task wise Pending", "TaskWisePending", "Audits")</li>
+                            <li>@Html.ActionLink("Rush Orders", "RushOrders", "Audits")</li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Masters <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Product Types", "Index", "AuditRequestTypes")</li>
+                            <li>@Html.ActionLink("Request By", "Index", "AuditSenders")</li>
+                            <li>@Html.ActionLink("Reject Reasons", "Index", "AuditRejectReasons")</li>
+                            <li>@Html.ActionLink("Hold Reasons", "Index", "AuditHoldReasons")</li>
+                            <li>@Html.ActionLink("Error Categories", "Index", "AuditErrorCategories")</li>
+                            <li>@Html.ActionLink("Errors", "Index", "AuditErrorTypes")</li>
+                            <li>@Html.ActionLink("Checks", "Index", "AuditChecks")</li>
+                        </ul>
+                    </li>
+                    <li>@Html.ActionLink("Assign", "OrderAssignment", "Audits")</li>
+                    <li class="dropdown">
+                        @Html.ActionLink("Search", "SearchOrder", "Audits")
+                    </li>
+
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <div class="header-box">
+        <span class="header-text">
+            @ViewBag.PageTitle
+        </span>
+    </div>
+    <div class="container-full body-content">
+        @RenderBody()
+
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/angular.js"></script>
+    <script src="~/Scripts/angular-sanitize.min.js"></script>
+    <script src="~/Scripts/lodash.core.min.js"></script>
+    <script src="~/Scripts/angular-ui-router.min.js"></script>
+    @RenderSection("scripts", required: false)
+    <script src="~/Scripts/ui-bootstrap-tpls-2.5.0.js"></script>
+    <script src="~/src/app.js"></script>
+    <script type="text/javascript">
+        angular
+        .module('app').constant("BASE_URI", '@Url.Content("~/")');
+
+        var ROOTURL = '@Url.Content("~/")';
+
+        $(document).ready(function (e) {
+            $('body').on('click', '.exportToExcelButton', function (e) {
+                var a = document.createElement('a');
+                var data_type = 'data:application/vnd.ms-excel';
+
+                var tableId = $(this).attr("table-id");
+                var fileName = $(this).attr("file-name");
+
+                var table_html = encodeURI($('#' + tableId).html());
+                a.href = data_type + ', ' + table_html;
+                a.download = (fileName) ? fileName + '.xls' : 'download.xls';
+                a.click();
+                e.preventDefault();
+            });
+
+            $('.detail-box').height($(window).height() - 132);
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // When the page loads, check if any group should be fully or partially selected
+            document.querySelectorAll('.group').forEach(function (group) {
+                let groupCheckbox = group.querySelector('.group-checkbox');
+                let groupName = groupCheckbox.getAttribute('data-group');
+                let groupOptions = group.querySelectorAll('.office-checkbox[data-group="' + groupName + '"]');
+                let allChecked = Array.from(groupOptions).every(cb => cb.checked);
+                let noneChecked = Array.from(groupOptions).every(cb => !cb.checked);
+
+                if (allChecked) {
+                    groupCheckbox.checked = true;
+                    groupCheckbox.indeterminate = false;
+                } else if (!noneChecked) {
+                    groupCheckbox.checked = false;
+                    groupCheckbox.indeterminate = true; // partially selected
+                }
+            });
+
+            // Handle group and individual selection logic (same as before)
+            document.querySelectorAll('.group-checkbox').forEach(function (groupCheckbox) {
+                groupCheckbox.addEventListener('change', function () {
+                    let group = this.getAttribute('data-group');
+                    let isChecked = this.checked;
+                    document.querySelectorAll('.office-checkbox[data-group="' + group + '"]').forEach(function (officeCheckbox) {
+                        officeCheckbox.checked = isChecked;
+                    });
+                    updateSelectedOffices();
+                });
+            });
+
+            document.querySelectorAll('.office-checkbox').forEach(function (officeCheckbox) {
+                officeCheckbox.addEventListener('change', function () {
+                    let group = this.getAttribute('data-group');
+                    let groupCheckbox = document.querySelector('.group-checkbox[data-group="' + group + '"]');
+                    let allInGroup = document.querySelectorAll('.office-checkbox[data-group="' + group + '"]');
+                    let allChecked = Array.from(allInGroup).every(cb => cb.checked);
+                    let noneChecked = Array.from(allInGroup).every(cb => !cb.checked);
+
+                    if (allChecked) {
+                        groupCheckbox.checked = true;
+                        groupCheckbox.indeterminate = false;
+                    } else if (noneChecked) {
+                        groupCheckbox.checked = false;
+                        groupCheckbox.indeterminate = false;
+                    } else {
+                        groupCheckbox.indeterminate = true;
+                    }
+                    updateSelectedOffices();
+                });
+            });
+
+            function updateSelectedOffices() {
+                let selectedOffices = [];
+                document.querySelectorAll('.office-checkbox:checked').forEach(function (officeCheckbox) {
+                    selectedOffices.push(officeCheckbox.value);
+                });
+                document.getElementById('SelectedOffices').value = selectedOffices.join(',');
+            }
+        });
+
+
+    </script>
+    <script src="~/src/Audit/Audit.eodReport.js"></script>
+    <script src="~/src/Audit/Audit.hold.js"></script>
+    <script src="~/src/Audit/Audit.reject.js"></script>
+    <script src="~/src/Audit/Audit.rejectReport.js"></script>
+    <script src="~/src/Audit/Audit.completedReport.js"></script>
+    <script src="~/src/Audit/Audit.productionReport.js"></script>
+    <script src="~/src/Audit/Audit.production.js"></script>
+    <script src="~/src/Audit/titleOrder.orderAssignment.js"></script>
+    <script src="~/src/Audit/Audit.userReport.js"></script>
+    <script src="~/src/Audit/Audit.hourlyTaskReport.js"></script>
+</body>
+</html>

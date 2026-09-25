@@ -1,0 +1,430 @@
+@using System.Linq
+@using Prelims.Controllers
+@model Prelims.Audit
+
+
+@{
+    ViewBag.PageTitle = "DETAILS";
+}
+
+<style type="text/css">
+    hr {
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+
+    .check-box {
+        width: 18px;
+        margin: 0;
+        margin-top: -6px;
+    }
+</style>
+
+
+<div class="row production-row">
+
+    <div class="col-lg-2 production-label">
+        @Html.DisplayNameFor(model => model.OrderNo)
+    </div>
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.OrderNo)
+    </div>
+
+    <div class="col-lg-2 production-label">
+        Office Name
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.CRN.CRNNAME)
+        <div class="pull-right">
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+
+    <div class="col-lg-2 production-label">
+        Product Type
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.AuditRequestType.Name)
+    </div>
+
+    <div class="col-lg-2 production-label">
+        County
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.County)
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+
+    <div class="col-lg-2 production-label">
+        Requested By
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.AuditSender.Name)
+    </div>
+
+    <div class="col-lg-2 production-label">
+        Recieved On
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(modelItem => Model.DateCreated)
+    </div>
+</div>
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        @Html.DisplayNameFor(model => model.AuditTask.Name)
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.AuditTask.Name)
+    </div>
+    <div class="col-lg-2 production-label">
+        @Html.DisplayNameFor(model => model.ClientInstructions)
+    </div>
+
+    <div class="col-lg-2">
+        @Html.DisplayFor(model => model.ClientInstructions)
+    </div>
+
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Priority
+    </div>
+
+    <div class="col-lg-2">
+        @if (Model.IsRushOrder && Model.StatusId != 3 && Model.StatusId != 4 && Model.StatusId != 5)
+        {
+            <span class="label label-danger">RUSH</span> @Html.ActionLink("Make it Normal", "MakeNormal", new { orderId = Model.Id }, new { @style = "padding-left: 10px" })
+        }
+        else if (Model.StatusId != 3 && Model.StatusId != 4 && Model.StatusId != 5)
+        {
+            <span>Normal</span> @Html.ActionLink("Make it Rush", "MakeRush", new { orderId = Model.Id }, new { @style = "padding-left: 10px" })
+        }
+        else
+        {
+            @(Model.IsRushOrder ? "Rush" : "Normal")
+        }
+    </div>
+    <div class="col-lg-2 production-label">
+
+    </div>
+
+    <div class="col-lg-2">
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-6">
+        <table class="table table-striped">
+            <tr>
+                <th>
+                    Task
+                </th>
+
+                <th>
+                    User name
+                </th>
+
+                <th>
+                    Start Time
+                </th>
+
+                <th>
+                    End Time
+                </th>
+            </tr>
+            @foreach (var item in Model.AuditTimeEntries)
+            {
+                <tr>
+                    <td>
+                        @item.AuditTask.Name
+                    </td>
+                    <td>
+                        @item.USERINFO.USERNAME
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndTime)
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+    <div class="col-lg-6">
+        <table class="table table-striped">
+            <tr>
+                <th>
+                    Task
+                </th>
+
+                <th>
+                    User name
+                </th>
+
+                <th>
+                    Updates
+                </th>
+
+            </tr>
+            @foreach (var item in Model.AuditUpdates)
+            {
+                <tr>
+                    <td>
+                        @item.AuditTask.Name
+                    </td>
+                    <td>
+                        @item.USERINFO.USERNAME
+                    </td>
+                    <td>
+                        @item.Updates
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+<hr style="border-top: 6px solid #eeeeee;" />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Did you change Effective Date?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.EffectiveDateChanged.HasValue ? (Model.EffectiveDateChanged.Value ? "Yes"  : "No") :"Not Set");
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-2 production-label">
+        Any change in vesting ?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.AnyChangeInVesting.HasValue ? (Model.AnyChangeInVesting.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Did you update Tax information?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.AnyUpdateOnTaxInformation.HasValue ? (Model.AnyUpdateOnTaxInformation.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-2 production-label">
+        Did you update any new PI Docs?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.AnyUpdateOnNewPIDocs.HasValue ? (Model.AnyUpdateOnNewPIDocs.Value ? "Yes" : "No") :"Not Set");
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Did you update any new GI Docs?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.AnyUpdateOnNewGIDocs.HasValue ? (Model.AnyUpdateOnNewGIDocs.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-2 production-label">
+        Did you review 24 month chain of Title?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.DidYouReviewTwentyFourMonthChainOfTitle.HasValue ? (Model.DidYouReviewTwentyFourMonthChainOfTitle.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Did you upload prelim & SP to smart view
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.DidYouUploadPrelimAndSPToSmartView.HasValue ? (Model.DidYouUploadPrelimAndSPToSmartView.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-2 production-label">
+        Did you send completion email to clien?
+    </div>
+
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @(Model.DidYouSendCompletionEmailToClient.HasValue ? (Model.DidYouSendCompletionEmailToClient.Value ? "Yes" : "No") : "Not Set");
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Qc Required
+    </div>
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @((Model.IsQcRequired ?? false) ? "Yes" : "No")
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 production-label">
+        Was there any postings found in PI/GI?
+    </div>
+
+    <div class="col-lg-2">
+        @(Model.AnyPostingFoundInPIGI.HasValue ? (Model.AnyPostingFoundInPIGI.Value ? "Yes" : "No") : "Not Set");
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        Amendment Date
+    </div>
+    <div class="col-lg-2">
+        <div class="form-group">
+            <div class="col-md-10">
+                @Html.DisplayFor(modelItem => Model.AmendmentDate)
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 production-label">
+        
+    </div>
+
+    <div class="col-lg-2">
+        
+    </div>
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-6">
+        <h4>Errors</h4>
+        @{
+            List<AuditError> titleOrderErrors = Model.Errors;
+
+            // Group by TaskName
+            var groupedErrors = titleOrderErrors
+                .GroupBy(e => e.TaskName)
+                .Select(group => new
+                {
+                    TaskName = group.Key,
+                    Errors = group.ToList()
+                })
+                .ToList();
+        }
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Selected Category</th>
+                    <th>Error Types</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in groupedErrors)
+                {
+                    <tr>
+                        <td colspan="5"><strong>@group.TaskName</strong></td>
+                    </tr>
+
+                    foreach (var error in group.Errors)
+                    {
+                        <tr>
+                            <td></td>
+                            <td>@error.SelectedCategoryName</td>
+                            <td>
+                                @foreach (var errorType in error.ErrorTypes)
+                                {
+                                    <span> @(errorType.Name)</span> @("("+ @errorType.IsCriticalText +")" )<br />
+                                }
+                            </td>
+                            <td>@error.Comments</td>
+
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+    </div>
+    <div class="col-lg-6">
+
+
+
+    </div>
+
+
+</div>
+
+
+
+@*<div class="row production-row">
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.CheckOwnerSearchCount)
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.CheckOwnerSearchCount)
+        </div>
+
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.CheckDirectHitUploaded)
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.CheckDirectHitUploaded)
+        </div>
+    </div>*@
+@*<hr />*@
+
+<p>
+    @Html.ActionLink("Back to List", "SearchOrder")
+</p>

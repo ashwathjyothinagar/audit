@@ -1,0 +1,10 @@
+﻿
+@{
+    ViewBag.PageTitle = "SAVE UPLOADED ORDERS";
+}
+
+<h2>Orders uploaded successfully</h2>
+
+<p>@Html.ActionLink("Back to upload", "UploadOrders", new { })</p>
+
+@(ViewBag.ValidationErrors)

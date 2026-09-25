@@ -1,0 +1,767 @@
+@model Prelims.Models.AuditProductionModel
+
+@{
+    ViewBag.PageTitle = "ORDER PRODUCTION";
+}
+
+
+
+<style type="text/css">
+    hr{
+        margin-top: 2px;
+    margin-bottom: 2px;
+    }
+
+    .check-box{
+    width: 18px;
+        margin: 0;
+    margin-top: -6px;
+}
+
+</style>
+@if (ViewBag.ValidationErrors != null)
+{
+    @ViewBag.ValidationErrors
+}
+
+@using (Html.BeginForm("Production", "Audits", FormMethod.Post, new { enctype = "multipart/form-data", name = "productionForm", id = "productionForm" }))
+{
+    @Html.HiddenFor(model => model.Audit.TaskId);
+<div ng-controller="AuditProductionController as $ctrl">
+
+    <div ng-init="checks = { CWLTTitleOfficerName: '@(Model.CWLTTitleOfficerName)', CWLTTitleOfficeName: '@(Model.CWLTTitleOfficeName)' }">
+    </div>
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="row production-row">
+
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.Audit.OrderNo)
+        </div>
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.OrderNo)
+        </div>
+
+        <div class="col-lg-2 production-label">
+            Office Name
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.CRN.CRNNAME)
+            <div class="pull-right">
+
+                @Html.ActionLink("Hold", "Hold", new { orderId = Model.AuditId }) |
+                @Html.ActionLink("Reject", "Reject", new { orderId = Model.AuditId })
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row production-row">
+
+        <div class="col-lg-2 production-label">
+            Product Type
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.AuditRequestType.Name)
+        </div>
+
+        <div class="col-lg-2 production-label">
+            County
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.County)
+        </div>
+    </div>
+    <hr />
+    <div class="row production-row">
+
+        <div class="col-lg-2 production-label">
+            Requested By
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.AuditSender.Name)
+        </div>
+
+        <div class="col-lg-2 production-label">
+            Recieved On
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(modelItem => Model.Audit.DateCreated)
+        </div>
+    </div>
+    <hr />
+    @if (Model.Audit.CrnId == 32)
+    {
+
+        <div class="row production-row">
+
+            <div class="col-lg-2 production-label">
+                Requested By
+            </div>
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <select id="CWLTTitleOfficerName" name="CWLTTitleOfficerName" class="form-control" required ng-model="checks.CWLTTitleOfficerName">
+                        <option value=""></option>
+                        @foreach (var item in ViewBag.CWLTTitleOfficers as List<SelectListItem>)
+                        {
+                            <option value="@item.Text" @(item.Selected ? "selected" : "")>@item.Text</option>
+                        }
+                    </select>
+                    <span style="color: red;" ng-show="productionForm.CWLTTitleOfficerName.$error.required">This field is required</span>
+                </div>
+            </div>
+
+            <div class="col-lg-2 production-label">
+                Requested Office
+            </div>
+
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <select id="CWLTTitleOfficeName" name="CWLTTitleOfficeName" class="form-control" required ng-model="checks.CWLTTitleOfficeName">
+                        <option value=""></option>
+                        @foreach (var item in ViewBag.CWLTTitleOffices as List<SelectListItem>)
+                        {
+                            <option value="@item.Text" @(item.Selected ? "selected" : "")>@item.Text</option>
+                        }
+                    </select>
+                    <span style="color: red;" ng-show="productionForm.CWLTTitleOfficeName.$error.required">This field is required</span>
+                </div>
+            </div>
+        </div>
+    }
+    <hr />
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.Audit.OwnerNames)
+        </div>
+
+        <div class="col-lg-2">
+            @if (Model.Audit.TaskId != 1)
+            {
+                @Html.DisplayFor(model => model.Audit.OwnerNames)
+                @Html.HiddenFor(model => model.OwnerName);
+            }
+            else
+            {
+                @Html.EditorFor(model => model.OwnerName, new { htmlAttributes = new { @class = "form-control col-md-2" } });
+            }
+        </div>
+
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.Audit.PropertyAddress)
+        </div>
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.PropertyAddress)
+        </div>
+    </div>
+    <hr />
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.Audit.ClientInstructions)
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.ClientInstructions)
+        </div>
+        <div class="col-lg-2 production-label">
+            @Html.DisplayNameFor(model => model.Audit.AuditTask.Name)
+        </div>
+
+        <div class="col-lg-2">
+            @Html.DisplayFor(model => model.Audit.AuditTask.Name)
+        </div>
+
+    </div>
+    <hr />
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Priority
+        </div>
+
+        <div class="col-lg-2">
+            @if (Model.Audit.IsRushOrder)
+            {
+                <span class="label label-danger">RUSH</span>
+            }
+            else
+            {
+                <span>Normal</span>
+            }
+        </div>
+        <div class="col-lg-2 production-label">
+        </div>
+
+        <div class="col-lg-2">
+        </div>
+    </div>
+    <hr />
+    <div class="row production-row">
+        <div class="col-lg-6">
+            <table class="table table-striped">
+                <tr>
+                    <th>
+                        Task
+                    </th>
+
+                    <th>
+                        User name
+                    </th>
+
+                    <th>
+                        Start Time
+                    </th>
+
+                    <th>
+                        End Time
+                    </th>
+                </tr>
+                @foreach (var item in Model.TimeEntries)
+                {
+                    <tr>
+                        <td>
+                            @item.AuditTask.Name
+                        </td>
+                        <td>
+                            @item.USERINFO.USERNAME
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.StartTime)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EndTime)
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <div class="col-lg-6">
+            <table class="table table-striped">
+                <tr>
+                    <th>
+                        Task
+                    </th>
+
+                    <th>
+                        User name
+                    </th>
+
+                    <th>
+                        Updates
+                    </th>
+
+                </tr>
+                @foreach (var item in Model.AuditUpdates)
+                {
+                    <tr>
+                        <td>
+                            @item.AuditTask.Name
+                        </td>
+                        <td>
+                            @item.USERINFO.USERNAME
+                        </td>
+                        <td>
+                            @item.Updates
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <hr style="border-top: 6px solid #eeeeee;" />
+
+    <h4>Dynamic Checks</h4>
+    <div class="row">
+        <div class="col-lg-6" ng-init="$ctrl.dynamicCheck= @Model.CheckText">
+
+            <input type="text" name="CheckText" id="CheckText" style="display: none" value="{{$ctrl.dynamicCheck | json}}"></input>
+
+            @foreach (var eachCheck in Model.Checks)
+            {
+                if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 != 0)
+                {
+                    <table style=" width: 100%;">
+                        <tr>
+                            <td style="width:30%;text-align:right;vertical-align:top;"><label style=" margin-top: 6px; margin-right: 12px;">@eachCheck.Name  |  </label></td>
+                            <td>
+                                <div class="form-group">
+                                    @if (eachCheck.IsDropdownList)
+                                    {
+                                        <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
+                                            <option value=""></option>
+                                            @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
+                                            {
+                                                <option value="@eachCheckValue">@eachCheckValue</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
+                                    }
+                                    <span style="color: red;" ng-show="productionForm[@eachCheck.AuditCheckId].$error.required">This field selection is required</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                }
+            }
+        </div>
+
+        <div class="col-lg-6">
+            @foreach (var eachCheck in Model.Checks)
+            {
+                if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 == 0)
+                {
+                    <table style=" width: 100%;">
+                        <tr>
+                            <td style="width:30%;text-align:right;vertical-align:top;"><label style=" margin-top: 6px; margin-right: 12px;">@eachCheck.Name  |  </label></td>
+                            <td>
+                                <div class="form-group">
+                                    @if (eachCheck.IsDropdownList)
+                                    {
+
+                                        <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
+                                            <option value=""></option>
+                                            @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
+                                            {
+                                                <option value="@eachCheckValue">@eachCheckValue</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
+                                    }
+                                    <span style="color: red;" ng-show="productionForm[@eachCheck.AuditCheckId].$error.required">This field selection is required</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                }
+            }
+        </div>
+    </div>
+
+    @Html.HiddenFor(model => model.AuditId)
+    @Html.HiddenFor(model => model.TaxTimeEntryId)
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Did you change Effective Date?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.EffectiveDateChanged.HasValue ? (Model.EffectiveDateChanged.Value ? "Yes"  : "No") :"Not Set");
+                        @Html.HiddenFor(model => model.EffectiveDateChanged);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="EffectiveDateChanged" name="EffectiveDateChanged">
+                            <option selected="selected" value="">Not Set</option>
+                            <option value="true" @(Model.EffectiveDateChanged == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.EffectiveDateChanged == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+                    @Html.ValidationMessageFor(model => model.EffectiveDateChanged, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-2 production-label">
+            Any change in vesting ?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.AnyChangeInVesting.HasValue ? (Model.AnyChangeInVesting.Value ? "Yes" : "No") : "Not Set");
+                        @Html.HiddenFor(model => model.AnyChangeInVesting);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="AnyChangeInVesting" name="AnyChangeInVesting">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.AnyChangeInVesting == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.AnyChangeInVesting == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+
+                    @Html.ValidationMessageFor(model => model.AnyChangeInVesting, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Did you update Tax information?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.AnyUpdateOnTaxInformation.HasValue ? (Model.AnyUpdateOnTaxInformation.Value ? "Yes" : "No") : "Not Set");
+                        @Html.HiddenFor(model => model.AnyUpdateOnTaxInformation);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnTaxInformation" name="AnyUpdateOnTaxInformation">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.AnyUpdateOnTaxInformation == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.AnyUpdateOnTaxInformation == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+                    @Html.ValidationMessageFor(model => model.AnyUpdateOnTaxInformation, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-2 production-label">
+            Did you update any new PI Docs?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.AnyUpdateOnNewPIDocs.HasValue ? (Model.AnyUpdateOnNewPIDocs.Value ? "Yes" : "No") :"Not Set");
+                        @Html.HiddenFor(model => model.AnyUpdateOnNewPIDocs);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnNewPIDocs" name="AnyUpdateOnNewPIDocs">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.AnyUpdateOnNewPIDocs == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.AnyUpdateOnNewPIDocs == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+
+                    @Html.ValidationMessageFor(model => model.AnyUpdateOnNewPIDocs, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Did you update any new GI Docs?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.AnyUpdateOnNewGIDocs.HasValue ? (Model.AnyUpdateOnNewGIDocs.Value ? "Yes" : "No") : "Not Set");
+                        @Html.HiddenFor(model => model.AnyUpdateOnNewGIDocs);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnNewGIDocs" name="AnyUpdateOnNewGIDocs">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.AnyUpdateOnNewGIDocs == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.AnyUpdateOnNewGIDocs == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+                    @Html.ValidationMessageFor(model => model.AnyUpdateOnNewGIDocs, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-2 production-label">
+            Did you review 24 month chain of Title?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.DidYouReviewTwentyFourMonthChainOfTitle.HasValue ? (Model.DidYouReviewTwentyFourMonthChainOfTitle.Value ? "Yes" : "No") : "Not Set");
+                        @Html.HiddenFor(model => model.DidYouReviewTwentyFourMonthChainOfTitle);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="DidYouReviewTwentyFourMonthChainOfTitle" name="DidYouReviewTwentyFourMonthChainOfTitle">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.DidYouReviewTwentyFourMonthChainOfTitle == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.DidYouReviewTwentyFourMonthChainOfTitle == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+                    @Html.ValidationMessageFor(model => model.DidYouReviewTwentyFourMonthChainOfTitle, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Was there any postings found in PI/GI?
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @if (Model.Audit.TaskId == 3)
+                    {
+                        @(Model.AnyPostingFoundInPIGI.HasValue ? (Model.AnyPostingFoundInPIGI.Value ? "Yes" : "No") : "Not Set");
+                        @Html.HiddenFor(model => model.AnyPostingFoundInPIGI);
+                    }
+                    else
+                    {
+                        <select class="form-control col-md-2 list-box tri-state" id="AnyPostingFoundInPIGI" name="AnyPostingFoundInPIGI">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.AnyPostingFoundInPIGI == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.AnyPostingFoundInPIGI == false ? "selected" : "")>No</option>
+                        </select>
+                    }
+                    @Html.ValidationMessageFor(model => model.AnyPostingFoundInPIGI, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-2 production-label">
+            Amendment Date
+        </div>
+
+        <div class="col-lg-2">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @Html.TextBox("AmendmentDate", Model.AmendmentDate?.ToString("yyyy-MM-dd"), new
+                    {
+    @class = "form-control",
+    type = "date"
+})
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (Model.Audit.TaskId == 3)
+    {
+
+        <div class="row production-row">
+            <div class="col-lg-2 production-label">
+                Did you upload prelim & SP to smart view
+            </div>
+
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <div class="col-md-10">
+
+                        <select class="form-control col-md-2 list-box tri-state" id="DidYouUploadPrelimAndSPToSmartView" name="DidYouUploadPrelimAndSPToSmartView">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.DidYouUploadPrelimAndSPToSmartView == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.DidYouUploadPrelimAndSPToSmartView == false ? "selected" : "")>No</option>
+                        </select>
+
+                        @Html.ValidationMessageFor(model => model.DidYouUploadPrelimAndSPToSmartView, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-2 production-label">
+                Did you send completion email to clien?
+            </div>
+
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <select class="form-control col-md-2 list-box tri-state" id="DidYouSendCompletionEmailToClient" name="DidYouSendCompletionEmailToClient">
+                            <option value="">Not Set</option>
+                            <option value="true" @(Model.DidYouSendCompletionEmailToClient == true ? "selected" : "")>Yes</option>
+                            <option value="false" @(Model.DidYouSendCompletionEmailToClient == false ? "selected" : "")>No</option>
+                        </select>
+                        @Html.ValidationMessageFor(model => model.DidYouSendCompletionEmailToClient, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    }
+
+
+    @if (Model.Audit.TaskId == 1)
+    {
+        <hr />
+        <div class="row production-row">
+            <div class="col-lg-2 production-label">
+                Qc Required
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.IsQcRequired, new { htmlAttributes = new { @class = "form-control col-md-2" } })
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 production-label">
+            </div>
+
+            <div class="col-lg-2">
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.IsQcRequired);
+    }
+
+    <hr />
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+            Comments
+        </div>
+        <div class="col-lg-6">
+            <div class="form-group">
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Updates, new { htmlAttributes = new { @class = "form-control col-md-2" } })
+                    @Html.ValidationMessageFor(model => model.Updates, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 production-label">
+        </div>
+
+        <div class="col-lg-2">
+        </div>
+    </div>
+
+    @if (Model.Audit.TaskId != 1)
+    {
+        <div class="row">
+            <div class="col-lg-2 production-label" style="text-align:right;">
+                Errors
+            </div>
+            <div class="col-lg-8" ng-init="$ctrl.orderErrors= @Model.OrderErrorJson">
+                <input type="text" name="OrderErrorJson" id="OrderErrorJson" style="display: none" value="{{$ctrl.orderErrors | json}}"></input>
+                <div class="form-group" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px;">
+                    <div style="min-width: 200px;">
+                        <label for="AnyOrderErrors">Any Errors?</label>
+                        <select id="AnyOrderErrors"
+                                name="AnyOrderErrors"
+                                class="form-control"
+                                ng-model="$ctrl.checks.anyErrors" ng-change="$ctrl.onAnyErrorsChange()" required>
+                            <option value="">--</option>
+                            <option value="YES">YES</option>
+                            <option value="NO">NO</option>
+                        </select>
+                        <span style="color: red;" ng-show="productionForm.AnyOrderErrors.$error.required">This field selection is required</span>
+                    </div>
+                </div>
+                <div name="anyerrorsform" novalidate ng-form>
+                    <div class="form-group" ng-if="$ctrl.checks.anyErrors == 'YES'" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px; " ng-repeat="orderError in $ctrl.orderErrors">
+                        <div style="min-width: 200px;">
+                            <label for="errorCategory{{$index}}">Error Category</label>
+                            <select id="errorCategory{{$index}}"
+                                    name="errorCategory{{$index}}"
+                                    class="form-control"
+                                    ng-model="orderError.selectedCategory"
+                                    ng-options="category.Id as category.Name for category in $ctrl.errorCategories"
+                                    ng-change="$ctrl.loadErrorTypes(orderError.selectedCategory, $index)" required>
+                                <option value="">Select Category</option>
+                            </select>
+                            <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorCategory{{$index}}.$invalid">
+                                Category is required.
+                            </span>
+                        </div>
+
+                        <div style="min-width: 200px;">
+                            <label for="errorType{{$index}}">Error Type</label>
+                            <select id="errorType{{$index}}"
+                                    name="errorType{{$index}}"
+                                    class="form-control"
+                                    multiple="multiple"
+                                    ng-model="orderError.selectedType"
+                                    ng-options="type.Id as type.Name for type in orderError.errorTypes"
+                                    ng-disabled="!orderError.selectedCategory"
+                                    ng-change="$ctrl.checkIfCritical($index)"
+                                    required>
+                            </select>
+                            <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorType{{$index}}.$invalid">
+                                Type is required.
+                            </span>
+                        </div>
+                        <div style="min-width: 200px;">
+                            <label for="comments{{$index}}">Comments</label>
+                            <textarea id="comments{{$index}}"
+                                      class="form-control"
+                                      ng-model="orderError.comments" class="form-control" required></textarea>
+                        </div>
+                        <div style="vertical-align: central; align-items: center; display: flex;">
+                            <span ng-if="orderError.isCritical" title="Critical Error" style="color: red; font-size: 20px;margin-right:10px;">
+                                &#9888; <!-- Unicode warning symbol -->
+                            </span>
+                            <button type="button" class="btn-success" style="margin-right: 5px;" ng-click="$ctrl.addOrderError()">+</button>
+                            <button type="button" class="btn-danger" ng-click="$ctrl.removeOrderError($index)" ng-if="$index != 0">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+
+        </div>
+        <div class="col-lg-4">
+            @if (Model.Audit.TaskId == 3)
+            {
+                <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
+                <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
+            }
+            else
+            {
+                <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
+                <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
+            }
+        </div>
+        <div class="col-lg-2 production-label">
+        </div>
+
+        <div class="col-lg-2">
+        </div>
+    </div>
+
+    @*<div class="row production-row">
+            <div class="col-lg-2 production-label">
+                @Html.DisplayNameFor(model => model.CheckOwnerSearchCount)
+            </div>
+
+            <div class="col-lg-2">
+                @Html.DisplayFor(model => model.CheckOwnerSearchCount)
+            </div>
+
+            <div class="col-lg-2 production-label">
+                @Html.DisplayNameFor(model => model.CheckDirectHitUploaded)
+            </div>
+
+            <div class="col-lg-2">
+                @Html.DisplayFor(model => model.CheckDirectHitUploaded)
+            </div>
+        </div>*@
+    @*<hr />*@
+
+</div>
+}
+

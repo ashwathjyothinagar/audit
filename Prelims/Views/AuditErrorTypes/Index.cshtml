@@ -1,0 +1,48 @@
+@model IEnumerable<Prelims.AuditErrorType>
+
+@{
+    ViewBag.PageTitle = "Error Types";
+}
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+@* Grouping by Error Category Name *@
+@{
+    int index = 1;
+
+ }
+@foreach (var categoryGroup in Model.GroupBy(x => x.AuditErrorCategory.Name))
+{
+    <h4>@categoryGroup.Key</h4>@* This is the Error Category Name *@<table class="table">
+        @if (index == 1)
+        {
+        <tr>
+            <th style="width: 60%;">
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th style="width: 20%;">
+                @Html.DisplayNameFor(model => model.IsCritical)
+            </th>
+            <th style="width: 20%;"></th>
+        </tr>
+        }
+        @foreach (var item in categoryGroup)
+        {
+            <tr>
+                <td style="width: 60%;">
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td style="width: 20%;">
+                    @Html.DisplayFor(modelItem => item.IsCritical)
+                </td>
+                <td style="width: 20%;">
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.Id }) 
+                </td>
+            </tr>
+        }
+    </table>
+    index++;
+}

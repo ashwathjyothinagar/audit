@@ -1,0 +1,81 @@
+@model List<Prelims.Audit>
+
+@{
+    ViewBag.PageTitle = "Hold Order Details";
+}
+
+<p>
+    @Html.ActionLink("Back", "HoldOrders", new { })
+</p>
+
+
+<table class="table table-condensed table-striped">
+    <tr>
+        <th>
+            SL No
+        </th>
+        <th>
+            Order Number
+        </th>
+        <th> Office Name </th>
+        <th>Type</th>
+        <th>Task</th>
+        <th>Recieved On</th>
+        <th>Hold By</th>
+        <th>Hold Time</th>
+        <th>Reason</th>
+
+        <th></th>
+
+    </tr>
+    @{  var serialNumberIndex = 1;  }
+    @foreach (var item in Model)
+    {
+        var holdDetail = item.AuditHolds.OrderByDescending(x => x.HoldDateTime).FirstOrDefault(x => !x.HoldRelivedDateTime.HasValue);
+        var userName = "";
+        DateTime? holdDateTime = null;
+        var reason = "";
+        if (holdDetail != null)
+        {
+            userName = holdDetail.USERINFO.USERNAME;
+            holdDateTime = holdDetail.HoldDateTime;
+            reason = holdDetail.Comment;
+        }
+
+        <tr>
+            <td style="text-align:center;">
+                @serialNumberIndex.ToString()
+            </td>
+            <td>
+                @item.OrderNo
+            </td>
+            <td>
+                @item.CRN.CRNNAME
+            </td>
+            <td>
+                @item.AuditRequestType.Name
+            </td>
+            <td>
+                @item.AuditTask.Name
+            </td>
+            <td>
+                @(item.DateCreated.ToString())
+            </td>
+            <td>
+                @userName
+            </td>
+            <td>
+                @(holdDateTime.HasValue ? holdDateTime.Value.ToString() : "")
+            </td>
+            <td>
+                @reason
+            </td>
+            <td>
+                @Html.ActionLink("Un hold", "UnHold", new { id = item.Id })
+            </td>
+        </tr>
+
+        serialNumberIndex++;
+    }
+</table>
+

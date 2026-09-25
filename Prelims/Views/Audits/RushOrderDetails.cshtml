@@ -1,0 +1,60 @@
+@model List<Prelims.Audit>
+
+@{
+    ViewBag.PageTitle = "RUSH ORDER DETAILS";
+}
+
+<p>
+    @Html.ActionLink("Back", "RushOrders", new { })
+</p>
+
+<div id="download3">
+    <table class="table table-condensed table-striped">
+        <tr>
+            <th>
+                SL No
+            </th>
+            <th>
+                Order Number
+            </th>
+            <th> Office Name </th>
+            <th>Type</th>
+            <th>Task</th>
+            <th>Received On</th>
+            
+            <th>
+                <div class="pull-right">
+                    <i class="fa fa-file-excel-o exportToExcelButton" table-id="download3" title="Export to Excel" aria-hidden="true" file-name="download"></i>
+                </div>
+            </th>
+        </tr>
+        @{ var serialNumberIndex = 1; }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td style="text-align:center;">
+                    @serialNumberIndex.ToString()
+                </td>
+                <td>
+                    @item.OrderNo
+                </td>
+                <td>
+                    @item.CRN.CRNDISPLAYNAME
+                </td>
+                <td>
+                    @item.AuditRequestType.Name
+                </td>
+                <td>
+                    @item.AuditTask.Name
+                </td>
+                <td>
+                    @(item.DateCreated)
+                </td>
+                <td>
+                </td>
+            </tr>
+
+            serialNumberIndex++;
+        }
+    </table>
+</div>

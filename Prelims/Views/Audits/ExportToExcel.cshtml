@@ -1,0 +1,46 @@
+@model IEnumerable<Prelims.Audit>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Export View</title>
+</head>
+<body>
+    <div>
+        <table>
+            <tr style="background-color:grey;">
+                <th>
+                    Order No
+                </th>
+                <th>
+                    Owner Name
+                </th>
+                <th>
+                    Address
+                </th>
+            </tr>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OrderNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OwnerNames)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PropertyAddress)
+                    </td>
+                </tr>
+            }
+
+        </table>
+    </div>
+</body>
+</html>

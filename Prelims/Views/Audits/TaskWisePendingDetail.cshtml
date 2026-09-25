@@ -1,0 +1,86 @@
+@model Prelims.Models.Reports.TaskWisePendingReportDetailViewModel
+
+@{
+    ViewBag.PageTitle = "Task Wise Pending Details";
+}
+
+<p>
+    @Html.ActionLink("Back", "TaskWisePending", new {  })
+</p>
+
+
+<table class="table table-condensed table-striped">
+    <tr>
+        <th>
+            SL No
+        </th>
+        <th>
+            Order Number
+        </th>
+        <th> Office Name </th>
+        <th>Type</th>
+        <th>Task</th>
+        <th>Last Task Time</th>
+        <th>Recieved Date Time</th>
+        <th>User Name</th>
+        <th>Priority</th>
+        <th>Start Time</th>
+
+        @if (Model.IsHoldOrders)
+        {
+            <th></th>
+        }
+
+    </tr>
+    @{  var serialNumberIndex = 1;  }
+    @foreach (var item in Model.Audits)
+    {
+        var inprogressTimeEntry = item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
+        var lastTaskTime = item.AuditTimeEntries.Where(x => !x.IsInprogress).Any() ? item.AuditTimeEntries.Where(x => !x.IsInprogress).OrderBy(x => x.AuditTaskId).Last().EndTime.ToString() : "";
+        var userName = "";
+        DateTime? dateStarted = null;
+        if (inprogressTimeEntry != null)
+        {
+            userName = inprogressTimeEntry.USERINFO.USERNAME;
+            dateStarted = inprogressTimeEntry.StartTime;
+        }
+
+        <tr class="@( item.IsRushOrder ? "danger" : "" )">
+            <td style="text-align:center;">
+                @serialNumberIndex.ToString()
+            </td>
+            <td>
+                @item.OrderNo
+            </td>
+            <td>
+                @item.CRN.CRNNAME
+            </td>
+            <td>
+                @item.AuditRequestType.Name
+            </td>
+            <td>
+                @item.AuditTask.Name
+            </td>
+            <td>
+                @(lastTaskTime)
+            </td>
+            <td>
+                @item.DateCreated.ToString()
+            </td>
+            <td>
+                @userName
+            </td>
+            <td>@(item.IsRushOrder ? "Rush" : "Normal")</td>
+            <td>
+                @(dateStarted.HasValue ? dateStarted.Value.ToString(): "")
+            </td>
+            @if (Model.IsHoldOrders)
+            {
+                <th>@Html.ActionLink("Un hold", "UnHold", new { id = item.Id })</th>
+            }
+        </tr>
+
+        serialNumberIndex++;
+    }
+</table>
+

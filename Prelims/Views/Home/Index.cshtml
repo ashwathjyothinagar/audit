@@ -1,0 +1,253 @@
+@model  Prelims.Models.HomeViewModel
+
+@{
+    ViewBag.Title = "Prelims";
+}
+
+<div class="row" style="padding:10px">
+    <div class="col-md-12">
+        <h3> Live Status </h3>
+        @foreach (var liveStatusGroup in Model.LiveStatusItems.GroupBy(x => x.GroupName))
+        {
+            var liveStatusTable = "liveStatusTable" + liveStatusGroup.Key.Replace(" ", "");
+
+            <div id="@liveStatusTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="@liveStatusTable=false">
+                <div>
+
+                    <div ng-click="@liveStatusTable=!@liveStatusTable">
+                        <i class="glyphicon glyphicon-chevron-right" ng-if="!@liveStatusTable"></i>
+                        <i class="glyphicon glyphicon-chevron-down" ng-if="@liveStatusTable"></i>
+                        @liveStatusGroup.Key
+                    </div>
+                </div>
+                <table class="table table-condensed" ng-if="@liveStatusTable" style="margin-top: 5px;">
+                    <tr>
+                        <th>
+                        </th>
+                        <th colspan="4" style="text-align:center;">
+                            Processing
+                        </th>
+                        <th colspan="4" style="text-align:center;"> QC </th>
+                        <th colspan="4" style="text-align:center;">Delivery</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th>
+                        </th>
+                        <th style="text-align:center;">
+                            Updates
+                        </th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th style="text-align:center;">Hold</th>
+                        <th style="background-color: grey;text-align:center;">Total</th>
+                    </tr>
+                    @foreach (var item in liveStatusGroup)
+                    {
+                        <tr>
+                            <th>
+                                @item.OfficeName
+                            </th>
+                            <th style="text-align:center;">
+                                @item.ProcessingSellerCount
+                            </th>
+                            <th style="text-align:center;">@item.ProcessingBuyerCount</th>
+                            <th style="text-align:center;">@item.ProcessingBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.ProcessingCount</th>
+                            <th style="text-align:center;">
+                                @item.QCSellerCount
+                            </th>
+                            <th style="text-align:center;">@item.QCBuyerCount</th>
+                            <th style="text-align:center;">@item.QCBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.QCCount</th>
+                            <th style="text-align:center;">
+                                @item.DeliverySellerCount
+                            </th>
+                            <th style="text-align:center;">@item.DeliveryBuyerCount</th>
+                            <th style="text-align:center;">@item.DeliveryBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.DeliveryCount</th>
+
+                            <th style="text-align:center;">@item.HoldCount</th>
+                            <th style="text-align:center;background-color: grey;">@(item.ProcessingCount + item.QCCount + item.DeliveryCount)</th>
+                        </tr>
+
+                    }
+
+                    <tr style="background-color: grey;">
+                        <th>
+                            Total
+                        </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.ProcessingSellerCount))
+                        </th>
+                        <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.ProcessingBuyerCount))</th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.ProcessingBothCount))  </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.ProcessingCount)) </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.QCSellerCount))
+                        </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCCount)) </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.DeliverySellerCount))
+                        </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryCount)) </th>
+
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.HoldCount)) </th>
+                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.ProcessingCount) + liveStatusGroup.Sum(x => x.QCCount) + liveStatusGroup.Sum(x => x.DeliveryCount)))</th>
+                    </tr>
+
+                </table>
+
+
+            </div>
+        }
+     </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3> My Orders </h3>
+        <table class="table table-condensed table-striped">
+            <tr>
+                <th>
+                    SL No
+                </th>
+                <th>
+                    Order Number
+                </th>
+                <th>County</th>
+                <th> Office Name </th>
+                <th>Order Type</th>
+                <th>Priority</th>
+                <th>Task</th>
+                <th>Received Date Time</th>
+                <th>
+                    <div class="pull-right">
+                        <i class="fa fa-file-excel-o exportToExcelButton" table-id="myOrdersTable" title="Export to Excel" aria-hidden="true" file-name="MyOrders"></i>
+                    </div>
+                </th>
+            </tr>
+            @{ var myOrderSerialNumberIndex = 1; }
+            @foreach (var item in Model.MyOrders)
+            {
+                <tr>
+                    <td style="text-align:center;">
+                        @myOrderSerialNumberIndex.ToString()
+                    </td>
+                    <td>
+                        @if (ViewBag.InprogressTitleOrderId != null)
+                        {
+                            <span>@item.OrderNo</span>
+                        }
+                        else
+                        {
+                            @Html.ActionLink(@item.OrderNo, "Production", "Audits", new { id = item.Id }, new { })
+                        }
+                    </td>
+                    <td>@item.COUNTYNAME</td>
+                    <td>
+                        @item.CRNDISPLAYNAME
+                    </td>
+                    <td>
+                        @item.TitleOrderRequestTypeName
+                    </td>
+                    <td>
+                        @(item.IsRushOrder ?? false ? "RUSH" : "Normal" )
+                    </td>
+                    <td>
+                        @item.TitleOrderTaskName
+                    </td>
+                    <td>
+                        @item.ReceivedDateTime
+                    </td>
+                    <td></td>
+                </tr>
+
+                myOrderSerialNumberIndex++;
+            }
+        </table>
+    </div>
+</div>
+
+<div class="row" style="padding:10px">
+    <div class="col-md-12">
+        <h3> Inprogress Orders </h3>
+        <table class="table table-condensed table-striped">
+            <tr>
+                <th>
+                    SL No
+                </th>
+                <th>
+                    Order Number
+                </th>
+                <th> Office Name </th>
+                <th>Type</th>
+                <th>Task</th>
+                <th>Recieved Date Time</th>
+                <th>User Name</th>
+                <th>Start Time</th>
+                <th>Priority</th>
+            </tr>
+            @{  var serialNumberIndex = 1;  }
+            @foreach (var item in Model.InprogressAudits)
+            {
+                var inprogressTimeEntry = item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
+                var userName = "";
+                DateTime? dateStarted = null;
+                if (inprogressTimeEntry != null)
+                {
+                    userName = inprogressTimeEntry.USERINFO.USERNAME;
+                    dateStarted = inprogressTimeEntry.StartTime;
+                }
+
+                <tr>
+                    <td style="text-align:center;">
+                        @serialNumberIndex.ToString()
+                    </td>
+                    <td>
+                        @item.OrderNo
+                    </td>
+                    <td>
+                        @item.CRN.CRNNAME
+                    </td>
+                    <td>
+                        @item.AuditRequestType.Name
+                    </td>
+                    <td>
+                        @item.AuditTask.Name
+                    </td>
+                    <td>
+                        @item.DateCreated.ToString()
+                    </td>
+                    <td>
+                        @userName
+                    </td>
+                    <td>
+                        @(dateStarted.HasValue ? dateStarted.Value.ToString() : "")
+                    </td>
+                    <td>
+                        @(item.IsRushOrder ? "RUSH" : "Normal" )
+                    </td>
+                </tr>
+
+                serialNumberIndex++;
+            }
+        </table>
+
+       
+    </div>
+</div>

@@ -1,0 +1,45 @@
+﻿
+@model List<Prelims.Controllers.RushOrderReportViewModel>
+@{
+    ViewBag.PageTitle = "RUSH ORDERS";
+}
+<div class="row">
+    <div class="col-lg-4"></div>
+    <div class="col-lg-3" id="download4">
+        <table class="table table-condensed table-striped">
+            <tr>
+                <th>
+                    Office Name
+                </th>
+                <th style="text-align:center;">
+                    Count
+                    <div class="pull-right">
+                        <i class="fa fa-file-excel-o exportToExcelButton" table-id="download4" title="Export to Excel" aria-hidden="true" file-name="download"></i>
+                    </div>
+                </th>
+            </tr>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @item.OfficeName
+                    </td>
+                    <td style="text-align:center;">
+                        @Html.ActionLink(@item.Count.ToString(), "RushOrderDetails", new { crnId = item.CrnId })
+                    </td>
+                </tr>
+            }
+            <tr>
+                <th>
+                    Total
+                </th>
+                <th style="text-align:center;">
+                    @Html.ActionLink(Model.Sum(x => x.Count).ToString(), "RushOrderDetails", new { })
+                </th>
+            </tr>
+
+        </table>
+    </div>
+    <div class="col-lg-4"></div>
+</div>

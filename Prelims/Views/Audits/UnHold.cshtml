@@ -1,0 +1,27 @@
+@model Prelims.Audit
+
+@{
+    ViewBag.PageTitle = "Un Hold";
+}
+
+<h3>Are you sure you want to unhold this order?</h3>
+<div>
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.OrderNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OrderNo)
+        </dd>
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Yes" class="btn btn-success" /> | 
+            @Html.ActionLink("Cancel", "Index","Audits")
+        </div>
+    }
+</div>

@@ -1,0 +1,80 @@
+﻿
+@{
+    ViewBag.PageTitle = "EOD REPORT";
+}
+<form name="searchForm">
+    <div class="row" ng-controller="EodReportController as $ctrl">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-10">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="BranchCity">Start Date</label>
+                        <div class="col-md-3">
+                            <input type="text" name="startDate" id="startDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.startDate" ng-click="$ctrl.openStartPopup()" is-open="$ctrl.startOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                            <span style="color: red;" ng-show="searchForm.startDate.$touched && searchForm.startDate.$error.required">Start Date is required.</span>
+                        </div>
+                        <div class="col-md-7">
+                            <select class="form-control" id="startHours" name="startHours" style="width: 70px; display:inline;" ng-model="$ctrl.startDateHour">
+                                <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                            </select>
+                            <select class="form-control" id="startMinutes" name="startMinutes" style="width: 70px; display:inline;" ng-model="$ctrl.startDateMinute">
+                                <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                            </select>
+                            @*<select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.startDatePeriod">
+                            <option ng-repeat="option in ctrl.periods" value="{{option}}">{{option}}</option>
+                        </select>*@
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="padding-top: 10px;">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="BranchCity">End Date</label>
+                        <div class="col-md-3">
+                            <input type="text" name="endDate" id="endDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.endDate" ng-click="$ctrl.openEndPopup()" is-open="$ctrl.endOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                            <span style="color: red;" ng-show="searchForm.endDate.$touched &&searchForm.endDate.$error.required">End Date is required.</span>
+                        </div>
+                        <div class="col-md-7">
+                            <select class="form-control" id="endHours" name="endHours" style="width: 70px; display:inline;" ng-model="$ctrl.endDateHour">
+                                <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                            </select>
+                            <select class="form-control" id="endMinutes" name="endMinutes" style="width: 70px; display:inline;" ng-model="$ctrl.endDateMinute">
+                                <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                            </select>
+                            @*<select class="form-control" id="CrnId" name="CrnId" style="width: 70px; display:inline;" ng-model="$ctrl.endDatePeriod">
+                            <option ng-repeat="option in ctrl.periods" value="{{option}}">{{option}}</option>
+                        </select>*@
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="padding-top: 10px;">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="BranchCity">Office Name</label>
+                        <div class="col-md-5">
+                            @Html.Partial("_OfficeSelection")
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="padding-top: 10px;">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="SenderId"></label>
+                        <div class="col-md-10">
+                            <input type="button" class="btn btn-success" ng-click="$ctrl.loadReport()" value="Download" ng-disabled="!searchForm.$valid" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+
+</form>

@@ -1,0 +1,24 @@
+@{
+    ViewBag.PageTitle = "RUSH";
+}
+
+<h3>Are you sure you want to make order no @ViewBag.OrderNo to rush order?</h3>
+<div>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row" style="padding: 10px;">
+            <textarea class="form-control col-md-3 text-box multi-line" data-val="true"
+                      data-val-length="The field Comments must be a string with a maximum length of 1000."
+                      data-val-length-max="1000"
+                      id="comments"
+                      name="comments"></textarea>
+        </div>
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Yes" class="btn btn-danger" /> |
+            @Html.ActionLink("Cancel", "Index", "Audits")
+        </div>
+    }
+</div>

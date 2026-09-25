@@ -1,0 +1,148 @@
+@model IEnumerable<Prelims.Audit>
+@using Newtonsoft.Json;
+
+@{
+    ViewBag.PageTitle = "ORDERS";
+}
+
+<style type="text/css">
+
+    .rushOrder {
+        background-color: #f5bcbc;
+    }
+
+    .selectRow {
+        background-color: #55cc55;
+    }
+</style>
+
+@using (Html.BeginForm("OrderAssignment", "Audits", FormMethod.Get, new { @style = "padding-bottom:10px;" }))
+{
+    <div class="row">
+        <div class="col-lg-2">
+            <label for="exampleInputName2" class="control-label">Office Name</label>
+            @Html.Partial("_OfficeSelection")
+        </div>
+        <div class="col-lg-2">
+            <label for="exampleInputName2" class="control-label">Task</label>
+            <div>
+                @Html.DropDownList("TaskId", null, htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <label for="exampleInputName2" class="control-label">Request Type</label>
+            <div>
+                @Html.DropDownList("RequestTypeId", null, "ALL", htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <label for="exampleInputName2" class="control-label">Is Rush</label>
+            <div>
+                @Html.DropDownList("IsRush", null, htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <label for="exampleInputName2" class="control-label"></label>
+            <div>
+                <button type="submit" class="btn btn-success" style="margin-top: 5px">Search</button>
+                <span class="label label-info" style="margin-left: 10px;margin-top: 10px;font-size: 17px;float: right;">Total : @(Model.Count())</span>
+            </div>
+        </div>
+    </div>
+}
+<div id="orderAssignment" ng-controller="OrderAssignmentController as $ctrl">
+
+    <div class="row" name="userAssignForm" ng-form style="padding-bottom: 8px;">
+        @*<div style="height:55px;" ng-if="!$ctrl.isRowSelected"></div>*@
+        <div ng-if="$ctrl.isRowSelected">
+            <div class="col-lg-2">
+                <label for="exampleInputName2" class="control-label">User</label>
+                <div>
+                    @Html.DropDownList("UserInfos", null, "Queue", htmlAttributes: new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <label for="exampleInputName2" class="control-label"></label>
+                <div>
+                    <button type="button" class="btn btn-primary" ng-click="$ctrl.onAssignClick()">
+                        Assign
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-condenced" id="orderAssignmentTable">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderNo)
+            </th>
+            <th>
+                County
+            </th>
+            <th>
+                Office
+            </th>
+            <th>
+                Order Type
+            </th>
+            <th>
+                Priority
+            </th>
+            <th>
+                Task
+            </th>
+            <th>
+                Assigned To
+            </th>
+            <th>
+                Received On
+                <div class="pull-right">
+                    <i class="fa fa-file-excel-o exportToExcelButton" table-id="orderAssignment" title="Export to Excel" aria-hidden="true" file-name="OrderAssignment"></i>
+                </div>
+
+            </th>
+            
+            
+        </tr>
+        @{
+            var counter = 0;
+        }
+        @foreach (var item in Model)
+        {
+
+
+
+            <tr itemId="@item.Id" class="trrow @( item.IsRushOrder  ? "danger"  : "" )">
+                <td>
+                    <span>@item.OrderNo</span>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.County)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.CRN.CRNDISPLAYNAME)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AuditRequestType.Name)
+                </td>
+                <td>
+                    @(item.IsRushOrder ? "Rush" : "Normal")
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AuditTask.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserAssignedName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DateCreated)
+                </td>
+            </tr>
+            counter++;
+        }
+
+
+    </table>
+</div>

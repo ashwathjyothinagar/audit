@@ -1,0 +1,114 @@
+@using System.Linq;
+@model Prelims.AuditCheck
+
+@{
+    ViewBag.PageTitle = "CHECKS - EDIT";
+}
+<style>
+    .office-multiselect {
+        border: 1px solid #f3f3f3;
+        padding: 10px;
+        max-width: 300px;
+        overflow-y: auto;
+    }
+
+    .group {
+        margin-bottom: 10px;
+    }
+
+        .group label {
+            font-weight: bold;
+        }
+
+    .options {
+        margin-left: 20px;
+    }
+</style>
+
+@using (Html.BeginForm("Edit", "AuditChecks", FormMethod.Post, new { enctype = "multipart/form-data", name = "productionForm", id = "productionForm" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal" ng-init="$ctrl.checksEditForm = { Name: '@(Model.Name)', AuditCheckValues: '@(Model.AuditCheckValues)'}">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.Id)
+        <div class="row">
+            <div class="col-lg-5">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", ng_model = "$ctrl.checksEditForm.Name", required = "required" } })
+                        <span style="color: red;" ng-show="productionForm.Name.$error.required">This is required</span>
+                        @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-md-2" for="TaskId">Task</label>
+                    <div class="col-md-10">
+                        <select class="form-control" id="TaskIds" multiple="multiple" name="TaskIds" style="min-height: 136px;">
+                            @foreach (var selectedItem in (SelectList)ViewBag.TaskId)
+                            {
+                                <option value="@selectedItem.Value" @(((List<string>)ViewBag.SelectedTaskIds).Contains(selectedItem.Value) ? "selected=\"selected\"" : "") >@selectedItem.Text</option>
+                            }
+                        </select>
+                        
+                        @Html.ValidationMessageFor(model => model.TaskId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-md-2" for="OrderNumberSeries">Order Number Series (Ex: 400*,410*,*366-10)</label>
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.OrderNumberSeries, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.OrderNumberSeries, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-md-2" for="AuditCheckValues">Check Values (Separated by | )</label>
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.AuditCheckValues, new { htmlAttributes = new { @class = "form-control", ng_model = "$ctrl.checksEditForm.AuditCheckValues" } })
+                        <span style="color: red;" ng-show="productionForm.AuditCheckValues.$error.required">This is required</span>
+                        @Html.ValidationMessageFor(model => model.AuditCheckValues, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <input type="hidden" id="SelectedOffices" name="SelectedOffices" value="@string.Join(",", ViewBag.SelectedOffices)" />
+            </div>
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <div id="office-multiselect" class="office-multiselect">
+                            @foreach (var group in ((List<CRN>)ViewBag.Offices).GroupBy(x => x.GroupName))
+                            {
+                                <div class="group">
+                                    <label>
+                                        <input type="checkbox" class="group-checkbox" data-group="@group.Key.Replace(" ", "")">
+                                        @group.Key
+                                    </label>
+                                    <div class="options">
+                                        @foreach (var office in group)
+                                        {
+                                            <label><input type="checkbox" class="office-checkbox" data-group="@group.Key.Replace(" ", "")" value="@office.CRNID" @(ViewBag.SelectedOffices.Contains(office.CRNID.ToString()) ? "checked" : "")> @office.CRNNAME</label>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Save" class="btn btn-default" ng-disabled="!productionForm.$valid" />
+                </div>
+            </div>
+        </div>
+
+
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+}
