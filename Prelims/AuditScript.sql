@@ -487,3 +487,228 @@ REFERENCES [dbo].[USERINFO] ([USERID])
 GO
 ALTER TABLE [dbo].[AuditUpdates] CHECK CONSTRAINT [FK_AuditUpdates_USERINFO]
 GO
+
+----------------
+
+
+GO
+SET IDENTITY_INSERT [dbo].[AuditErrorCategories] ON 
+GO
+INSERT [dbo].[AuditErrorCategories] ([Id], [Name]) VALUES (1, N'Other')
+GO
+SET IDENTITY_INSERT [dbo].[AuditErrorCategories] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditErrorTypes] ON 
+GO
+INSERT [dbo].[AuditErrorTypes] ([Id], [Name], [AuditErrorCategoryId], [IsCritical]) VALUES (1, N'Other', 1, 1)
+GO
+SET IDENTITY_INSERT [dbo].[AuditErrorTypes] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditHoldReasons] ON 
+GO
+INSERT [dbo].[AuditHoldReasons] ([Id], [Name]) VALUES (5, N'Tool locked')
+GO
+INSERT [dbo].[AuditHoldReasons] ([Id], [Name]) VALUES (6, N'Not migrated')
+GO
+SET IDENTITY_INSERT [dbo].[AuditHoldReasons] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditRejectReasons] ON 
+GO
+INSERT [dbo].[AuditRejectReasons] ([Id], [Name]) VALUES (6, N'Repeated order')
+GO
+INSERT [dbo].[AuditRejectReasons] ([Id], [Name]) VALUES (7, N'Unable to access in Title Point')
+GO
+INSERT [dbo].[AuditRejectReasons] ([Id], [Name]) VALUES (8, N'As per client instruction')
+GO
+SET IDENTITY_INSERT [dbo].[AuditRejectReasons] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditRequestTypes] ON 
+GO
+INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (1, N'Updates')
+GO
+INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (2, N'Datedowns')
+GO
+INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (4, N'Other')
+GO
+SET IDENTITY_INSERT [dbo].[AuditRequestTypes] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditSenders] ON 
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1007, N'Julio Valencia', N'Julio.Valencia@fnf.com', 21, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1008, N'Jim Park', N'jim.park@fnf.com', 21, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1014, N'Jill Culver', N'Team.Jill@fnf.com', 21, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1023, N'Steven', N'steven.lombardo@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1024, N'Sindy', N'team.jill@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1025, N'Tony', N'team.jill@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1026, N'Jill', N'team.jill@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1027, N'Team', N'team.steve@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1028, N'Jim', N'jim.park@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1029, N'Julio', N'team.sheila@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1030, N'Tim', N'team.sheila@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1031, N'Debby', N'team.sheila@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1032, N'Ruben ', N'team.ruben@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1033, N'Cheryl', N'cvajnar@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1034, N'Adam', N'adam.markland@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1035, N'Lisa', N'lisa.kreueger@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1036, N'Mariel', N'mariel.moore@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1037, N'Cesar', N'team.cesar@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1038, N'Manuel', N'team.cesar@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1039, N'Cesar', N'cesar.hernandez@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1040, N'Manuel', N'manuel.pedroza@fnf.com', 21, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1041, N'Mark', N'mark.mcdonald@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1042, N'Stephanie', N'stephanie.fields@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1043, N'Vicky', N'vicky.ezzell@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1044, N'Alexandra', N'vickysteam@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1045, N'Jennifer', N'vickysteam@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1046, N'Jennifer', N'jennifer.white@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1047, N'Tina', N'tgagnon@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1048, N'Margaret', N'traceysteam@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1049, N'Tracey', N'tculley-rojas@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1050, N'Alexandra', N'alexandra.esparza@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1051, N'Margaret', N'margaret.sandoval@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1052, N'Tina', N'vickysteam@fnf.com', 22, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1053, N'Team', N'mcopenorders@fnf.com', 26, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1054, N'Justine', N'justinesteam@fnf.com', 26, 1)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1055, N'RODEL ESQUEJO', N'equejor@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1056, N'Mellany DeLeon', N'ldeleon@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1057, N'Joemar Reyes', N'joemar.reyes@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1058, N'Ralph Abrego', N'Abrgegor@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1059, N'Rosa Medrano', N'Rmedrano@cltic.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1060, N'Chris Maziar', N'cmaziar@cltic.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1061, N'Adriana Santillan', N'adriana.santillan@cltic.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1062, N'Eric Gile', N'TeamGile@cltic.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1063, N'Babak Alihaji', N'bobby@allcaltitle.com', 36, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1064, N'Veronica Loaiza-Concetti', N'TeamConcetti@monarchtc.com', 38, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1065, N'Joes', N'joesteam@fnf.com', 22, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1066, N'Albert', N'team.albert@fnf.com', 21, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1067, N'Kevin Young', N'kyoung@allcaltitle.com', 36, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1068, N'David Noble', N'david.noble@fnf.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1069, N'Maria Soto', N'Maria.Soto1@fnf.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1070, N'Team Jay', N'TeamJay@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1071, N'Glendale Open Order', N'OpenOrder.Glendale@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1072, N'Paul Gonzalez', N'Paul.Gonzalez@fnf.com', 22, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1073, N'Team Julio', N'team.julio@fnf.com', 22, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1074, N'Title Team', N'team@allcaltitle.com', 36, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1076, N'Chris Otten', N'chris.otten@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1077, N'Lisa Allen', N'lisa.allen@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1078, N'Team Tayco', N'Team.tayco@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1079, N'ramakrishna', N'rama@firstfocusbpo.com', 42, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1080, N'Lee Wilson', N'Lee.Wilson@fnf.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1081, N'David Neal', N'David.Neal@fnf.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1082, N'Ryan McMahon', N'ryan@allcaltitle.com', 36, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1083, N'Patrick Meza', N'Patrick.Meza@ltic.com', 39, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1084, N'Dexter  Batanga', N'Dexter.Batanga@ltic.com', 39, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1085, N'Anthony Marquez', N'Anthony@monarchtc.com', 38, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1086, N'Joemar Reyes', N'joemar.reyes@ctt.com', 34, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1087, N'inhouseupdate', N'inhouseupdate@ltic.com', 39, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1088, N'Jeff Martin', N'Jeff.Martin@ctt.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1089, N'Ryan Telle', N'Ryan.Telle@ctt.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1090, N'Sheila Isham', N'Sheila.Isham@fnf.com', 21, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1091, N'Jose', N'JoesTeam@fnf.com', 40, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1092, N'Michelle Pascual', N'michelle.pascual@ticortitle.com', 43, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1093, N'Bailey Dela Cruz', N'Bailey.DelaCruz@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1094, N'Claudia Torres', N'Claudia.Torres@ctt.com', 33, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1095, N'Ana Regalado', N'ana.regalado@cltic.com', 32, 0)
+GO
+INSERT [dbo].[AuditSenders] ([Id], [Name], [EmailAddress], [CrnId], [AttachmentRequired]) VALUES (1096, N'RMB-Team.CPFSocal', N'Team.CPFSoCal@fnf.com', 21, 0)
+GO
+SET IDENTITY_INSERT [dbo].[AuditSenders] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditStatuses] ON 
+GO
+INSERT [dbo].[AuditStatuses] ([Id], [Name]) VALUES (1, N'Pending')
+GO
+INSERT [dbo].[AuditStatuses] ([Id], [Name]) VALUES (2, N'Inprogress')
+GO
+INSERT [dbo].[AuditStatuses] ([Id], [Name]) VALUES (3, N'Hold')
+GO
+INSERT [dbo].[AuditStatuses] ([Id], [Name]) VALUES (4, N'Completed')
+GO
+INSERT [dbo].[AuditStatuses] ([Id], [Name]) VALUES (5, N'Reject')
+GO
+SET IDENTITY_INSERT [dbo].[AuditStatuses] OFF
+GO
+SET IDENTITY_INSERT [dbo].[AuditTasks] ON 
+GO
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (1, N'Processing')
+GO
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (2, N'QC')
+GO
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (3, N'Delivery')
+GO
+SET IDENTITY_INSERT [dbo].[AuditTasks] OFF
+GO
