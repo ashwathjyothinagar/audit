@@ -524,9 +524,9 @@ SET IDENTITY_INSERT [dbo].[AuditRejectReasons] OFF
 GO
 SET IDENTITY_INSERT [dbo].[AuditRequestTypes] ON 
 GO
-INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (1, N'Updates')
+INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (1, N'Refi')
 GO
-INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (2, N'Datedowns')
+INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (2, N'Resale')
 GO
 INSERT [dbo].[AuditRequestTypes] ([Id], [Name]) VALUES (4, N'Other')
 GO
@@ -704,11 +704,16 @@ SET IDENTITY_INSERT [dbo].[AuditStatuses] OFF
 GO
 SET IDENTITY_INSERT [dbo].[AuditTasks] ON 
 GO
-INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (1, N'Processing')
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (1, N'L&V')
 GO
-INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (2, N'QC')
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (2, N'PI')
 GO
-INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (3, N'Delivery')
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (3, N'GI')
+
 GO
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (4, N'Starter')
+GO
+INSERT [dbo].[AuditTasks] ([Id], [Name]) VALUES (5, N'Notes')
+
 SET IDENTITY_INSERT [dbo].[AuditTasks] OFF
 GO
