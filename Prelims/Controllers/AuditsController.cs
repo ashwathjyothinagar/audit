@@ -474,112 +474,52 @@ namespace Prelims.Controllers
                 var lastStatusId = Audit.TaskId;
                 if (Audit.TaskId == 1)
                 {
-                    Audit.IsQcRequired = AuditProductionModel.IsQcRequired;
-
-                    if (userInfo.IsSupportingServicesReviewerTwo)
-                    {
-                        Audit.TaskId = 3;
-                    }
-                    else if (userInfo.IsSupportingServicesProcessor)
-                    {
-                        Audit.TaskId = 2;
-                    }
-                    else
-                    {
-                        Audit.TaskId = 2;
-                    }
-
-                    //Overriding the user info setting and sending it to qc task
-                    if (AuditProductionModel.IsQcRequired)
-                    {
-                        Audit.TaskId = 2;
-                    }
-
-                    if(AuditProductionModel.AnyPostingFoundInPIGI == true)
-                    {
-                        Audit.TaskId = 2;
-                    }
-
-                    if (this.Request.Files != null && this.Request.Files.Count > 0)
-                    {
-                        if (!string.IsNullOrEmpty(this.Request.Files[0].FileName))
-                        {
-                            var uploadFilePath = ConfigurationManager.AppSettings.Get("UPLOAD-FILEPATH");
-
-                            int fileInx = 0;
-                            foreach (string requestFileName in this.Request.Files)
-                            {
-                                HttpPostedFileBase file = Request.Files[fileInx];
-                                string fileNameGuid = Guid.NewGuid().ToString();
-                                string fileName = Path.Combine(uploadFilePath) + "\\" + fileNameGuid + Path.GetExtension(file.FileName);
-                                file.SaveAs(fileName);
-
-                                AuditDocument AuditDocument = new AuditDocument();
-
-                                AuditDocument.FileName = file.FileName;
-                                AuditDocument.DocumentPath = fileName;
-                                AuditDocument.AuditId = Audit.Id;
-
-                                db.AuditDocuments.Add(AuditDocument);
-                                fileInx++;
-                            }
-                            db.SaveChanges();
-                        }
-                    }
+                    // Task 1: L&V -> Move to Task 2: PI
+                    Audit.TaskId = 2;
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 2)
                 {
+                    // Task 2: PI -> Move to Task 3: GI
                     Audit.TaskId = 3;
-
-                    if (this.Request.Files != null && this.Request.Files.Count > 0)
-                    {
-                        if (!string.IsNullOrEmpty(this.Request.Files[0].FileName))
-                        {
-                            var uploadFilePath = ConfigurationManager.AppSettings.Get("UPLOAD-FILEPATH");
-
-                            var AuditDocuments = db.AuditDocuments.Where(x => x.AuditId == Audit.Id);
-
-                            foreach (AuditDocument AuditDoc in AuditDocuments)
-                            {
-                                System.IO.File.Delete(AuditDoc.DocumentPath);
-                                db.AuditDocuments.Remove(AuditDoc);
-                            }
-
-                            db.SaveChanges();
-
-                            int fileInx = 0;
-                            foreach (string requestFileName in this.Request.Files)
-                            {
-                                HttpPostedFileBase file = Request.Files[fileInx];
-                                string fileNameGuid = Guid.NewGuid().ToString();
-                                string fileName = Path.Combine(uploadFilePath) + "\\" + fileNameGuid + Path.GetExtension(file.FileName);
-                                file.SaveAs(fileName);
-
-                                AuditDocument AuditDocument = new AuditDocument();
-
-                                AuditDocument.FileName = file.FileName;
-                                AuditDocument.DocumentPath = fileName;
-                                AuditDocument.AuditId = Audit.Id;
-
-                                db.AuditDocuments.Add(AuditDocument);
-                                fileInx++;
-                            }
-
-                            db.SaveChanges();
-                        }
-                    }
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 3)
                 {
+                    // Task 3: GI -> Move to Task 4: Starter
+                    Audit.TaskId = 4;
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
+                }
+                else if (Audit.TaskId == 4)
+                {
+                    // Task 4: Starter -> Move to Task 5: Notes
+                    Audit.TaskId = 5;
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
+                }
+                else if (Audit.TaskId == 5)
+                {
+                    // Task 5: Notes -> After the 5th task, order should be completed
                     Audit.StatusId = 4;
                     Audit.UploadDateTime = DateTime.Now;
 
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
+
+                    // Unlock corresponding TitleOrder if it was locked with StatusId = 6 (Audit In Progress)
+                    try
+                    {
+                        db.Database.ExecuteSqlCommand("UPDATE TitleOrders SET StatusId = 1 WHERE OrderNo = @p0 AND StatusId = 6", Audit.OrderNo);
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore if TitleOrders table does not exist or order is already unlocked
+                    }
+
                     var emailMessage = new StringBuilder();
-                    emailMessage.AppendLine("Hi " + Audit.AuditSender.Name);
+                    emailMessage.AppendLine("Hi " + (Audit.AuditSender != null ? Audit.AuditSender.Name : "Team"));
                     emailMessage.AppendLine("");
                     if (Audit.CheckDirectHitUploaded ?? false)
                     {
-                        if (Audit.AuditSender.AttachmentRequired)
+                        if (Audit.AuditSender != null && Audit.AuditSender.AttachmentRequired)
                         {
                             emailMessage.AppendLine("The below SI request has been cleared, We found direct hit JG/LN.");
                             emailMessage.AppendLine("");
@@ -605,7 +545,8 @@ namespace Prelims.Controllers
                     string toAddresss = !string.IsNullOrEmpty(smtpToConfig) ? smtpToConfig : "ashwathjyothinagar@gmail.com";
 
                     List<AuditDocument> documents = new List<AuditDocument>();
-                    if (Audit.AuditSender.AttachmentRequired) {
+                    if (Audit.AuditSender != null && Audit.AuditSender.AttachmentRequired)
+                    {
                         documents = db.AuditDocuments.Where(x => x.AuditId == Audit.Id).ToList();
                     }
 
@@ -700,6 +641,44 @@ namespace Prelims.Controllers
             }
 
             return RedirectToAction("Index", "Audits");
+        }
+
+        private void SaveAuditFiles(int auditId, HttpFileCollectionBase files)
+        {
+            if (files != null && files.Count > 0)
+            {
+                if (!string.IsNullOrEmpty(files[0].FileName))
+                {
+                    var uploadFilePath = ConfigurationManager.AppSettings.Get("UPLOAD-FILEPATH");
+                    if (string.IsNullOrEmpty(uploadFilePath)) return;
+
+                    if (!Directory.Exists(uploadFilePath))
+                    {
+                        Directory.CreateDirectory(uploadFilePath);
+                    }
+
+                    int fileInx = 0;
+                    foreach (string requestFileName in files)
+                    {
+                        HttpPostedFileBase file = files[fileInx];
+                        if (file != null && !string.IsNullOrEmpty(file.FileName) && file.ContentLength > 0)
+                        {
+                            string fileNameGuid = Guid.NewGuid().ToString();
+                            string fileName = Path.Combine(uploadFilePath, fileNameGuid + Path.GetExtension(file.FileName));
+                            file.SaveAs(fileName);
+
+                            AuditDocument auditDocument = new AuditDocument();
+                            auditDocument.FileName = file.FileName;
+                            auditDocument.DocumentPath = fileName;
+                            auditDocument.AuditId = auditId;
+
+                            db.AuditDocuments.Add(auditDocument);
+                        }
+                        fileInx++;
+                    }
+                    db.SaveChanges();
+                }
+            }
         }
 
         public ActionResult TitleOrderTaskIsDone()
