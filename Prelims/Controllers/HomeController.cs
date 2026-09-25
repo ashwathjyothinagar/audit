@@ -56,20 +56,30 @@ namespace Prelims.Controllers
                     liveStatusViewModel.HoldCount = 0;
                 }
 
-                liveStatusViewModel.ProcessingBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId==crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 4);
-                liveStatusViewModel.ProcessingBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 2);
-                liveStatusViewModel.ProcessingSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 1);
-                liveStatusViewModel.ProcessingCount= db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1);
+                liveStatusViewModel.LVBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId==crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 4);
+                liveStatusViewModel.LVBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 2);
+                liveStatusViewModel.LVSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 1);
+                liveStatusViewModel.LVCount= db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1);
 
-                liveStatusViewModel.QCBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 4);
-                liveStatusViewModel.QCBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 2);
-                liveStatusViewModel.QCSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 1);
-                liveStatusViewModel.QCCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2);
+                liveStatusViewModel.PIBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 4);
+                liveStatusViewModel.PIBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 2);
+                liveStatusViewModel.PISellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2 && x.RequestTypeId == 1);
+                liveStatusViewModel.PICount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 2);
 
-                liveStatusViewModel.DeliveryBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 4);
-                liveStatusViewModel.DeliveryBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 2);
-                liveStatusViewModel.DeliverySellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 1);
-                liveStatusViewModel.DeliveryCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3);
+                liveStatusViewModel.GIBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 4);
+                liveStatusViewModel.GIBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 2);
+                liveStatusViewModel.GISellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 1);
+                liveStatusViewModel.GICount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3);
+
+                liveStatusViewModel.StarterBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 4);
+                liveStatusViewModel.StarterBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 2);
+                liveStatusViewModel.StarterSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 1);
+                liveStatusViewModel.StarterCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4);
+
+                liveStatusViewModel.NotesBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 4);
+                liveStatusViewModel.NotesBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 2);
+                liveStatusViewModel.NotesSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 1);
+                liveStatusViewModel.NotesCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5);
 
                 liveStatusItems.Add(liveStatusViewModel);
             }

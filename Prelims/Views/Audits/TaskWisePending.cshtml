@@ -22,13 +22,15 @@
                     <th>
                         Office Name
                     </th>
-                    <th style="width: 15%; text-align:center;">
-                        Processing
+                    <th style="width: 12%; text-align:center;">
+                        L&amp;V
                     </th>
-                    <th style="width: 15%; text-align:center;"> QC </th>
-                    <th style="width: 15%; text-align:center;">Delivery</th>
-                    <th style="width: 15%; text-align:center;">Hold</th>
-                    <th style="width: 15%; text-align:center;">Total</th>
+                    <th style="width: 12%; text-align:center;"> PI </th>
+                    <th style="width: 12%; text-align:center;">GI</th>
+                    <th style="width: 12%; text-align:center;">Starter</th>
+                    <th style="width: 12%; text-align:center;">Notes</th>
+                    <th style="width: 12%; text-align:center;">Hold</th>
+                    <th style="width: 12%; text-align:center;">Total</th>
                 </tr>
 
                 @foreach (var item in liveStatusGroup)
@@ -38,13 +40,19 @@
                             @item.OfficeName
                         </td>
                         <td style="text-align:center;">
-                            @Html.ActionLink(@item.ProcessingCount.ToString(), "TaskWisePendingDetail", new { taskId = 1, crnId = item.CrnId })
+                            @Html.ActionLink(@item.LVCount.ToString(), "TaskWisePendingDetail", new { taskId = 1, crnId = item.CrnId })
                         </td>
                         <td style="text-align:center;">
-                            @Html.ActionLink(@item.QCCount.ToString(), "TaskWisePendingDetail", new { taskId = 2, crnId = item.CrnId })
+                            @Html.ActionLink(@item.PICount.ToString(), "TaskWisePendingDetail", new { taskId = 2, crnId = item.CrnId })
                         </td>
                         <td style="text-align:center;">
-                            @Html.ActionLink(@item.DeliveryCount.ToString(), "TaskWisePendingDetail", new { taskId = 3, crnId = item.CrnId })
+                            @Html.ActionLink(@item.GICount.ToString(), "TaskWisePendingDetail", new { taskId = 3, crnId = item.CrnId })
+                        </td>
+                        <td style="text-align:center;">
+                            @Html.ActionLink(@item.StarterCount.ToString(), "TaskWisePendingDetail", new { taskId = 4, crnId = item.CrnId })
+                        </td>
+                        <td style="text-align:center;">
+                            @Html.ActionLink(@item.NotesCount.ToString(), "TaskWisePendingDetail", new { taskId = 5, crnId = item.CrnId })
                         </td>
                         <td style="text-align:center;">
                             @Html.ActionLink(@item.HoldCount.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true })
@@ -59,13 +67,19 @@
                         Total
                     </th>
                     <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.ProcessingCount).ToString(), "TaskWisePendingDetail", new { taskId = 1, crnGroupName = liveStatusGroup.Key })
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.LVCount).ToString(), "TaskWisePendingDetail", new { taskId = 1, crnGroupName = liveStatusGroup.Key })
                     </th>
                     <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.QCCount).ToString(), "TaskWisePendingDetail", new { taskId = 2, crnGroupName = liveStatusGroup.Key })
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.PICount).ToString(), "TaskWisePendingDetail", new { taskId = 2, crnGroupName = liveStatusGroup.Key })
                     </th>
                     <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.DeliveryCount).ToString(), "TaskWisePendingDetail", new { taskId = 3, crnGroupName = liveStatusGroup.Key })
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.GICount).ToString(), "TaskWisePendingDetail", new { taskId = 3, crnGroupName = liveStatusGroup.Key })
+                    </th>
+                    <th style="text-align:center;">
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.StarterCount).ToString(), "TaskWisePendingDetail", new { taskId = 4, crnGroupName = liveStatusGroup.Key })
+                    </th>
+                    <th style="text-align:center;">
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.NotesCount).ToString(), "TaskWisePendingDetail", new { taskId = 5, crnGroupName = liveStatusGroup.Key })
                     </th>
                     <th style="text-align:center;">
                         @Html.ActionLink(liveStatusGroup.Sum(x => x.HoldCount).ToString(), "TaskWisePendingDetail", new { showHold = true, crnGroupName = liveStatusGroup.Key })

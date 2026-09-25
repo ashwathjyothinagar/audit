@@ -24,7 +24,7 @@ namespace Prelims.Models.Reports
         [DisplayName("Recieved Date Time")]
         public string RecievedDateTime { get; set; }
 
-        [DisplayName("Processing done by")]
+        [DisplayName("L&V done by")]
         public string ProcessingDoneBy { get; set; }
 
         [DisplayName("Start Time")]
@@ -36,7 +36,7 @@ namespace Prelims.Models.Reports
         [DisplayName("Time Taken")]
         public string ProcessingTimeTaken { get; set; }
 
-        [DisplayName("QC done by")]
+        [DisplayName("PI done by")]
         public string QCDoneBy { get; set; }
 
         [DisplayName("Start Time")]
@@ -45,7 +45,7 @@ namespace Prelims.Models.Reports
         [DisplayName("End Time")]
         public string QCEndTime { get; set; }
 
-        [DisplayName("QC Comments")]
+        [DisplayName("PI Comments")]
         public string QCComments { get; set; }
 
         [DisplayName("Error Found")]
@@ -57,7 +57,7 @@ namespace Prelims.Models.Reports
         [DisplayName("Time Taken")]
         public string QCTimeTaken { get; set; }
 
-        [DisplayName("Delivery done by")]
+        [DisplayName("GI done by")]
         public string DeliveryDoneBy { get; set; }
 
         [DisplayName("Start Time")]
@@ -68,10 +68,36 @@ namespace Prelims.Models.Reports
 
         [DisplayName("Time Taken")]
         public string DeliveryTimeTaken { get; set; }
+
+        [DisplayName("Starter done by")]
+        public string StarterDoneBy { get; set; }
+
+        [DisplayName("Start Time")]
+        public string StarterStartTime { get; set; }
+
+        [DisplayName("End Time")]
+        public string StarterEndTime { get; set; }
+
+        [DisplayName("Time Taken")]
+        public string StarterTimeTaken { get; set; }
+
+        [DisplayName("Notes done by")]
+        public string NotesDoneBy { get; set; }
+
+        [DisplayName("Start Time")]
+        public string NotesStartTime { get; set; }
+
+        [DisplayName("End Time")]
+        public string NotesEndTime { get; set; }
+
+        [DisplayName("Time Taken")]
+        public string NotesTimeTaken { get; set; }
     }
 }
 
 
-//Processing
-//QC
-//Delivery
+//L&V
+//PI
+//GI
+//Starter
+//Notes

@@ -11,20 +11,30 @@ namespace Prelims.Models
         public string UserName { get; set; }
         public string Location { get; set; }
 
-        public int ProcessingCount { get; set; }
-        public int ProcessingUpdatesCount { get; set; }
-        public int ProcessingDatedownsCount { get; set; }
-        public int ProcessingOtherCount { get; set; }
+        public int LVCount { get; set; }
+        public int LVUpdatesCount { get; set; }
+        public int LVDatedownsCount { get; set; }
+        public int LVOtherCount { get; set; }
 
-        public int QCCount { get; set; }
-        public int QCUpdatesCount { get; set; }
-        public int QCDatedownsCount { get; set; }
-        public int QCOtherCount { get; set; }
+        public int PICount { get; set; }
+        public int PIUpdatesCount { get; set; }
+        public int PIDatedownsCount { get; set; }
+        public int PIOtherCount { get; set; }
 
-        public int DeliveryCount { get; set; }
-        public int DeliveryUpdatesCount { get; set; }
-        public int DeliveryDatedownsCount { get; set; }
-        public int DeliveryOtherCount { get; set; }
+        public int GICount { get; set; }
+        public int GIUpdatesCount { get; set; }
+        public int GIDatedownsCount { get; set; }
+        public int GIOtherCount { get; set; }
+
+        public int StarterCount { get; set; }
+        public int StarterUpdatesCount { get; set; }
+        public int StarterDatedownsCount { get; set; }
+        public int StarterOtherCount { get; set; }
+
+        public int NotesCount { get; set; }
+        public int NotesUpdatesCount { get; set; }
+        public int NotesDatedownsCount { get; set; }
+        public int NotesOtherCount { get; set; }
 
         public int AuditCount { get; set; }
         public int AuditUpdatesCount { get; set; }

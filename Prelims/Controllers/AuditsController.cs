@@ -985,7 +985,9 @@ namespace Prelims.Controllers
             {
                 Audits = Audits.Where(x => x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 1) ||
                                                  x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 2) ||
-                                                 x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 3));
+                                                 x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 3) ||
+                                                 x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 4) ||
+                                                 x.AuditTimeEntries.Any(y => y.StartTime > startDateTime && y.EndTime < endDateTime && y.AuditTaskId == 5));
             }
             else
             {
@@ -1049,7 +1051,7 @@ namespace Prelims.Controllers
                             productionViewModel.QCComments = updateInfo.Updates;
                         }
 
-                        productionViewModel.AuditErrors = errors.Where(x => x.TaskName == "QC").ToList();
+                        productionViewModel.AuditErrors = errors.Where(x => x.TaskName == "PI").ToList();
                         productionViewModel.AnyCriticalErrors = productionViewModel.AuditErrors.Any() ? "YES" : "NO";
                     }
                 }
@@ -1065,6 +1067,34 @@ namespace Prelims.Controllers
                     {
                         productionViewModel.DeliveryEndTime = deliveryTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
                         productionViewModel.DeliveryTimeTaken = deliveryTaskInfo.EndTime.Value.Subtract(deliveryTaskInfo.StartTime).ToString("c");
+                    }
+                }
+
+                var starterTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 4);
+
+                if (starterTaskInfo != null)
+                {
+                    productionViewModel.StarterDoneBy = starterTaskInfo.USERINFO.USERNAME;
+                    productionViewModel.StarterStartTime = starterTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
+
+                    if (starterTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.StarterEndTime = starterTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
+                        productionViewModel.StarterTimeTaken = starterTaskInfo.EndTime.Value.Subtract(starterTaskInfo.StartTime).ToString("c");
+                    }
+                }
+
+                var notesTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 5);
+
+                if (notesTaskInfo != null)
+                {
+                    productionViewModel.NotesDoneBy = notesTaskInfo.USERINFO.USERNAME;
+                    productionViewModel.NotesStartTime = notesTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
+
+                    if (notesTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.NotesEndTime = notesTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
+                        productionViewModel.NotesTimeTaken = notesTaskInfo.EndTime.Value.Subtract(notesTaskInfo.StartTime).ToString("c");
                     }
                 }
                 productionViewModels.Add(productionViewModel);
@@ -1091,10 +1121,12 @@ namespace Prelims.Controllers
                 taskPendingReportViewModel.OfficeName = crnItem.CRNNAME;
                 taskPendingReportViewModel.GroupName = crnItem.GroupName;
                 taskPendingReportViewModel.CrnId = crnItem.CRNID;
-                taskPendingReportViewModel.ProcessingCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 1);
+                taskPendingReportViewModel.LVCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 1);
 
-                taskPendingReportViewModel.QCCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 2);
-                taskPendingReportViewModel.DeliveryCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 3);
+                taskPendingReportViewModel.PICount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 2);
+                taskPendingReportViewModel.GICount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 3);
+                taskPendingReportViewModel.StarterCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 4);
+                taskPendingReportViewModel.NotesCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 5);
                 taskPendingReportViewModel.HoldCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.CrnId == crnItem.CRNID && x.StatusId == 3);
                 taskPendingReportViewModel.Total = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.CrnId == crnItem.CRNID);
 
@@ -2305,23 +2337,35 @@ namespace Prelims.Controllers
                     userReportViewModel.UserName = user.USERNAME;
                     userReportViewModel.Location = user.LOCATION;
 
-                    userReportViewModel.ProcessingUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
-                    userReportViewModel.ProcessingDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
-                    userReportViewModel.ProcessingOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
+                    userReportViewModel.LVUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.LVDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
+                    userReportViewModel.LVOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
 
-                    userReportViewModel.ProcessingCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.LVCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 1 && x.UserId == user.USERID);
 
-                    userReportViewModel.QCUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
-                    userReportViewModel.QCDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
-                    userReportViewModel.QCOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
+                    userReportViewModel.PIUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.PIDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
+                    userReportViewModel.PIOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
 
-                    userReportViewModel.QCCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.UserId == user.USERID);
+                    userReportViewModel.PICount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 2 && x.UserId == user.USERID);
 
-                    userReportViewModel.DeliveryUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
-                    userReportViewModel.DeliveryDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
-                    userReportViewModel.DeliveryOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
+                    userReportViewModel.GIUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.GIDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
+                    userReportViewModel.GIOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
 
-                    userReportViewModel.DeliveryCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.UserId == user.USERID);
+                    userReportViewModel.GICount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 3 && x.UserId == user.USERID);
+
+                    userReportViewModel.StarterUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 4 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.StarterDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 4 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
+                    userReportViewModel.StarterOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 4 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
+
+                    userReportViewModel.StarterCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 4 && x.UserId == user.USERID);
+
+                    userReportViewModel.NotesUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
+                    userReportViewModel.NotesDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 6 && x.UserId == user.USERID);
+                    userReportViewModel.NotesOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 7 && x.UserId == user.USERID);
+
+                    userReportViewModel.NotesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime > startDateTime && x.EndTime < endDateTime && x.AuditTaskId == 5 && x.UserId == user.USERID);
 
                     userReportItems.Add(userReportViewModel);
                 }

@@ -10,20 +10,30 @@ namespace Prelims.Models.Reports
         public string OfficeName { get; set; }
         public string GroupName { get; set; }
 
-        public int ProcessingCount { get; set; }
-        public int ProcessingSellerCount { get; set; }
-        public int ProcessingBuyerCount { get; set; }
-        public int ProcessingBothCount { get; set; }
+        public int LVCount { get; set; }
+        public int LVSellerCount { get; set; }
+        public int LVBuyerCount { get; set; }
+        public int LVBothCount { get; set; }
 
-        public int QCCount { get; set; }
-        public int QCSellerCount { get; set; }
-        public int QCBuyerCount { get; set; }
-        public int QCBothCount { get; set; }
+        public int PICount { get; set; }
+        public int PISellerCount { get; set; }
+        public int PIBuyerCount { get; set; }
+        public int PIBothCount { get; set; }
 
-        public int DeliveryCount { get; set; }
-        public int DeliverySellerCount { get; set; }
-        public int DeliveryBuyerCount { get; set; }
-        public int DeliveryBothCount { get; set; }
+        public int GICount { get; set; }
+        public int GISellerCount { get; set; }
+        public int GIBuyerCount { get; set; }
+        public int GIBothCount { get; set; }
+
+        public int StarterCount { get; set; }
+        public int StarterSellerCount { get; set; }
+        public int StarterBuyerCount { get; set; }
+        public int StarterBothCount { get; set; }
+
+        public int NotesCount { get; set; }
+        public int NotesSellerCount { get; set; }
+        public int NotesBuyerCount { get; set; }
+        public int NotesBothCount { get; set; }
 
         public int HoldCount { get; set; }
     }

@@ -141,11 +141,13 @@
 
                         </th>
                         <th colspan="3" style="text-align:center;">
-                            Processing
+                            L&amp;V
                         </th>
-                        <th colspan="3" style="text-align:center;">QC</th>
+                        <th colspan="3" style="text-align:center;">PI</th>
+                        <th colspan="3" style="text-align:center;">GI</th>
+                        <th colspan="3" style="text-align:center;">Starter</th>
                         <th colspan="3" style="text-align:center;">
-                            Delivery
+                            Notes
                             <div class="pull-right">
                                 <i class="fa fa-file-excel-o exportToExcelButton" table-id="userReportTable" title="Export to Excel" aria-hidden="true" file-name="User Report"></i>
                             </div>
@@ -169,6 +171,12 @@
                         <th style="text-align:center;">Updates</th>
                         <th style="text-align:center;">Datedowns</th>
                         <th style="text-align:center;">Other</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Other</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Other</th>
                     </tr>
                     @foreach (var item in Model)
                     {
@@ -181,16 +189,22 @@
                             </td>
 
                             <td style="text-align:center;">
-                                @item.ProcessingUpdatesCount
+                                @item.LVUpdatesCount
                             </td>
-                            <td style="text-align:center;">@item.ProcessingDatedownsCount</td>
-                            <td style="text-align:center;">@item.ProcessingOtherCount</td>
-                            <td style="text-align:center;">@item.QCUpdatesCount</td>
-                            <td style="text-align:center;">@item.QCDatedownsCount</td>
-                            <td style="text-align:center;">@item.QCOtherCount</td>
-                            <td style="text-align:center;">@item.DeliveryUpdatesCount</td>
-                            <td style="text-align:center;">@item.DeliveryDatedownsCount</td>
-                            <td style="text-align:center;">@item.DeliveryOtherCount</td>
+                            <td style="text-align:center;">@item.LVDatedownsCount</td>
+                            <td style="text-align:center;">@item.LVOtherCount</td>
+                            <td style="text-align:center;">@item.PIUpdatesCount</td>
+                            <td style="text-align:center;">@item.PIDatedownsCount</td>
+                            <td style="text-align:center;">@item.PIOtherCount</td>
+                            <td style="text-align:center;">@item.GIUpdatesCount</td>
+                            <td style="text-align:center;">@item.GIDatedownsCount</td>
+                            <td style="text-align:center;">@item.GIOtherCount</td>
+                            <td style="text-align:center;">@item.StarterUpdatesCount</td>
+                            <td style="text-align:center;">@item.StarterDatedownsCount</td>
+                            <td style="text-align:center;">@item.StarterOtherCount</td>
+                            <td style="text-align:center;">@item.NotesUpdatesCount</td>
+                            <td style="text-align:center;">@item.NotesDatedownsCount</td>
+                            <td style="text-align:center;">@item.NotesOtherCount</td>
                         </tr>
 
                     }

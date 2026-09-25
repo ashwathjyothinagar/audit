@@ -25,10 +25,12 @@
                         <th>
                         </th>
                         <th colspan="4" style="text-align:center;">
-                            Processing
+                            L&amp;V
                         </th>
-                        <th colspan="4" style="text-align:center;"> QC </th>
-                        <th colspan="4" style="text-align:center;">Delivery</th>
+                        <th colspan="4" style="text-align:center;"> PI </th>
+                        <th colspan="4" style="text-align:center;">GI</th>
+                        <th colspan="4" style="text-align:center;">Starter</th>
+                        <th colspan="4" style="text-align:center;">Notes</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -38,6 +40,14 @@
                         <th style="text-align:center;">
                             Updates
                         </th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th style="text-align:center;">Updates</th>
+                        <th style="text-align:center;">Datedowns</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th style="text-align:center;">Updates</th>
                         <th style="text-align:center;">Datedowns</th>
                         <th style="text-align:center;">Both</th>
                         <th style="text-align:center;background-color: grey;">Total</th>
@@ -59,26 +69,38 @@
                                 @item.OfficeName
                             </th>
                             <th style="text-align:center;">
-                                @item.ProcessingSellerCount
+                                @item.LVSellerCount
                             </th>
-                            <th style="text-align:center;">@item.ProcessingBuyerCount</th>
-                            <th style="text-align:center;">@item.ProcessingBothCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.ProcessingCount</th>
+                            <th style="text-align:center;">@item.LVBuyerCount</th>
+                            <th style="text-align:center;">@item.LVBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.LVCount</th>
                             <th style="text-align:center;">
-                                @item.QCSellerCount
+                                @item.PISellerCount
                             </th>
-                            <th style="text-align:center;">@item.QCBuyerCount</th>
-                            <th style="text-align:center;">@item.QCBothCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.QCCount</th>
+                            <th style="text-align:center;">@item.PIBuyerCount</th>
+                            <th style="text-align:center;">@item.PIBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.PICount</th>
                             <th style="text-align:center;">
-                                @item.DeliverySellerCount
+                                @item.GISellerCount
                             </th>
-                            <th style="text-align:center;">@item.DeliveryBuyerCount</th>
-                            <th style="text-align:center;">@item.DeliveryBothCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.DeliveryCount</th>
+                            <th style="text-align:center;">@item.GIBuyerCount</th>
+                            <th style="text-align:center;">@item.GIBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.GICount</th>
+                            <th style="text-align:center;">
+                                @item.StarterSellerCount
+                            </th>
+                            <th style="text-align:center;">@item.StarterBuyerCount</th>
+                            <th style="text-align:center;">@item.StarterBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.StarterCount</th>
+                            <th style="text-align:center;">
+                                @item.NotesSellerCount
+                            </th>
+                            <th style="text-align:center;">@item.NotesBuyerCount</th>
+                            <th style="text-align:center;">@item.NotesBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.NotesCount</th>
 
                             <th style="text-align:center;">@item.HoldCount</th>
-                            <th style="text-align:center;background-color: grey;">@(item.ProcessingCount + item.QCCount + item.DeliveryCount)</th>
+                            <th style="text-align:center;background-color: grey;">@(item.LVCount + item.PICount + item.GICount + item.StarterCount + item.NotesCount)</th>
                         </tr>
 
                     }
@@ -88,26 +110,38 @@
                             Total
                         </th>
                         <th style="text-align:center;">
-                            @(liveStatusGroup.Sum(x => x.ProcessingSellerCount))
+                            @(liveStatusGroup.Sum(x => x.LVSellerCount))
                         </th>
-                        <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.ProcessingBuyerCount))</th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.ProcessingBothCount))  </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.ProcessingCount)) </th>
+                        <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.LVBuyerCount))</th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.LVBothCount))  </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.LVCount)) </th>
                         <th style="text-align:center;">
-                            @(liveStatusGroup.Sum(x => x.QCSellerCount))
+                            @(liveStatusGroup.Sum(x => x.PISellerCount))
                         </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCBothCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.QCCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.PIBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.PIBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.PICount)) </th>
                         <th style="text-align:center;">
-                            @(liveStatusGroup.Sum(x => x.DeliverySellerCount))
+                            @(liveStatusGroup.Sum(x => x.GISellerCount))
                         </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryBothCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.DeliveryCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.GIBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.GIBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.GICount)) </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.StarterSellerCount))
+                        </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterCount)) </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.NotesSellerCount))
+                        </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesBuyerCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesBothCount)) </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesCount)) </th>
 
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.HoldCount)) </th>
-                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.ProcessingCount) + liveStatusGroup.Sum(x => x.QCCount) + liveStatusGroup.Sum(x => x.DeliveryCount)))</th>
+                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.LVCount) + liveStatusGroup.Sum(x => x.PICount) + liveStatusGroup.Sum(x => x.GICount) + liveStatusGroup.Sum(x => x.StarterCount) + liveStatusGroup.Sum(x => x.NotesCount)))</th>
                     </tr>
 
                 </table>
