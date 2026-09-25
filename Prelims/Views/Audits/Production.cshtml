@@ -357,7 +357,7 @@
         <div class="col-lg-2">
             <div class="form-group">
                 <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.EffectiveDateChanged.HasValue ? (Model.EffectiveDateChanged.Value ? "Yes"  : "No") :"Not Set");
                         @Html.HiddenFor(model => model.EffectiveDateChanged);
@@ -383,7 +383,7 @@
             <div class="form-group">
                 <div class="col-md-10">
 
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.AnyChangeInVesting.HasValue ? (Model.AnyChangeInVesting.Value ? "Yes" : "No") : "Not Set");
                         @Html.HiddenFor(model => model.AnyChangeInVesting);
@@ -411,7 +411,7 @@
         <div class="col-lg-2">
             <div class="form-group">
                 <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.AnyUpdateOnTaxInformation.HasValue ? (Model.AnyUpdateOnTaxInformation.Value ? "Yes" : "No") : "Not Set");
                         @Html.HiddenFor(model => model.AnyUpdateOnTaxInformation);
@@ -437,7 +437,7 @@
             <div class="form-group">
                 <div class="col-md-10">
 
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.AnyUpdateOnNewPIDocs.HasValue ? (Model.AnyUpdateOnNewPIDocs.Value ? "Yes" : "No") :"Not Set");
                         @Html.HiddenFor(model => model.AnyUpdateOnNewPIDocs);
@@ -465,7 +465,7 @@
         <div class="col-lg-2">
             <div class="form-group">
                 <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.AnyUpdateOnNewGIDocs.HasValue ? (Model.AnyUpdateOnNewGIDocs.Value ? "Yes" : "No") : "Not Set");
                         @Html.HiddenFor(model => model.AnyUpdateOnNewGIDocs);
@@ -490,7 +490,7 @@
         <div class="col-lg-2">
             <div class="form-group">
                 <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.DidYouReviewTwentyFourMonthChainOfTitle.HasValue ? (Model.DidYouReviewTwentyFourMonthChainOfTitle.Value ? "Yes" : "No") : "Not Set");
                         @Html.HiddenFor(model => model.DidYouReviewTwentyFourMonthChainOfTitle);
@@ -518,7 +518,7 @@
         <div class="col-lg-2">
             <div class="form-group">
                 <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 3)
+                    @if (Model.Audit.TaskId == 5)
                     {
                         @(Model.AnyPostingFoundInPIGI.HasValue ? (Model.AnyPostingFoundInPIGI.Value ? "Yes" : "No") : "Not Set");
                         @Html.HiddenFor(model => model.AnyPostingFoundInPIGI);
@@ -555,7 +555,7 @@
 
     </div>
 
-    @if (Model.Audit.TaskId == 3)
+    @if (Model.Audit.TaskId == 5)
     {
 
         <div class="row production-row">
@@ -725,7 +725,7 @@
 
         </div>
         <div class="col-lg-4">
-            @if (Model.Audit.TaskId == 3)
+            @if (Model.Audit.TaskId == 5)
             {
                 <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
                 <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
