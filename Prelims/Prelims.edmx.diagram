@@ -62,6 +62,47 @@
         <EntityTypeShape EntityType="FntModel.Audit" Width="1.5" PointX="8" PointY="17.125" />
         <AssociationConnector Association="FntModel.FK_Audits_CRN" />
         <AssociationConnector Association="FntModel.FK_AuditDocuments_Audits" />
+        <EntityTypeShape EntityType="FntModel.AuditCheck" Width="1.5" PointX="8" PointY="9.25" />
+        <AssociationConnector Association="FntModel.FK_AuditChecks_CRN" />
+        <EntityTypeShape EntityType="FntModel.AuditCheckCrn" Width="1.5" PointX="10.25" PointY="9.875" />
+        <AssociationConnector Association="FntModel.FK_AuditCheckCrns_AuditChecks" />
+        <EntityTypeShape EntityType="FntModel.AuditCheckValue" Width="1.5" PointX="10.25" PointY="12.75" />
+        <AssociationConnector Association="FntModel.FK_AuditCheckValues_AuditChecks" />
+        <EntityTypeShape EntityType="FntModel.AuditCheckTask" Width="1.5" PointX="10.25" PointY="6.875" />
+        <AssociationConnector Association="FntModel.FK_AuditCheckTasks_AuditChecks" />
+        <EntityTypeShape EntityType="FntModel.AuditErrorCategory" Width="1.5" PointX="0.75" PointY="10.75" />
+        <EntityTypeShape EntityType="FntModel.AuditErrorJson" Width="1.5" PointX="10.25" PointY="21.375" />
+        <AssociationConnector Association="FntModel.FK_AuditErrorJson_Audits" />
+        <EntityTypeShape EntityType="FntModel.AuditErrorType" Width="1.5" PointX="3" PointY="10.5" />
+        <AssociationConnector Association="FntModel.FK_AuditErrorTypes_AuditErrorCategories" />
+        <EntityTypeShape EntityType="FntModel.AuditHold" Width="1.5" PointX="10.25" PointY="15.875" />
+        <AssociationConnector Association="FntModel.FK_AuditHolds_USERINFO" />
+        <AssociationConnector Association="FntModel.FK_AuditHolds_Audits" />
+        <EntityTypeShape EntityType="FntModel.AuditHoldReason" Width="1.5" PointX="10.375" PointY="3.75" />
+        <EntityTypeShape EntityType="FntModel.AuditReject" Width="1.5" PointX="13.25" PointY="13.125" />
+        <AssociationConnector Association="FntModel.FK_AuditRejects_USERINFO" />
+        <AssociationConnector Association="FntModel.FK_AuditRejects_Audits" />
+        <EntityTypeShape EntityType="FntModel.AuditRejectReason" Width="1.5" PointX="12.375" PointY="0.75" />
+        <EntityTypeShape EntityType="FntModel.AuditRequestType" Width="1.5" PointX="12.375" PointY="3.875" />
+        <AssociationConnector Association="FntModel.FK_Audits_AuditRequestTypes" />
+        <EntityTypeShape EntityType="FntModel.AuditSender" Width="1.5" PointX="8" PointY="13.625" />
+        <AssociationConnector Association="FntModel.FK_AuditSenders_CRN" />
+        <AssociationConnector Association="FntModel.FK_Audits_AuditSenders" />
+        <EntityTypeShape EntityType="FntModel.AuditStatus" Width="1.5" PointX="12.375" PointY="6.875" />
+        <AssociationConnector Association="FntModel.FK_Audits_AuditStatuses" />
+        <EntityTypeShape EntityType="FntModel.AuditTask" Width="1.5" PointX="0.75" PointY="14" />
+        <AssociationConnector Association="FntModel.FK_AuditHolds_AuditTasks" />
+        <AssociationConnector Association="FntModel.FK_Audits_AuditTasks" />
+        <AssociationConnector Association="FntModel.FK_AuditErrorJson_AuditTasks" />
+        <EntityTypeShape EntityType="FntModel.AuditTimeEntry" Width="1.5" PointX="13.25" PointY="16.875" />
+        <AssociationConnector Association="FntModel.FK_AuditTimeEntries_AuditTasks" />
+        <AssociationConnector Association="FntModel.FK_AuditTimeEntries_AuditTimeEntries" />
+        <AssociationConnector Association="FntModel.FK_AuditTimeEntries_USERINFO" />
+        <AssociationConnector Association="FntModel.FK_AuditTimeEntries_Audits" />
+        <EntityTypeShape EntityType="FntModel.AuditUpdate" Width="1.5" PointX="13.25" PointY="9.25" />
+        <AssociationConnector Association="FntModel.FK_AuditUpdates_AuditTasks" />
+        <AssociationConnector Association="FntModel.FK_AuditUpdates_USERINFO" />
+        <AssociationConnector Association="FntModel.FK_AuditUpdates_Audits" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
