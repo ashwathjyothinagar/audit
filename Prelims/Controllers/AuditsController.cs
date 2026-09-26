@@ -639,7 +639,10 @@ namespace Prelims.Controllers
                 Audit.EffectiveDateChanged = AuditProductionModel.EffectiveDateChanged;
 
                 Audit.CheckOwnerSearchCount = AuditProductionModel.OwnerSearchCount;
-                Audit.OwnerNames = AuditProductionModel.OwnerName;
+                if (!string.IsNullOrEmpty(AuditProductionModel.OwnerName))
+                {
+                    Audit.OwnerNames = AuditProductionModel.OwnerName;
+                }
 
                 Audit.CWLTTitleOfficeName = AuditProductionModel.CWLTTitleOfficeName;
                 Audit.CWLTTitleOfficerName = AuditProductionModel.CWLTTitleOfficerName;
@@ -685,6 +688,7 @@ namespace Prelims.Controllers
                 if (isFailded)
                 {
                     AuditProductionModel.Audit = Audit;
+                    AuditProductionModel.Checks = GetAuditChecks(Audit.OrderNo, Audit.TaskId, Audit.CrnId);
                     return View(AuditProductionModel);
                 }
 
@@ -2252,6 +2256,7 @@ namespace Prelims.Controllers
 
         private List<AuditCheckModel> GetAuditChecks(string orderNumber, int taskId, int crnId)
         {
+            EnsureDefaultAuditChecksSeeded();
             var instructions = new List<AuditCheckModel>();
             var allAuditCheckItems = new List<AuditCheck>();
 
@@ -2321,6 +2326,80 @@ namespace Prelims.Controllers
             }
 
             return instructions;
+        }
+
+        private void EnsureDefaultAuditChecksSeeded()
+        {
+            try
+            {
+                if (!db.AuditChecks.Any())
+                {
+                    var checksData = new List<Tuple<string, int>>
+                    {
+                        // Taxes (TaskId = 6)
+                        Tuple.Create("Refer with Order Sheet (APN and Address)", 6),
+                        Tuple.Create("Check Both Property Address in Prelim", 6),
+                        Tuple.Create("Check APN Map Marking in Prelim", 6),
+                        Tuple.Create("Check All Tax shown in Prelim with correct code", 6),
+                        Tuple.Create("Check Amount and Typo in Prelim", 6),
+
+                        // L&V (TaskId = 1)
+                        Tuple.Create("Refer with Order Sheet and Tax Sheet (Owner Name)", 1),
+                        Tuple.Create("Check Effective Date", 1),
+                        Tuple.Create("Check All Deed in Title Point or Data Trace and Retrive", 1),
+                        Tuple.Create("Check Transaction and check typos in Prelim", 1),
+                        Tuple.Create("Check 24 month code and check typos in prelim", 1),
+                        Tuple.Create("Vesting same Trust and LLC etc codes and typo in Prelim", 1),
+                        Tuple.Create("Check Fee Type", 1),
+                        Tuple.Create("Check Policy Type", 1),
+
+                        // PI (TaskId = 2)
+                        Tuple.Create("Refer with Order Sheet and Tax Sheet (Owner Name)", 2),
+                        Tuple.Create("Check All Money Matters in Title Point or Data Trace and Retrive", 2),
+                        Tuple.Create("Retrive DOT and all document Check codes and check typos in prelim", 2),
+                        Tuple.Create("No Open DOT Run Grantor and Grantee search", 2),
+
+                        // GI (TaskId = 3)
+                        Tuple.Create("Refer with Order Sheet (Buyer and Seller names)", 3),
+                        Tuple.Create("Check all deed and PI documents for name search", 3),
+                        Tuple.Create("Check all names Direct hit and Possible hit", 3),
+                        Tuple.Create("Check All Tax shown in Prelim with correct code", 3),
+                        Tuple.Create("Check Amount and Typo in Prelim", 3),
+                        Tuple.Create("Check all GI matters Typo in Prelim", 3),
+                        Tuple.Create("LLC Entity name search", 3),
+                        Tuple.Create("Grantor and Grantee search", 3),
+
+                        // Starter (TaskId = 4)
+                        Tuple.Create("Refer with PIQ Starter and AP Starter", 4),
+                        Tuple.Create("Check PI in Title Point or Data Trace for starter documents", 4),
+                        Tuple.Create("Check all codes and typos in Prelim", 4),
+                        Tuple.Create("Check Chronological order entire prelim", 4)
+                    };
+
+                    foreach (var item in checksData)
+                    {
+                        var check = new AuditCheck
+                        {
+                            Name = item.Item1,
+                            AuditCheckValues = "Yes|No"
+                        };
+                        db.AuditChecks.Add(check);
+                        db.SaveChanges();
+
+                        var checkTask = new AuditCheckTask
+                        {
+                            AuditCheckId = check.Id,
+                            TaskId = item.Item2
+                        };
+                        db.AuditCheckTasks.Add(checkTask);
+                    }
+                    db.SaveChanges();
+                }
+            }
+            catch (Exception)
+            {
+                // Fallback gracefully
+            }
         }
 
         public ActionResult UserReport(DateTime? startDateTime, DateTime? endDateTime, string location, string groupName, int? crnId, string selectedOffices)

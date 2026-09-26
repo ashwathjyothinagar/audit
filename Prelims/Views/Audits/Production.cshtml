@@ -141,15 +141,8 @@
         </div>
 
         <div class="col-lg-2">
-            @if (Model.Audit.TaskId != 1)
-            {
-                @Html.DisplayFor(model => model.Audit.OwnerNames)
-                @Html.HiddenFor(model => model.OwnerName);
-            }
-            else
-            {
-                @Html.EditorFor(model => model.OwnerName, new { htmlAttributes = new { @class = "form-control col-md-2" } });
-            }
+            @Html.DisplayFor(model => model.Audit.OwnerNames)
+            @Html.Hidden("OwnerName", Model.Audit.OwnerNames)
         </div>
 
         <div class="col-lg-2 production-label">
@@ -274,287 +267,88 @@
     </div>
     <hr style="border-top: 6px solid #eeeeee;" />
 
-    <h4>Dynamic Checks</h4>
-    <div class="row">
-        <div class="col-lg-6" ng-init="$ctrl.dynamicCheck= @Model.CheckText">
+    @if (Model.Checks != null && Model.Checks.Count > 0)
+    {
+        <h4>Dynamic Checks</h4>
+        <div class="row">
+            <div class="col-lg-6" ng-init='$ctrl.dynamicCheck = @Html.Raw(string.IsNullOrEmpty(Model.CheckText) ? "{}" : Model.CheckText)'>
 
-            <input type="text" name="CheckText" id="CheckText" style="display: none" value="{{$ctrl.dynamicCheck | json}}"></input>
+                <input type="text" name="CheckText" id="CheckText" style="display: none" value="{{$ctrl.dynamicCheck | json}}"></input>
 
-            @foreach (var eachCheck in Model.Checks)
-            {
-                if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 != 0)
+                @foreach (var eachCheck in Model.Checks)
                 {
-                    <table style=" width: 100%;">
-                        <tr>
-                            <td style="width:30%;text-align:right;vertical-align:top;"><label style=" margin-top: 6px; margin-right: 12px;">@eachCheck.Name  |  </label></td>
-                            <td>
-                                <div class="form-group">
-                                    @if (eachCheck.IsDropdownList)
-                                    {
-                                        <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
-                                            <option value=""></option>
-                                            @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
-                                            {
-                                                <option value="@eachCheckValue">@eachCheckValue</option>
-                                            }
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
-                                    }
-                                    <span style="color: red;" ng-show="productionForm[@eachCheck.AuditCheckId].$error.required">This field selection is required</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 != 0)
+                    {
+                        <table style=" width: 100%;">
+                            <tr>
+                                <td style="width:65%;text-align:right;vertical-align:top;padding-right:12px;"><label style=" margin-top: 6px;">@eachCheck.Name  |  </label></td>
+                                <td style="width:35%;vertical-align:top;">
+                                    <div class="form-group">
+                                        @if (eachCheck.IsDropdownList)
+                                        {
+                                            <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
+                                                <option value="">Not Set</option>
+                                                @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
+                                                {
+                                                    <option value="@eachCheckValue">@eachCheckValue</option>
+                                                }
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
+                                        }
+                                        <span style="color: red;" ng-show="productionForm['@eachCheck.AuditCheckId'].$error.required">This field selection is required</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    }
                 }
-            }
-        </div>
+            </div>
 
-        <div class="col-lg-6">
-            @foreach (var eachCheck in Model.Checks)
-            {
-                if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 == 0)
+            <div class="col-lg-6">
+                @foreach (var eachCheck in Model.Checks)
                 {
-                    <table style=" width: 100%;">
-                        <tr>
-                            <td style="width:30%;text-align:right;vertical-align:top;"><label style=" margin-top: 6px; margin-right: 12px;">@eachCheck.Name  |  </label></td>
-                            <td>
-                                <div class="form-group">
-                                    @if (eachCheck.IsDropdownList)
-                                    {
+                    if ((Model.Checks.IndexOf(eachCheck) + 1) % 2 == 0)
+                    {
+                        <table style=" width: 100%;">
+                            <tr>
+                                <td style="width:65%;text-align:right;vertical-align:top;padding-right:12px;"><label style=" margin-top: 6px;">@eachCheck.Name  |  </label></td>
+                                <td style="width:35%;vertical-align:top;">
+                                    <div class="form-group">
+                                        @if (eachCheck.IsDropdownList)
+                                        {
 
-                                        <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
-                                            <option value=""></option>
-                                            @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
-                                            {
-                                                <option value="@eachCheckValue">@eachCheckValue</option>
-                                            }
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
-                                    }
-                                    <span style="color: red;" ng-show="productionForm[@eachCheck.AuditCheckId].$error.required">This field selection is required</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                                            <select class="form-control list-box tri-state" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required>
+                                                <option value="">Not Set</option>
+                                                @foreach (var eachCheckValue in eachCheck.AuditCheckValues)
+                                                {
+                                                    <option value="@eachCheckValue">@eachCheckValue</option>
+                                                }
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <input type="text" class="form-control" id="@eachCheck.AuditCheckId" name="@eachCheck.AuditCheckId" ng-model="$ctrl.dynamicCheck[@eachCheck.AuditCheckId]" required />
+                                        }
+                                        <span style="color: red;" ng-show="productionForm['@eachCheck.AuditCheckId'].$error.required">This field selection is required</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    }
                 }
-            }
+            </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <input type="hidden" name="CheckText" id="CheckText" value="" />
+    }
 
     @Html.HiddenFor(model => model.AuditId)
     @Html.HiddenFor(model => model.TaxTimeEntryId)
-    <div class="row production-row">
-        <div class="col-lg-2 production-label">
-            Did you change Effective Date?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.EffectiveDateChanged.HasValue ? (Model.EffectiveDateChanged.Value ? "Yes"  : "No") :"Not Set");
-                        @Html.HiddenFor(model => model.EffectiveDateChanged);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="EffectiveDateChanged" name="EffectiveDateChanged">
-                            <option selected="selected" value="">Not Set</option>
-                            <option value="true" @(Model.EffectiveDateChanged == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.EffectiveDateChanged == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-                    @Html.ValidationMessageFor(model => model.EffectiveDateChanged, "", new { @class = "text-danger" })
-                </div>
-            </div>
-
-        </div>
-        <div class="col-lg-2 production-label">
-            Any change in vesting ?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.AnyChangeInVesting.HasValue ? (Model.AnyChangeInVesting.Value ? "Yes" : "No") : "Not Set");
-                        @Html.HiddenFor(model => model.AnyChangeInVesting);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="AnyChangeInVesting" name="AnyChangeInVesting">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.AnyChangeInVesting == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.AnyChangeInVesting == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-
-                    @Html.ValidationMessageFor(model => model.AnyChangeInVesting, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <div class="row production-row">
-        <div class="col-lg-2 production-label">
-            Did you update Tax information?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.AnyUpdateOnTaxInformation.HasValue ? (Model.AnyUpdateOnTaxInformation.Value ? "Yes" : "No") : "Not Set");
-                        @Html.HiddenFor(model => model.AnyUpdateOnTaxInformation);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnTaxInformation" name="AnyUpdateOnTaxInformation">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.AnyUpdateOnTaxInformation == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.AnyUpdateOnTaxInformation == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-                    @Html.ValidationMessageFor(model => model.AnyUpdateOnTaxInformation, "", new { @class = "text-danger" })
-                </div>
-            </div>
-
-        </div>
-        <div class="col-lg-2 production-label">
-            Did you update any new PI Docs?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.AnyUpdateOnNewPIDocs.HasValue ? (Model.AnyUpdateOnNewPIDocs.Value ? "Yes" : "No") :"Not Set");
-                        @Html.HiddenFor(model => model.AnyUpdateOnNewPIDocs);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnNewPIDocs" name="AnyUpdateOnNewPIDocs">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.AnyUpdateOnNewPIDocs == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.AnyUpdateOnNewPIDocs == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-
-                    @Html.ValidationMessageFor(model => model.AnyUpdateOnNewPIDocs, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <div class="row production-row">
-        <div class="col-lg-2 production-label">
-            Did you update any new GI Docs?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.AnyUpdateOnNewGIDocs.HasValue ? (Model.AnyUpdateOnNewGIDocs.Value ? "Yes" : "No") : "Not Set");
-                        @Html.HiddenFor(model => model.AnyUpdateOnNewGIDocs);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="AnyUpdateOnNewGIDocs" name="AnyUpdateOnNewGIDocs">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.AnyUpdateOnNewGIDocs == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.AnyUpdateOnNewGIDocs == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-                    @Html.ValidationMessageFor(model => model.AnyUpdateOnNewGIDocs, "", new { @class = "text-danger" })
-                </div>
-            </div>
-
-        </div>
-        <div class="col-lg-2 production-label">
-            Did you review 24 month chain of Title?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.DidYouReviewTwentyFourMonthChainOfTitle.HasValue ? (Model.DidYouReviewTwentyFourMonthChainOfTitle.Value ? "Yes" : "No") : "Not Set");
-                        @Html.HiddenFor(model => model.DidYouReviewTwentyFourMonthChainOfTitle);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="DidYouReviewTwentyFourMonthChainOfTitle" name="DidYouReviewTwentyFourMonthChainOfTitle">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.DidYouReviewTwentyFourMonthChainOfTitle == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.DidYouReviewTwentyFourMonthChainOfTitle == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-                    @Html.ValidationMessageFor(model => model.DidYouReviewTwentyFourMonthChainOfTitle, "", new { @class = "text-danger" })
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row production-row">
-        <div class="col-lg-2 production-label">
-            Was there any postings found in PI/GI?
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @if (Model.Audit.TaskId == 5)
-                    {
-                        @(Model.AnyPostingFoundInPIGI.HasValue ? (Model.AnyPostingFoundInPIGI.Value ? "Yes" : "No") : "Not Set");
-                        @Html.HiddenFor(model => model.AnyPostingFoundInPIGI);
-                    }
-                    else
-                    {
-                        <select class="form-control col-md-2 list-box tri-state" id="AnyPostingFoundInPIGI" name="AnyPostingFoundInPIGI">
-                            <option value="">Not Set</option>
-                            <option value="true" @(Model.AnyPostingFoundInPIGI == true ? "selected" : "")>Yes</option>
-                            <option value="false" @(Model.AnyPostingFoundInPIGI == false ? "selected" : "")>No</option>
-                        </select>
-                    }
-                    @Html.ValidationMessageFor(model => model.AnyPostingFoundInPIGI, "", new { @class = "text-danger" })
-                </div>
-            </div>
-
-        </div>
-        <div class="col-lg-2 production-label">
-            Amendment Date
-        </div>
-
-        <div class="col-lg-2">
-            <div class="form-group">
-                <div class="col-md-10">
-                    @Html.TextBox("AmendmentDate", Model.AmendmentDate?.ToString("yyyy-MM-dd"), new
-                    {
-    @class = "form-control",
-    type = "date"
-})
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
     @if (Model.Audit.TaskId == 5)
     {
 
@@ -599,32 +393,7 @@
 
     }
 
-
-    @if (Model.Audit.TaskId == 1)
-    {
-        <hr />
-        <div class="row production-row">
-            <div class="col-lg-2 production-label">
-                Qc Required
-            </div>
-            <div class="col-lg-4">
-                <div class="form-group">
-                    <div class="col-md-10">
-                        @Html.EditorFor(model => model.IsQcRequired, new { htmlAttributes = new { @class = "form-control col-md-2" } })
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 production-label">
-            </div>
-
-            <div class="col-lg-2">
-            </div>
-        </div>
-    }
-    else
-    {
-        @Html.HiddenFor(model => model.IsQcRequired);
-    }
+    @Html.HiddenFor(model => model.IsQcRequired)
 
     <hr />
     <div class="row production-row">
@@ -725,16 +494,8 @@
 
         </div>
         <div class="col-lg-4">
-            @if (Model.Audit.TaskId == 5)
-            {
-                <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
-                <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
-            }
-            else
-            {
-                <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
-                <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
-            }
+            <input type="submit" id="submitButton" value="Save" class="btn btn-primary" ng-disabled="!productionForm.$valid" />
+            <span style="color: red;" ng-show="!productionForm.$valid">Fill in or select required fields to enable save button</span>
         </div>
         <div class="col-lg-2 production-label">
         </div>

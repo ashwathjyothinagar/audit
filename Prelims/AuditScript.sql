@@ -723,3 +723,154 @@ ADD TitleOrderId INT;
 
 INSERT [dbo].[AuditTasks] ([Name]) VALUES (N'Taxes')
 -------------------
+-- Seed Dynamic Checks from Excel for Audit Process
+-- Tasks:
+--   TaskId 6: Taxes
+--   TaskId 1: L&V
+--   TaskId 2: PI
+--   TaskId 3: GI
+--   TaskId 4: Starter
+
+BEGIN TRANSACTION;
+
+-- Clean existing audit checks
+delete from [dbo].[AuditCheckValues];
+delete from [dbo].[AuditCheckTasks];
+delete from [dbo].[AuditCheckCrns];
+delete from[dbo].[AuditChecks];
+
+DECLARE @CheckId INT;
+
+-- =====================================================================
+-- 1. TAXES (TaskId = 6)
+-- =====================================================================
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Refer with Order Sheet (APN and Address)', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 6);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Both Property Address in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 6);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check APN Map Marking in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 6);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check All Tax shown in Prelim with correct code', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 6);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Amount and Typo in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 6);
+
+-- =====================================================================
+-- 2. L&V (TaskId = 1)
+-- =====================================================================
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Refer with Order Sheet and Tax Sheet (Owner Name)', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Effective Date', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check All Deed in Title Point or Data Trace and Retrive', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Transaction and check typos in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check 24 month code and check typos in prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Vesting same Trust and LLC etc codes and typo in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Fee Type', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Policy Type', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 1);
+
+-- =====================================================================
+-- 3. PI (TaskId = 2)
+-- =====================================================================
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Refer with Order Sheet and Tax Sheet (Owner Name)', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 2);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check All Money Matters in Title Point or Data Trace and Retrive', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 2);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Retrive DOT and all document Check codes and check typos in prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 2);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'No Open DOT Run Grantor and Grantee search', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 2);
+
+-- =====================================================================
+-- 4. GI (TaskId = 3)
+-- =====================================================================
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Refer with Order Sheet (Buyer and Seller names)', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check all deed and PI documents for name search', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check all names Direct hit and Possible hit', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check All Tax shown in Prelim with correct code', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Amount and Typo in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check all GI matters Typo in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'LLC Entity name search', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Grantor and Grantee search', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 3);
+
+-- =====================================================================
+-- 5. STARTER (TaskId = 4)
+-- =====================================================================
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Refer with PIQ Starter and AP Starter', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 4);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check PI in Title Point or Data Trace for starter documents', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 4);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check all codes and typos in Prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 4);
+
+INSERT INTO [dbo].[AuditChecks] ([Name], [AuditCheckValues]) VALUES (N'Check Chronological order entire prelim', N'Yes|No');
+SET @CheckId = SCOPE_IDENTITY();
+INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 4);
+
+COMMIT TRANSACTION;
+
