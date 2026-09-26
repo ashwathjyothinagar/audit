@@ -720,4 +720,6 @@ GO
 -----26-09-2026----
 ALTER TABLE dbo.audits
 ADD TitleOrderId INT;
+
+INSERT [dbo].[AuditTasks] ([Name]) VALUES (N'Taxes')
 -------------------

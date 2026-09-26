@@ -1,4 +1,4 @@
-﻿@model List<Prelims.Models.Reports.TaskWisePendingReportViewModel>
+@model List<Prelims.Models.Reports.TaskWisePendingReportViewModel>
 @{
     ViewBag.PageTitle = "Task Wise Pending";
 }
@@ -22,15 +22,18 @@
                     <th>
                         Office Name
                     </th>
-                    <th style="width: 12%; text-align:center;">
+                    <th style="width: 10%; text-align:center;">
+                        Taxes
+                    </th>
+                    <th style="width: 10%; text-align:center;">
                         L&amp;V
                     </th>
-                    <th style="width: 12%; text-align:center;"> PI </th>
-                    <th style="width: 12%; text-align:center;">GI</th>
-                    <th style="width: 12%; text-align:center;">Starter</th>
-                    <th style="width: 12%; text-align:center;">Notes</th>
-                    <th style="width: 12%; text-align:center;">Hold</th>
-                    <th style="width: 12%; text-align:center;">Total</th>
+                    <th style="width: 10%; text-align:center;"> PI </th>
+                    <th style="width: 10%; text-align:center;">GI</th>
+                    <th style="width: 10%; text-align:center;">Starter</th>
+                    <th style="width: 10%; text-align:center;">Notes</th>
+                    <th style="width: 10%; text-align:center;">Hold</th>
+                    <th style="width: 10%; text-align:center;">Total</th>
                 </tr>
 
                 @foreach (var item in liveStatusGroup)
@@ -38,6 +41,9 @@
                     <tr>
                         <td>
                             @item.OfficeName
+                        </td>
+                        <td style="text-align:center;">
+                            @Html.ActionLink(@item.TaxesCount.ToString(), "TaskWisePendingDetail", new { taskId = 6, crnId = item.CrnId })
                         </td>
                         <td style="text-align:center;">
                             @Html.ActionLink(@item.LVCount.ToString(), "TaskWisePendingDetail", new { taskId = 1, crnId = item.CrnId })
@@ -65,6 +71,9 @@
                 <tr>
                     <th>
                         Total
+                    </th>
+                    <th style="text-align:center;">
+                        @Html.ActionLink(liveStatusGroup.Sum(x => x.TaxesCount).ToString(), "TaskWisePendingDetail", new { taskId = 6, crnGroupName = liveStatusGroup.Key })
                     </th>
                     <th style="text-align:center;">
                         @Html.ActionLink(liveStatusGroup.Sum(x => x.LVCount).ToString(), "TaskWisePendingDetail", new { taskId = 1, crnGroupName = liveStatusGroup.Key })

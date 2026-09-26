@@ -77,7 +77,7 @@ namespace Prelims.Controllers
 
             if (!taskId.HasValue)
             {
-                Audits = Audits.Where(x => x.TaskId == 1);
+                Audits = Audits.Where(x => x.TaskId == 6);
             }else
             {
                 Audits = Audits.Where(x => x.TaskId == taskId.Value);
@@ -110,7 +110,7 @@ namespace Prelims.Controllers
                 ViewBag.InprogressAuditId = timeEntry.AuditId;
             }
 
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", taskId ?? 1);
+            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", taskId ?? 6);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", requestTypeId ?? 0);
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x => x.CRNID > 20), "CRNID", "CRNNAME", crnId);
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
@@ -196,7 +196,7 @@ namespace Prelims.Controllers
                 //if (!anyOrderExists)
                 //{
                 Audit.StatusId = 1;
-                Audit.TaskId = 1;
+                Audit.TaskId = 6;
                 //Audit.DateCreated = DateTime.Now;
                 db.Audits.Add(Audit);
                 db.SaveChanges();
@@ -472,7 +472,13 @@ namespace Prelims.Controllers
             if (Audit != null && timeEntry != null)
             {
                 var lastStatusId = Audit.TaskId;
-                if (Audit.TaskId == 1)
+                if (Audit.TaskId == 6)
+                {
+                    // Task 6: Taxes -> Move to Task 1: L&V
+                    Audit.TaskId = 1;
+                    SaveAuditFiles(Audit.Id, this.Request.Files);
+                }
+                else if (Audit.TaskId == 1)
                 {
                     // Task 1: L&V -> Move to Task 2: PI
                     Audit.TaskId = 2;
@@ -1140,6 +1146,7 @@ namespace Prelims.Controllers
                 taskPendingReportViewModel.OfficeName = crnItem.CRNNAME;
                 taskPendingReportViewModel.GroupName = crnItem.GroupName;
                 taskPendingReportViewModel.CrnId = crnItem.CRNID;
+                taskPendingReportViewModel.TaxesCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 6);
                 taskPendingReportViewModel.LVCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 1);
 
                 taskPendingReportViewModel.PICount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 2);

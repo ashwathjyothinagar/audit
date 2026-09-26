@@ -25,6 +25,9 @@
                         <th>
                         </th>
                         <th colspan="4" style="text-align:center;">
+                            Taxes
+                        </th>
+                        <th colspan="4" style="text-align:center;">
                             L&amp;V
                         </th>
                         <th colspan="4" style="text-align:center;"> PI </th>
@@ -37,6 +40,12 @@
                     <tr>
                         <th>
                         </th>
+                        <th style="text-align:center;">
+                            Refi
+                        </th>
+                        <th style="text-align:center;">Resale</th>
+                        <th style="text-align:center;">Both</th>
+                        <th style="text-align:center;background-color: grey;">Total</th>
                         <th style="text-align:center;">
                             Refi
                         </th>
@@ -69,6 +78,12 @@
                                 @item.OfficeName
                             </th>
                             <th style="text-align:center;">
+                                @item.TaxesSellerCount
+                            </th>
+                            <th style="text-align:center;">@item.TaxesBuyerCount</th>
+                            <th style="text-align:center;">@item.TaxesBothCount</th>
+                            <th style="text-align:center;background-color: grey;">@item.TaxesCount</th>
+                            <th style="text-align:center;">
                                 @item.LVSellerCount
                             </th>
                             <th style="text-align:center;">@item.LVBuyerCount</th>
@@ -100,7 +115,7 @@
                             <th style="text-align:center;background-color: grey;">@item.NotesCount</th>
 
                             <th style="text-align:center;">@item.HoldCount</th>
-                            <th style="text-align:center;background-color: grey;">@(item.LVCount + item.PICount + item.GICount + item.StarterCount + item.NotesCount)</th>
+                            <th style="text-align:center;background-color: grey;">@(item.TaxesCount + item.LVCount + item.PICount + item.GICount + item.StarterCount + item.NotesCount)</th>
                         </tr>
 
                     }
@@ -109,6 +124,12 @@
                         <th>
                             Total
                         </th>
+                        <th style="text-align:center;">
+                            @(liveStatusGroup.Sum(x => x.TaxesSellerCount))
+                        </th>
+                        <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.TaxesBuyerCount))</th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.TaxesBothCount))  </th>
+                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.TaxesCount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.LVSellerCount))
                         </th>
@@ -141,7 +162,7 @@
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesCount)) </th>
 
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.HoldCount)) </th>
-                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.LVCount) + liveStatusGroup.Sum(x => x.PICount) + liveStatusGroup.Sum(x => x.GICount) + liveStatusGroup.Sum(x => x.StarterCount) + liveStatusGroup.Sum(x => x.NotesCount)))</th>
+                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.TaxesCount) + liveStatusGroup.Sum(x => x.LVCount) + liveStatusGroup.Sum(x => x.PICount) + liveStatusGroup.Sum(x => x.GICount) + liveStatusGroup.Sum(x => x.StarterCount) + liveStatusGroup.Sum(x => x.NotesCount)))</th>
                     </tr>
 
                 </table>

@@ -56,6 +56,11 @@ namespace Prelims.Controllers
                     liveStatusViewModel.HoldCount = 0;
                 }
 
+                liveStatusViewModel.TaxesBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 6 && x.RequestTypeId == 4);
+                liveStatusViewModel.TaxesBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 6 && x.RequestTypeId == 2);
+                liveStatusViewModel.TaxesSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 6 && x.RequestTypeId == 1);
+                liveStatusViewModel.TaxesCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 6);
+
                 liveStatusViewModel.LVBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId==crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 4);
                 liveStatusViewModel.LVBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 2);
                 liveStatusViewModel.LVSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 1 && x.RequestTypeId == 1);
