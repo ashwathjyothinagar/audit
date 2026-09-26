@@ -64,6 +64,7 @@ namespace Prelims
         public string CWLTTitleOfficerName { get; set; }
         public Nullable<bool> AnyPostingFoundInPIGI { get; set; }
         public Nullable<System.DateTime> AmendmentDate { get; set; }
+        public Nullable<int> TitleOrderId { get; set; }
     
         public virtual CRN CRN { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

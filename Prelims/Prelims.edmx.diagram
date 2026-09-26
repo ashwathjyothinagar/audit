@@ -103,6 +103,17 @@
         <AssociationConnector Association="FntModel.FK_AuditUpdates_AuditTasks" />
         <AssociationConnector Association="FntModel.FK_AuditUpdates_USERINFO" />
         <AssociationConnector Association="FntModel.FK_AuditUpdates_Audits" />
+        <EntityTypeShape EntityType="FntModel.TitleOrder" Width="1.5" PointX="16" PointY="0.75" />
+        <AssociationConnector Association="FntModel.FK_TitleOrders_CRN" />
+        <AssociationConnector Association="FntModel.FK_TitleOrders_STATECOUNTY" />
+        <AssociationConnector Association="FntModel.FK_TitleOrders_USERINFO" />
+        <EntityTypeShape EntityType="FntModel.TitleOrderHold" Width="1.5" PointX="21.25" PointY="9.375" />
+        <EntityTypeShape EntityType="FntModel.TitleOrderTimeEntry" Width="1.5" PointX="18.25" PointY="12.375" />
+        <AssociationConnector Association="FntModel.FK_TitleOrderHolds_TitleOrders" />
+        <AssociationConnector Association="FntModel.FK_TitleOrderHolds_USERINFO" />
+        <AssociationConnector Association="FntModel.FK_TitleOrderTimeEntries_TitleOrders" />
+        <AssociationConnector Association="FntModel.FK_TitleOrderTimeEntries_TitleOrderTimeEntries" />
+        <AssociationConnector Association="FntModel.FK_TitleOrderTimeEntries_USERINFO" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

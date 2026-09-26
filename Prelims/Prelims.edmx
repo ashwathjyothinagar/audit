@@ -164,6 +164,7 @@
           <Property Name="CWLTTitleOfficerName" Type="varchar" MaxLength="1000" />
           <Property Name="AnyPostingFoundInPIGI" Type="bit" />
           <Property Name="AmendmentDate" Type="datetime" />
+          <Property Name="TitleOrderId" Type="int" />
         </EntityType>
         <EntityType Name="AuditSenders">
           <Key>
@@ -1358,6 +1359,7 @@
           <Property Name="CWLTTitleOfficerName" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="AnyPostingFoundInPIGI" Type="Boolean" />
           <Property Name="AmendmentDate" Type="DateTime" Precision="3" />
+          <Property Name="TitleOrderId" Type="Int32" />
         </EntityType>
         <Association Name="FK_Audits_CRN">
           <End Type="FntModel.CRN" Role="CRN" Multiplicity="1" />
@@ -1895,6 +1897,7 @@
           <EntitySetMapping Name="Audits">
             <EntityTypeMapping TypeName="FntModel.Audit">
               <MappingFragment StoreEntitySet="Audits">
+                <ScalarProperty Name="TitleOrderId" ColumnName="TitleOrderId" />
                 <ScalarProperty Name="AmendmentDate" ColumnName="AmendmentDate" />
                 <ScalarProperty Name="AnyPostingFoundInPIGI" ColumnName="AnyPostingFoundInPIGI" />
                 <ScalarProperty Name="CWLTTitleOfficerName" ColumnName="CWLTTitleOfficerName" />
