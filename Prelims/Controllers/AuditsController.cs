@@ -110,7 +110,7 @@ namespace Prelims.Controllers
                 ViewBag.InprogressAuditId = timeEntry.AuditId;
             }
 
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", taskId ?? 6);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", taskId ?? 6);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", requestTypeId ?? 0);
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x => x.CRNID > 20), "CRNID", "CRNNAME", crnId);
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
@@ -166,7 +166,7 @@ namespace Prelims.Controllers
         public ActionResult Create()
         {
             ViewBag.StatusId = new SelectList(db.AuditStatuses, "Id", "Name");
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name");
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name");
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name");
             ViewBag.Senderid = new SelectList(db.AuditSenders, "Id", "Name");
             ViewBag.CrnId= new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNNAME");
@@ -209,7 +209,7 @@ namespace Prelims.Controllers
             }
 
             ViewBag.StatusId = new SelectList(db.AuditStatuses, "Id", "Name", Audit.StatusId);
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", Audit.TaskId);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", Audit.TaskId);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", Audit.RequestTypeId);
             ViewBag.Senderid = new SelectList(db.AuditSenders, "Id", "Name");
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x=> x.CRNID > 20), "CRNID", "CRNNAME");
@@ -231,7 +231,7 @@ namespace Prelims.Controllers
                 return HttpNotFound();
             }
             ViewBag.StatusId = new SelectList(db.AuditStatuses, "Id", "Name", Audit.StatusId);
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", Audit.TaskId);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", Audit.TaskId);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", Audit.RequestTypeId);
             ViewBag.Senderid = new SelectList(db.AuditSenders, "Id", "Name", Audit.SenderId);
             return View(Audit);
@@ -251,7 +251,7 @@ namespace Prelims.Controllers
                 return RedirectToAction("Index");
             }
             ViewBag.StatusId = new SelectList(db.AuditStatuses, "Id", "Name", Audit.StatusId);
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", Audit.TaskId);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", Audit.TaskId);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", Audit.RequestTypeId);
             ViewBag.Senderid = new SelectList(db.AuditSenders, "Id", "Name", Audit.SenderId);
             return View(Audit);
@@ -367,7 +367,7 @@ namespace Prelims.Controllers
             AuditProductionModel.CheckText = JsonConvert.SerializeObject(dictionaryOfCheckList);
 
             ViewBag.StatusId = new SelectList(db.AuditStatuses, "Id", "Name", Audit.StatusId);
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", Audit.TaskId);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", Audit.TaskId);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", Audit.RequestTypeId);
             ViewBag.Senderid = new SelectList(db.AuditSenders, "Id", "Name", Audit.SenderId);
 
@@ -1003,7 +1003,7 @@ namespace Prelims.Controllers
 
         public JsonResult GetAllTasks()
         {
-            return new JsonResult() { Data = db.AuditTasks.Select(x => new { Id = x.Id, Name = x.Name }).ToList(), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+            return new JsonResult() { Data = db.AuditTasks.OrderBy(x => x.SortOrder).Select(x => new { Id = x.Id, Name = x.Name, SortOrder = x.SortOrder }).ToList(), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
         public ActionResult ProductionReport()
@@ -1997,13 +1997,13 @@ namespace Prelims.Controllers
                 ViewBag.InprogressAuditId = timeEntry.AuditId;
             }
 
-            List<int> allowedTaskIts = db.AuditTasks.Select(x => x.Id).ToList();
+            List<int> allowedTaskIts = db.AuditTasks.OrderBy(x => x.SortOrder).Select(x => x.Id).ToList();
 
             List<Rush> rushes = new List<Rush>();
             rushes.Add(new Rush(false, "No"));
             rushes.Add(new Rush(true, "Yes"));
 
-            ViewBag.TaskId = new SelectList(db.AuditTasks.Where(x => allowedTaskIts.Contains(x.Id)), "Id", "Name", taskId ?? 1);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.Where(x => allowedTaskIts.Contains(x.Id)).OrderBy(x => x.SortOrder), "Id", "Name", taskId ?? 1);
             ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", requestTypeId ?? 0);
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNDISPLAYNAME", crnId ?? 0);
             ViewBag.IsRush = new SelectList(rushes, "Key", "Value", requestTypeId);
@@ -2044,7 +2044,7 @@ namespace Prelims.Controllers
         private List<AuditError> GetErrors(int AuditId)
         {
             List<AuditError> AuditErrors = new List<AuditError>();
-            var tasks = db.AuditTasks.ToDictionary(x => x.Id, y => y.Name);
+            var tasks = db.AuditTasks.OrderBy(x => x.SortOrder).ToDictionary(x => x.Id, y => y.Name);
             var errorCategories = db.AuditErrorCategories.ToDictionary(x => x.Id, y => y.Name);
             var errorTypes = db.AuditErrorTypes.Select(x => new { x.Id, Name = x.Name, x.IsCritical }).ToList();
 
@@ -2094,7 +2094,7 @@ namespace Prelims.Controllers
 
                     if (!string.IsNullOrEmpty(holdEmailTo) && !string.IsNullOrEmpty(holdEmailFrom))
                     {
-                        var tasks = db.AuditTasks.ToDictionary(x => x.Id, y => y.Name);
+                        var tasks = db.AuditTasks.OrderBy(x => x.SortOrder).ToDictionary(x => x.Id, y => y.Name);
                         var errorCategories = db.AuditErrorCategories.ToDictionary(x => x.Id, y => y.Name);
                         var errorTypes = db.AuditErrorTypes.Select(x => new { x.Id, Name = x.Name, x.IsCritical }).ToList();
 
@@ -2511,7 +2511,7 @@ namespace Prelims.Controllers
 
             SetOfficeFields(userInfo);
             ViewBag.Offices = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name");
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name");
             return View();
         }
 
@@ -2549,7 +2549,7 @@ namespace Prelims.Controllers
 
             DateTime loopDate = startDateTime.Value;
 
-            var allTasks = taskId.HasValue ? db.AuditTasks.Where(x => x.Id == taskId.Value).ToList() : db.AuditTasks.ToList();
+            var allTasks = taskId.HasValue ? db.AuditTasks.Where(x => x.Id == taskId.Value).OrderBy(x => x.SortOrder).ToList() : db.AuditTasks.OrderBy(x => x.SortOrder).ToList();
             var allTypes = db.AuditRequestTypes.ToList();
             var userIds = location == "ALL" ? db.USERINFOes.Select(x => x.USERID).ToList() : db.USERINFOes.Where(x => x.LOCATION.Equals(location)).Select(x => x.USERID).ToList();
 

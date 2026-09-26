@@ -36,7 +36,7 @@
     @foreach (var item in Model.Audits)
     {
         var inprogressTimeEntry = item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
-        var lastTaskTime = item.AuditTimeEntries.Where(x => !x.IsInprogress).Any() ? item.AuditTimeEntries.Where(x => !x.IsInprogress).OrderBy(x => x.AuditTaskId).Last().EndTime.ToString() : "";
+        var lastTaskTime = item.AuditTimeEntries.Where(x => !x.IsInprogress).Any() ? item.AuditTimeEntries.Where(x => !x.IsInprogress).OrderBy(x => x.AuditTask.SortOrder ?? x.AuditTaskId).Last().EndTime.ToString() : "";
         var userName = "";
         DateTime? dateStarted = null;
         if (inprogressTimeEntry != null)

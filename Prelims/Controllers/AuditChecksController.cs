@@ -18,7 +18,7 @@ namespace Prelims.Controllers
         public ActionResult Index()
         {
             var checks = db.AuditChecks.ToList();
-            var taskNames = db.AuditTasks.ToDictionary(x => x.Id, y => y.Name);
+            var taskNames = db.AuditTasks.OrderBy(x => x.SortOrder).ToDictionary(x => x.Id, y => y.Name);
             var officeNames = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToDictionary(x => x.CRNID, y => y.CRNNAME);
             foreach (var check in checks)
             {
@@ -62,7 +62,7 @@ namespace Prelims.Controllers
         // GET: AuditChecks/Create
         public ActionResult Create()
         {
-            ViewBag.TaskIds = new SelectList(db.AuditTasks, "Id", "Name");
+            ViewBag.TaskIds = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name");
             ViewBag.OfficeId = new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNDISPLAYNAME");
             ViewBag.Offices = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
             
@@ -77,7 +77,7 @@ namespace Prelims.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id,Name,TaskId,OfficeId,OrderNumberSeries,AuditCheckValues,TaskIds,SelectedOffices")] AuditCheck check)
         {
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name");
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name");
             ViewBag.OfficeId = new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNDISPLAYNAME");
 
             if (ModelState.IsValid)
@@ -121,7 +121,7 @@ namespace Prelims.Controllers
             {
                 return HttpNotFound();
             }
-            var taskSelectList = new SelectList(db.AuditTasks, "Id", "Name", check.TaskId);
+            var taskSelectList = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", check.TaskId);
             ViewBag.SelectedTaskIds = db.AuditCheckTasks.Where(x=> x.AuditCheckId == id).Select(x=>x.TaskId.ToString()).ToList();
 
             ViewBag.TaskId = taskSelectList;
@@ -141,7 +141,7 @@ namespace Prelims.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "Id,Name,TaskId,OfficeId,OrderNumberSeries,AuditCheckValues,TaskIds,SelectedOffices")] AuditCheck check)
         {
-            ViewBag.TaskId = new SelectList(db.AuditTasks, "Id", "Name", check.TaskId);
+            ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", check.TaskId);
             ViewBag.OfficeId = new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNDISPLAYNAME", check.OfficeId);
 
             if (ModelState.IsValid)

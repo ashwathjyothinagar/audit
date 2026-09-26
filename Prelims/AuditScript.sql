@@ -873,4 +873,25 @@ SET @CheckId = SCOPE_IDENTITY();
 INSERT INTO [dbo].[AuditCheckTasks] ([AuditCheckId], [TaskId]) VALUES (@CheckId, 4);
 
 COMMIT TRANSACTION;
+GO
+
+-------------------
+-- Add SortOrder to AuditTasks
+-------------------
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_NAME = 'AuditTasks' AND COLUMN_NAME = 'SortOrder'
+)
+BEGIN
+    ALTER TABLE [dbo].[AuditTasks] ADD [SortOrder] INT NULL;
+END
+GO
+
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 1 WHERE [Id] = 6; -- Taxes
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 2 WHERE [Id] = 1; -- L&V
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 3 WHERE [Id] = 2; -- PI
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 4 WHERE [Id] = 3; -- GI
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 5 WHERE [Id] = 4; -- Starter
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 6 WHERE [Id] = 5; -- Notes
+GO
 

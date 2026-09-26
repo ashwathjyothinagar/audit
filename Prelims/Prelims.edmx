@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
   <!-- EF Runtime content -->
   <edmx:Runtime>
@@ -189,6 +189,7 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="varchar" MaxLength="200" Nullable="false" />
+          <Property Name="SortOrder" Type="int" />
         </EntityType>
         <EntityType Name="AuditTimeEntries">
           <Key>
@@ -952,6 +953,7 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" />
           <NavigationProperty Name="AuditHolds" Relationship="Self.FK_AuditHolds_AuditTasks" FromRole="AuditTasks" ToRole="AuditHolds" />
           <NavigationProperty Name="AuditTimeEntries" Relationship="Self.FK_AuditTimeEntries_AuditTasks" FromRole="AuditTasks" ToRole="AuditTimeEntries" />
           <NavigationProperty Name="AuditUpdates" Relationship="Self.FK_AuditUpdates_AuditTasks" FromRole="AuditTasks" ToRole="AuditUpdates" />
@@ -1810,6 +1812,7 @@
               <MappingFragment StoreEntitySet="AuditTasks">
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
