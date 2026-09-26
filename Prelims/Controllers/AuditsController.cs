@@ -504,10 +504,50 @@ namespace Prelims.Controllers
 
                     SaveAuditFiles(Audit.Id, this.Request.Files);
 
-                    // Unlock corresponding TitleOrder if it was locked with StatusId = 6 (Audit In Progress)
+                    // Move corresponding TitleOrder to QC task (TaskId=8) after Audit completion
+                    // and populate denormalized audit fields for production reports
                     try
                     {
-                        db.Database.ExecuteSqlCommand("UPDATE TitleOrders SET StatusId = 1 WHERE OrderNo = @p0 AND StatusId = 6", Audit.OrderNo);
+                        var auditComments = string.IsNullOrEmpty(AuditProductionModel.Updates) ? "--" : AuditProductionModel.Updates;
+
+                        if (Audit.TitleOrderId.HasValue)
+                        {
+                            // Use TitleOrderId (FK) for reliable matching
+                            db.Database.ExecuteSqlCommand(
+                                @"UPDATE TitleOrders 
+                                  SET TaskId = 8, StatusId = 1, UserAssigned = NULL,
+                                      AuditStartTime = @p1, AuditEndTime = @p2,
+                                      AuditDoneBy = @p3, AuditDoneByUserId = @p4,
+                                      AuditComments = @p5, DateModified = @p6
+                                  WHERE Id = @p0 AND StatusId = 6",
+                                Audit.TitleOrderId.Value,
+                                timeEntry.StartTime,
+                                (object)(timeEntry.EndTime ?? DateTime.Now),
+                                userInfo.USERNAME,
+                                userInfo.USERID,
+                                auditComments,
+                                DateTime.Now
+                            );
+                        }
+                        else
+                        {
+                            // Fallback for older Audit records without TitleOrderId — match by OrderNo
+                            db.Database.ExecuteSqlCommand(
+                                @"UPDATE TitleOrders 
+                                  SET TaskId = 8, StatusId = 1, UserAssigned = NULL,
+                                      AuditStartTime = @p1, AuditEndTime = @p2,
+                                      AuditDoneBy = @p3, AuditDoneByUserId = @p4,
+                                      AuditComments = @p5, DateModified = @p6
+                                  WHERE OrderNo = @p0 AND StatusId = 6",
+                                Audit.OrderNo,
+                                timeEntry.StartTime,
+                                (object)(timeEntry.EndTime ?? DateTime.Now),
+                                userInfo.USERNAME,
+                                userInfo.USERID,
+                                auditComments,
+                                DateTime.Now
+                            );
+                        }
                     }
                     catch (Exception)
                     {
