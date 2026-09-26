@@ -476,30 +476,35 @@ namespace Prelims.Controllers
                 {
                     // Task 6: Taxes -> Move to Task 1: L&V
                     Audit.TaskId = 1;
+                    Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 1)
                 {
                     // Task 1: L&V -> Move to Task 2: PI
                     Audit.TaskId = 2;
+                    Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 2)
                 {
                     // Task 2: PI -> Move to Task 3: GI
                     Audit.TaskId = 3;
+                    Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 3)
                 {
                     // Task 3: GI -> Move to Task 4: Starter
                     Audit.TaskId = 4;
+                    Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 4)
                 {
                     // Task 4: Starter -> Move to Task 5: Notes
                     Audit.TaskId = 5;
+                    Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
                 else if (Audit.TaskId == 5)
