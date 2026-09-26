@@ -515,7 +515,7 @@ namespace Prelims.Controllers
                             // Use TitleOrderId (FK) for reliable matching
                             db.Database.ExecuteSqlCommand(
                                 @"UPDATE TitleOrders 
-                                  SET TaskId = 8, StatusId = 1, UserAssigned = NULL,
+                                  SET TaskId = 6, StatusId = 1, UserAssigned = NULL,
                                       AuditStartTime = @p1, AuditEndTime = @p2,
                                       AuditDoneBy = @p3, AuditDoneByUserId = @p4,
                                       AuditComments = @p5, DateModified = @p6
@@ -534,7 +534,7 @@ namespace Prelims.Controllers
                             // Fallback for older Audit records without TitleOrderId — match by OrderNo
                             db.Database.ExecuteSqlCommand(
                                 @"UPDATE TitleOrders 
-                                  SET TaskId = 8, StatusId = 1, UserAssigned = NULL,
+                                  SET TaskId = 6, StatusId = 1, UserAssigned = NULL,
                                       AuditStartTime = @p1, AuditEndTime = @p2,
                                       AuditDoneBy = @p3, AuditDoneByUserId = @p4,
                                       AuditComments = @p5, DateModified = @p6
