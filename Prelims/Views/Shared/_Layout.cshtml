@@ -6,12 +6,6 @@
     <title>@ViewBag.Title</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-    <style type="text/css">
-        .container-full {
-  margin: 0 auto;
-  width: 100%;
-}
-    </style>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -72,11 +66,14 @@
             </div>
         </div>
     </div>
-    <div class="header-box">
-        <span class="header-text">
-            @ViewBag.PageTitle
-        </span>
-    </div>
+    @if (!string.IsNullOrWhiteSpace(ViewBag.PageTitle as string))
+    {
+        <div class="header-box">
+            <span class="header-text">
+                @ViewBag.PageTitle
+            </span>
+        </div>
+    }
     <div class="container-full body-content">
         @RenderBody()
 
@@ -112,7 +109,8 @@
                 e.preventDefault();
             });
 
-            $('.detail-box').height($(window).height() - 132);
+            var chrome = $('.navbar').outerHeight() + ($('.header-box').outerHeight() || 0) + 24;
+            $('.detail-box').height($(window).height() - chrome);
         });
 
         document.addEventListener("DOMContentLoaded", function () {

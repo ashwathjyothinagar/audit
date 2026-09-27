@@ -4,23 +4,23 @@
     ViewBag.Title = "Prelims";
 }
 
-<div class="row" style="padding:10px">
+<div class="row dashboard-section">
     <div class="col-md-12">
-        <h3> Live Status </h3>
+        <h3 class="section-title">Live Status</h3>
         @foreach (var liveStatusGroup in Model.LiveStatusItems.GroupBy(x => x.GroupName))
         {
             var liveStatusTable = "liveStatusTable" + liveStatusGroup.Key.Replace(" ", "");
 
-            <div id="@liveStatusTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="@liveStatusTable=false">
+            <div id="@liveStatusTable" class="status-group" ng-init="@liveStatusTable=false">
                 <div>
 
-                    <div ng-click="@liveStatusTable=!@liveStatusTable">
+                    <div class="status-group-toggle" ng-click="@liveStatusTable=!@liveStatusTable">
                         <i class="glyphicon glyphicon-chevron-right" ng-if="!@liveStatusTable"></i>
                         <i class="glyphicon glyphicon-chevron-down" ng-if="@liveStatusTable"></i>
                         @liveStatusGroup.Key
                     </div>
                 </div>
-                <table class="table table-condensed" ng-if="@liveStatusTable" style="margin-top: 5px;">
+                <table class="table table-condensed status-table" ng-if="@liveStatusTable" style="margin-top: 5px;">
                     <tr>
                         <th>
                         </th>
@@ -44,26 +44,26 @@
                             Refi
                         </th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">
                             Refi
                         </th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">Refi</th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">Refi</th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">Refi</th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">Refi</th>
                         <th style="text-align:center;">Resale</th>
-                        <th style="text-align:center;background-color: grey;">Total</th>
+                        <th class="col-total">Total</th>
                         <th style="text-align:center;">Hold</th>
-                        <th style="background-color: grey;text-align:center;">Total</th>
+                        <th class="col-total">Total</th>
                     </tr>
                     @foreach (var item in liveStatusGroup)
                     {
@@ -75,40 +75,40 @@
                                 @item.TaxesSellerCount
                             </th>
                             <th style="text-align:center;">@item.TaxesBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.TaxesCount</th>
+                            <th class="col-total">@item.TaxesCount</th>
                             <th style="text-align:center;">
                                 @item.LVSellerCount
                             </th>
                             <th style="text-align:center;">@item.LVBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.LVCount</th>
+                            <th class="col-total">@item.LVCount</th>
                             <th style="text-align:center;">
                                 @item.PISellerCount
                             </th>
                             <th style="text-align:center;">@item.PIBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.PICount</th>
+                            <th class="col-total">@item.PICount</th>
                             <th style="text-align:center;">
                                 @item.GISellerCount
                             </th>
                             <th style="text-align:center;">@item.GIBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.GICount</th>
+                            <th class="col-total">@item.GICount</th>
                             <th style="text-align:center;">
                                 @item.StarterSellerCount
                             </th>
                             <th style="text-align:center;">@item.StarterBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.StarterCount</th>
+                            <th class="col-total">@item.StarterCount</th>
                             <th style="text-align:center;">
                                 @item.NotesSellerCount
                             </th>
                             <th style="text-align:center;">@item.NotesBuyerCount</th>
-                            <th style="text-align:center;background-color: grey;">@item.NotesCount</th>
+                            <th class="col-total">@item.NotesCount</th>
 
                             <th style="text-align:center;">@item.HoldCount</th>
-                            <th style="text-align:center;background-color: grey;">@(item.TaxesCount + item.LVCount + item.PICount + item.GICount + item.StarterCount + item.NotesCount)</th>
+                            <th class="col-total">@(item.TaxesCount + item.LVCount + item.PICount + item.GICount + item.StarterCount + item.NotesCount)</th>
                         </tr>
 
                     }
 
-                    <tr style="background-color: grey;">
+                    <tr class="row-total">
                         <th>
                             Total
                         </th>
@@ -116,35 +116,35 @@
                             @(liveStatusGroup.Sum(x => x.TaxesSellerCount))
                         </th>
                         <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.TaxesBuyerCount))</th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.TaxesCount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.TaxesCount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.LVSellerCount))
                         </th>
                         <th style="text-align:center;"> @(liveStatusGroup.Sum(x => x.LVBuyerCount))</th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.LVCount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.LVCount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.PISellerCount))
                         </th>
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.PIBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.PICount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.PICount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.GISellerCount))
                         </th>
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.GIBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.GICount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.GICount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.StarterSellerCount))
                         </th>
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterCount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.StarterCount)) </th>
                         <th style="text-align:center;">
                             @(liveStatusGroup.Sum(x => x.NotesSellerCount))
                         </th>
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesBuyerCount)) </th>
-                        <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesCount)) </th>
+                        <th class="col-total" style="text-align:center;">@(liveStatusGroup.Sum(x => x.NotesCount)) </th>
 
                         <th style="text-align:center;">@(liveStatusGroup.Sum(x => x.HoldCount)) </th>
-                        <th style="text-align:center;">@((liveStatusGroup.Sum(x => x.TaxesCount) + liveStatusGroup.Sum(x => x.LVCount) + liveStatusGroup.Sum(x => x.PICount) + liveStatusGroup.Sum(x => x.GICount) + liveStatusGroup.Sum(x => x.StarterCount) + liveStatusGroup.Sum(x => x.NotesCount)))</th>
+                        <th class="col-total" style="text-align:center;">@((liveStatusGroup.Sum(x => x.TaxesCount) + liveStatusGroup.Sum(x => x.LVCount) + liveStatusGroup.Sum(x => x.PICount) + liveStatusGroup.Sum(x => x.GICount) + liveStatusGroup.Sum(x => x.StarterCount) + liveStatusGroup.Sum(x => x.NotesCount)))</th>
                     </tr>
 
                 </table>
@@ -155,9 +155,9 @@
      </div>
 </div>
 
-<div class="row">
+<div class="row dashboard-section">
     <div class="col-md-12">
-        <h3> My Orders </h3>
+        <h3 class="section-title">My Orders</h3>
         <table class="table table-condensed table-striped">
             <tr>
                 <th>
@@ -203,7 +203,14 @@
                         @item.TitleOrderRequestTypeName
                     </td>
                     <td>
-                        @(item.IsRushOrder ?? false ? "RUSH" : "Normal" )
+                        @if (item.IsRushOrder ?? false)
+                        {
+                            <span class="priority-badge priority-rush">Rush</span>
+                        }
+                        else
+                        {
+                            <span class="priority-badge priority-normal">Normal</span>
+                        }
                     </td>
                     <td>
                         @item.TitleOrderTaskName
@@ -220,9 +227,9 @@
     </div>
 </div>
 
-<div class="row" style="padding:10px">
+<div class="row dashboard-section">
     <div class="col-md-12">
-        <h3> Inprogress Orders </h3>
+        <h3 class="section-title">In Progress Orders</h3>
         <table class="table table-condensed table-striped">
             <tr>
                 <th>
@@ -277,7 +284,14 @@
                         @(dateStarted.HasValue ? dateStarted.Value.ToString() : "")
                     </td>
                     <td>
-                        @(item.IsRushOrder ? "RUSH" : "Normal" )
+                        @if (item.IsRushOrder)
+                        {
+                            <span class="priority-badge priority-rush">Rush</span>
+                        }
+                        else
+                        {
+                            <span class="priority-badge priority-normal">Normal</span>
+                        }
                     </td>
                 </tr>
 

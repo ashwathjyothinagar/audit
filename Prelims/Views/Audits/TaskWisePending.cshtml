@@ -33,7 +33,7 @@
                     <th style="width: 10%; text-align:center;">Starter</th>
                     <th style="width: 10%; text-align:center;">Notes</th>
                     <th style="width: 10%; text-align:center;">Hold</th>
-                    <th style="width: 10%; text-align:center;">Total</th>
+                    <th class="col-total" style="width: 10%; text-align:center;">Total</th>
                 </tr>
 
                 @foreach (var item in liveStatusGroup)
@@ -63,12 +63,12 @@
                         <td style="text-align:center;">
                             @Html.ActionLink(@item.HoldCount.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true })
                         </td>
-                        <td style="text-align:center;">
+                        <td class="col-total" style="text-align:center;">
                             @Html.ActionLink(@item.Total.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true, showCrnTotal = true })
                         </td>
                     </tr>
                 }
-                <tr>
+                <tr class="row-total">
                     <th>
                         Total
                     </th>
@@ -93,7 +93,7 @@
                     <th style="text-align:center;">
                         @Html.ActionLink(liveStatusGroup.Sum(x => x.HoldCount).ToString(), "TaskWisePendingDetail", new { showHold = true, crnGroupName = liveStatusGroup.Key })
                     </th>
-                    <th style="text-align:center;">
+                    <th class="col-total" style="text-align:center;">
                         @Html.ActionLink(liveStatusGroup.Sum(x => x.Total).ToString(), "TaskWisePendingDetail", new { crnGroupName = liveStatusGroup.Key  })
                     </th>
                 </tr>
