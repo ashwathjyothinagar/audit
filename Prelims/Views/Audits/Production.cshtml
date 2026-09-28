@@ -354,7 +354,7 @@
 
         <div class="row production-row">
             <div class="col-lg-2 production-label">
-                Did you upload prelim & SP to smart view
+                Did you check the client instructions
             </div>
 
             <div class="col-lg-2">
@@ -373,7 +373,7 @@
 
             </div>
             <div class="col-lg-2 production-label">
-                Did you send completion email to clien?
+                Did you check the Ops Team instructions
             </div>
 
             <div class="col-lg-2">
@@ -415,79 +415,76 @@
         </div>
     </div>
 
-    @if (Model.Audit.TaskId != 1)
-    {
-        <div class="row">
-            <div class="col-lg-2 production-label" style="text-align:right;">
-                Errors
-            </div>
-            <div class="col-lg-8" ng-init="$ctrl.orderErrors= @Model.OrderErrorJson">
-                <input type="text" name="OrderErrorJson" id="OrderErrorJson" style="display: none" value="{{$ctrl.orderErrors | json}}"></input>
-                <div class="form-group" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px;">
-                    <div style="min-width: 200px;">
-                        <label for="AnyOrderErrors">Any Errors?</label>
-                        <select id="AnyOrderErrors"
-                                name="AnyOrderErrors"
-                                class="form-control"
-                                ng-model="$ctrl.checks.anyErrors" ng-change="$ctrl.onAnyErrorsChange()" required>
-                            <option value="">--</option>
-                            <option value="YES">YES</option>
-                            <option value="NO">NO</option>
-                        </select>
-                        <span style="color: red;" ng-show="productionForm.AnyOrderErrors.$error.required">This field selection is required</span>
-                    </div>
+    <div class="row">
+        <div class="col-lg-2 production-label" style="text-align:right;">
+            Errors
+        </div>
+        <div class="col-lg-8" ng-init="$ctrl.orderErrors= @Model.OrderErrorJson">
+            <input type="text" name="OrderErrorJson" id="OrderErrorJson" style="display: none" value="{{$ctrl.orderErrors | json}}"></input>
+            <div class="form-group" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px;">
+                <div style="min-width: 200px;">
+                    <label for="AnyOrderErrors">Any Errors?</label>
+                    <select id="AnyOrderErrors"
+                            name="AnyOrderErrors"
+                            class="form-control"
+                            ng-model="$ctrl.checks.anyErrors" ng-change="$ctrl.onAnyErrorsChange()" required>
+                        <option value="">--</option>
+                        <option value="YES">YES</option>
+                        <option value="NO">NO</option>
+                    </select>
+                    <span style="color: red;" ng-show="productionForm.AnyOrderErrors.$error.required">This field selection is required</span>
                 </div>
-                <div name="anyerrorsform" novalidate ng-form>
-                    <div class="form-group" ng-if="$ctrl.checks.anyErrors == 'YES'" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px; " ng-repeat="orderError in $ctrl.orderErrors">
-                        <div style="min-width: 200px;">
-                            <label for="errorCategory{{$index}}">Error Category</label>
-                            <select id="errorCategory{{$index}}"
-                                    name="errorCategory{{$index}}"
-                                    class="form-control"
-                                    ng-model="orderError.selectedCategory"
-                                    ng-options="category.Id as category.Name for category in $ctrl.errorCategories"
-                                    ng-change="$ctrl.loadErrorTypes(orderError.selectedCategory, $index)" required>
-                                <option value="">Select Category</option>
-                            </select>
-                            <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorCategory{{$index}}.$invalid">
-                                Category is required.
-                            </span>
-                        </div>
+            </div>
+            <div name="anyerrorsform" novalidate ng-form>
+                <div class="form-group" ng-if="$ctrl.checks.anyErrors == 'YES'" style="display: flex; gap: 10px; border-bottom: 2px solid #eeeeee; padding-bottom: 5px; " ng-repeat="orderError in $ctrl.orderErrors">
+                    <div style="min-width: 200px;">
+                        <label for="errorCategory{{$index}}">Error Category</label>
+                        <select id="errorCategory{{$index}}"
+                                name="errorCategory{{$index}}"
+                                class="form-control"
+                                ng-model="orderError.selectedCategory"
+                                ng-options="category.Id as category.Name for category in $ctrl.errorCategories"
+                                ng-change="$ctrl.loadErrorTypes(orderError.selectedCategory, $index)" required>
+                            <option value="">Select Category</option>
+                        </select>
+                        <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorCategory{{$index}}.$invalid">
+                            Category is required.
+                        </span>
+                    </div>
 
-                        <div style="min-width: 200px;">
-                            <label for="errorType{{$index}}">Error Type</label>
-                            <select id="errorType{{$index}}"
-                                    name="errorType{{$index}}"
-                                    class="form-control"
-                                    multiple="multiple"
-                                    ng-model="orderError.selectedType"
-                                    ng-options="type.Id as type.Name for type in orderError.errorTypes"
-                                    ng-disabled="!orderError.selectedCategory"
-                                    ng-change="$ctrl.checkIfCritical($index)"
-                                    required>
-                            </select>
-                            <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorType{{$index}}.$invalid">
-                                Type is required.
-                            </span>
-                        </div>
-                        <div style="min-width: 200px;">
-                            <label for="comments{{$index}}">Comments</label>
-                            <textarea id="comments{{$index}}"
-                                      class="form-control"
-                                      ng-model="orderError.comments" class="form-control" required></textarea>
-                        </div>
-                        <div style="vertical-align: central; align-items: center; display: flex;">
-                            <span ng-if="orderError.isCritical" title="Critical Error" style="color: red; font-size: 20px;margin-right:10px;">
-                                &#9888; <!-- Unicode warning symbol -->
-                            </span>
-                            <button type="button" class="btn-success" style="margin-right: 5px;" ng-click="$ctrl.addOrderError()">+</button>
-                            <button type="button" class="btn-danger" ng-click="$ctrl.removeOrderError($index)" ng-if="$index != 0">-</button>
-                        </div>
+                    <div style="min-width: 200px;">
+                        <label for="errorType{{$index}}">Error Type</label>
+                        <select id="errorType{{$index}}"
+                                name="errorType{{$index}}"
+                                class="form-control"
+                                multiple="multiple"
+                                ng-model="orderError.selectedType"
+                                ng-options="type.Id as type.Name for type in orderError.errorTypes"
+                                ng-disabled="!orderError.selectedCategory"
+                                ng-change="$ctrl.checkIfCritical($index)"
+                                required>
+                        </select>
+                        <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorType{{$index}}.$invalid">
+                            Type is required.
+                        </span>
+                    </div>
+                    <div style="min-width: 200px;">
+                        <label for="comments{{$index}}">Comments</label>
+                        <textarea id="comments{{$index}}"
+                                  class="form-control"
+                                  ng-model="orderError.comments" class="form-control" required></textarea>
+                    </div>
+                    <div style="vertical-align: central; align-items: center; display: flex;">
+                        <span ng-if="orderError.isCritical" title="Critical Error" style="color: red; font-size: 20px;margin-right:10px;">
+                            &#9888; <!-- Unicode warning symbol -->
+                        </span>
+                        <button type="button" class="btn-success" style="margin-right: 5px;" ng-click="$ctrl.addOrderError()">+</button>
+                        <button type="button" class="btn-danger" ng-click="$ctrl.removeOrderError($index)" ng-if="$index != 0">-</button>
                     </div>
                 </div>
             </div>
         </div>
-    }
+    </div>
 
     <div class="row production-row">
         <div class="col-lg-2 production-label">

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -10,6 +10,11 @@ namespace Prelims.Models
 
         public string UserName { get; set; }
         public string Location { get; set; }
+
+        public int TaxesCount { get; set; }
+        public int TaxesUpdatesCount { get; set; }
+        public int TaxesDatedownsCount { get; set; }
+        public int TaxesOtherCount { get; set; }
 
         public int LVCount { get; set; }
         public int LVUpdatesCount { get; set; }

@@ -24,25 +24,43 @@ namespace Prelims.Models.Reports
         [DisplayName("Recieved Date Time")]
         public string RecievedDateTime { get; set; }
 
+        [DisplayName("Taxes done by")]
+        public string TaxesDoneBy { get; set; }
+
+        [DisplayName("Taxes Start Time")]
+        public string TaxesStartTime { get; set; }
+
+        [DisplayName("Taxes End Time")]
+        public string TaxesEndTime { get; set; }
+
+        [DisplayName("Taxes Time Taken")]
+        public string TaxesTimeTaken { get; set; }
+
+        [DisplayName("Taxes Comments")]
+        public string TaxesComments { get; set; }
+
         [DisplayName("L&V done by")]
         public string ProcessingDoneBy { get; set; }
 
-        [DisplayName("Start Time")]
+        [DisplayName("L&V Start Time")]
         public string ProcessingStartTime { get; set; }
 
-        [DisplayName("End Time")]
+        [DisplayName("L&V End Time")]
         public string ProcessingEndTime { get; set; }
 
-        [DisplayName("Time Taken")]
+        [DisplayName("L&V Time Taken")]
         public string ProcessingTimeTaken { get; set; }
+
+        [DisplayName("L&V Comments")]
+        public string ProcessingComments { get; set; }
 
         [DisplayName("PI done by")]
         public string QCDoneBy { get; set; }
 
-        [DisplayName("Start Time")]
+        [DisplayName("PI Start Time")]
         public string QCStartTime { get; set; }
 
-        [DisplayName("End Time")]
+        [DisplayName("PI End Time")]
         public string QCEndTime { get; set; }
 
         [DisplayName("PI Comments")]
@@ -54,50 +72,52 @@ namespace Prelims.Models.Reports
         [DisplayName("Errors")]
         public List<AuditError> AuditErrors { get; set; }
 
-        [DisplayName("Time Taken")]
+        [DisplayName("PI Time Taken")]
         public string QCTimeTaken { get; set; }
 
         [DisplayName("GI done by")]
         public string DeliveryDoneBy { get; set; }
 
-        [DisplayName("Start Time")]
+        [DisplayName("GI Start Time")]
         public string DeliveryStartTime { get; set; }
 
-        [DisplayName("End Time")]
+        [DisplayName("GI End Time")]
         public string DeliveryEndTime { get; set; }
 
-        [DisplayName("Time Taken")]
+        [DisplayName("GI Time Taken")]
         public string DeliveryTimeTaken { get; set; }
+
+        [DisplayName("GI Comments")]
+        public string DeliveryComments { get; set; }
 
         [DisplayName("Starter done by")]
         public string StarterDoneBy { get; set; }
 
-        [DisplayName("Start Time")]
+        [DisplayName("Starter Start Time")]
         public string StarterStartTime { get; set; }
 
-        [DisplayName("End Time")]
+        [DisplayName("Starter End Time")]
         public string StarterEndTime { get; set; }
 
-        [DisplayName("Time Taken")]
+        [DisplayName("Starter Time Taken")]
         public string StarterTimeTaken { get; set; }
+
+        [DisplayName("Starter Comments")]
+        public string StarterComments { get; set; }
 
         [DisplayName("Notes done by")]
         public string NotesDoneBy { get; set; }
 
-        [DisplayName("Start Time")]
+        [DisplayName("Notes Start Time")]
         public string NotesStartTime { get; set; }
 
-        [DisplayName("End Time")]
+        [DisplayName("Notes End Time")]
         public string NotesEndTime { get; set; }
 
-        [DisplayName("Time Taken")]
+        [DisplayName("Notes Time Taken")]
         public string NotesTimeTaken { get; set; }
+
+        [DisplayName("Notes Comments")]
+        public string NotesComments { get; set; }
     }
 }
-
-
-//L&V
-//PI
-//GI
-//Starter
-//Notes

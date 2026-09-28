@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -44,30 +44,38 @@ namespace Prelims.Models.Reports
         [DisplayName("Completed Date Time")]
         public string CompletedDateTime { get; set; }
 
-        [DisplayName("Did you change Effective Date?")]
+        [DisplayName("Check Effective Date")]
         public string EffectiveDateChanged { get; set; }
         
-        [DisplayName("Any change in vesting?")]
+        [DisplayName("Vesting same Trust and LLC etc codes and typo in Prelim")]
         public string AnyChangeInVesting { get; set; }
 
-        [DisplayName("Did you update Tax information?")]
+        [DisplayName("Check All Tax shown in Prelim with correct code")]
         public string AnyUpdateOnTaxInformation { get; set; }
 
-        [DisplayName("Did you update any new PI Docs?")]
+        [DisplayName("Retrive DOT and all document Check codes and check typos in prelim")]
         public string AnyUpdateOnNewPIDocs { get; set; }
 
-        [DisplayName("Did you update any new GI Docs?")]
+        [DisplayName("Check all GI matters Typo in Prelim")]
         public string AnyUpdateOnNewGIDocs { get; set; }
 
-
-        [DisplayName("Did you review 24 month chain of Title?")]
+        [DisplayName("Check 24 month code and check typos in prelim")]
         public string DidYouReviewTwentyFourMonthChainOfTitle { get; set; }
 
-        [DisplayName("Did you upload prelim & SP to smart view?")]
+        [DisplayName("Check Fee Type")]
+        public string CheckFeeType { get; set; }
+
+        [DisplayName("Check Policy Type")]
+        public string CheckPolicyType { get; set; }
+
+        [DisplayName("Did you check the client instructions")]
         public string DidYouUploadPrelimAndSPToSmartView { get; set; }
 
-        [DisplayName("Did you send completion email to client?")]
+        [DisplayName("Did you check the Ops Team instructions")]
         public string DidYouSendCompletionEmailToClient { get; set; }
+
+        [DisplayName("Comments")]
+        public string Comments { get; set; }
 
         [DisplayName("Requested Office")]
         public string CWLTTitleOfficeName { get; set; }
