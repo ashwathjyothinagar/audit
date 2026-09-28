@@ -22,6 +22,7 @@ using System.Text;
 using System.Data.OleDb;
 using System.ComponentModel.Design;
 using System.Drawing;
+using System.Globalization;
 
 namespace Prelims.Controllers
 {
@@ -1706,14 +1707,58 @@ namespace Prelims.Controllers
                             newTitleOrder.County = county;
                         }
 
-                        string receivedDateTime = dataRow["RECEIVEDDATETIME"].ToString();
+                        string receivedDateTime = "";
+                        if (dataInExcel.Columns.Contains("RECEIVEDDATETIME(MM-DD-YYYY)"))
+                        {
+                            receivedDateTime = dataRow["RECEIVEDDATETIME(MM-DD-YYYY)"].ToString();
+                        }
+                        else if (dataInExcel.Columns.Contains("DATE_TIME(MM-DD-YYYY)"))
+                        {
+                            receivedDateTime = dataRow["DATE_TIME(MM-DD-YYYY)"].ToString();
+                        }
+                        else if (dataInExcel.Columns.Contains("RECEIVEDDATETIME"))
+                        {
+                            receivedDateTime = dataRow["RECEIVEDDATETIME"].ToString();
+                        }
+                        else if (dataInExcel.Columns.Contains("DATE_TIME"))
+                        {
+                            receivedDateTime = dataRow["DATE_TIME"].ToString();
+                        }
+
+                        orderUploadModel.ReceivedDateTime = receivedDateTime;
 
                         if (!string.IsNullOrEmpty(receivedDateTime))
                         {
-                            string dateToParseString = receivedDateTime.Replace(" PDT", "");
-                            var pdtDate = DateTime.Parse(dateToParseString);
-                            newTitleOrder.DateCreated = pdtDate;
-                        }else
+                            string dateToParseString = receivedDateTime.Replace(" PDT", "").Replace(" PST", "").Trim();
+                            string[] dateFormats = {
+                                "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss tt", "MM-dd-yyyy H:mm:ss", "MM-dd-yyyy h:mm:ss tt",
+                                "MM-dd-yyyy HH:mm", "MM-dd-yyyy hh:mm tt", "MM-dd-yyyy H:mm", "MM-dd-yyyy h:mm tt", "MM-dd-yyyy",
+                                "M-d-yyyy HH:mm:ss", "M-d-yyyy hh:mm:ss tt", "M-d-yyyy H:mm:ss", "M-d-yyyy h:mm:ss tt",
+                                "M-d-yyyy HH:mm", "M-d-yyyy hh:mm tt", "M-d-yyyy H:mm", "M-d-yyyy h:mm tt", "M-d-yyyy",
+                                "MM/dd/yyyy HH:mm:ss", "MM/dd/yyyy hh:mm:ss tt", "MM/dd/yyyy H:mm:ss", "MM/dd/yyyy h:mm:ss tt",
+                                "MM/dd/yyyy HH:mm", "MM/dd/yyyy hh:mm tt", "MM/dd/yyyy H:mm", "MM/dd/yyyy h:mm tt", "MM/dd/yyyy",
+                                "M/d/yyyy HH:mm:ss", "M/d/yyyy hh:mm:ss tt", "M/d/yyyy H:mm:ss", "M/d/yyyy h:mm:ss tt",
+                                "M/d/yyyy HH:mm", "M/d/yyyy hh:mm tt", "M/d/yyyy H:mm", "M/d/yyyy h:mm tt", "M/d/yyyy"
+                            };
+
+                            DateTime pdtDate;
+                            bool isParsed = DateTime.TryParseExact(dateToParseString, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out pdtDate);
+                            if (!isParsed)
+                            {
+                                isParsed = DateTime.TryParse(dateToParseString, new CultureInfo("en-US"), DateTimeStyles.None, out pdtDate);
+                            }
+
+                            if (isParsed)
+                            {
+                                newTitleOrder.DateCreated = pdtDate;
+                            }
+                            else
+                            {
+                                anyErrors = true;
+                                orderUploadModel.Message = orderUploadModel.Message + " - INVALID RECEIVED DATE TIME (Expected MM-DD-YYYY) - ";
+                            }
+                        }
+                        else
                         {
                             anyErrors = true;
                             orderUploadModel.Message = orderUploadModel.Message + " - INVALID RECEIVED DATE TIME - ";
