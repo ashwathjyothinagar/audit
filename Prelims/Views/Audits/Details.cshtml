@@ -365,6 +365,7 @@
                     <th>Task Name</th>
                     <th>Selected Category</th>
                     <th>Error Types</th>
+                    <th>Error Done By</th>
                     <th>Comments</th>
                 </tr>
             </thead>
@@ -386,6 +387,7 @@
                                     <span> @(errorType.Name)</span> @("("+ @errorType.IsCriticalText +")" )<br />
                                 }
                             </td>
+                            <td>@error.ErrorDoneBy</td>
                             <td>@error.Comments</td>
 
                         </tr>

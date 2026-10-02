@@ -417,6 +417,17 @@ namespace Prelims.Controllers
                 })
                 .ToList();
 
+            int? titleOrderId = Audit.TitleOrderId;
+            if (!titleOrderId.HasValue && !string.IsNullOrEmpty(Audit.OrderNo))
+            {
+                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", Audit.OrderNo).FirstOrDefault();
+            }
+
+            var taskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+
+            ViewBag.TaskEmployeesJson = JsonConvert.SerializeObject(taskEmployees);
+            ViewBag.ErrorCategoriesJson = JsonConvert.SerializeObject(db.AuditErrorCategories.Select(x => new { x.Id, x.Name }).ToList());
+
             return View(AuditProductionModel);
         }
 
@@ -2209,52 +2220,245 @@ namespace Prelims.Controllers
 
         private void sendErrorEmail(int AuditId, int taskId, string orderErrorJson, int timeEntryId)
         {
-            var lastTimeEntry = db.AuditTimeEntries.Where(x => x.AuditId == AuditId && x.Id != timeEntryId).OrderByDescending(x => x.Id).FirstOrDefault();
+            var audit = db.Audits.Include(x => x.CRN).FirstOrDefault(x => x.Id == AuditId);
+            if (audit == null) return;
 
-            if (lastTimeEntry != null)
+            var tasks = db.AuditTasks.OrderBy(x => x.SortOrder).ToDictionary(x => x.Id, y => y.Name);
+            var errorCategories = db.AuditErrorCategories.ToDictionary(x => x.Id, y => y.Name);
+            var errorTypes = db.AuditErrorTypes.Select(x => new { x.Id, Name = x.Name, x.IsCritical }).ToList();
+
+            var errorDeObject = JsonConvert.DeserializeObject<List<AuditError>>(orderErrorJson);
+            if (errorDeObject == null || errorDeObject.Count == 0) return;
+
+            foreach (var item in errorDeObject)
             {
-                var userInfo = db.USERINFOes.FirstOrDefault(x => x.USERID == lastTimeEntry.UserId);
+                if (tasks.ContainsKey(taskId)) item.TaskName = tasks[taskId];
+                if (errorCategories.ContainsKey(item.SelectedCategory)) item.SelectedCategoryName = errorCategories[item.SelectedCategory];
 
-                if (userInfo != null)
+                item.ErrorTypes = new List<AuditErrorTypeLite>();
+                if (item.SelectedType != null)
                 {
-                    string holdEmailTo = !string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("ERROREMAIL-TO")) ? ConfigurationManager.AppSettings.Get("ERROREMAIL-TO") : "prelims@firsttitlebpo.com";
-                    string holdEmailFrom = !string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("ERROREMAIL-FROM")) ? ConfigurationManager.AppSettings.Get("ERROREMAIL-FROM") : "notifications@ftbpo.com";
-
-                    if (!string.IsNullOrEmpty(holdEmailTo) && !string.IsNullOrEmpty(holdEmailFrom))
+                    foreach (var selectedType in item.SelectedType)
                     {
-                        var tasks = db.AuditTasks.OrderBy(x => x.SortOrder).ToDictionary(x => x.Id, y => y.Name);
-                        var errorCategories = db.AuditErrorCategories.ToDictionary(x => x.Id, y => y.Name);
-                        var errorTypes = db.AuditErrorTypes.Select(x => new { x.Id, Name = x.Name, x.IsCritical }).ToList();
-
-                        var errorDeObject = JsonConvert.DeserializeObject<List<AuditError>>(orderErrorJson);
-
-                        if (errorDeObject != null)
+                        var errorTypeItem = errorTypes.FirstOrDefault(x => x.Id == selectedType);
+                        if (errorTypeItem != null)
                         {
-                            foreach (var item in errorDeObject)
-                            {
-                                item.TaskName = tasks[lastTimeEntry.AuditTaskId];
-                                item.SelectedCategoryName = errorCategories[item.SelectedCategory];
-                                item.ErrorTypes = new List<AuditErrorTypeLite>();
-                                foreach (var selectedType in item.SelectedType)
-                                {
-                                    var errorTypeItem = errorTypes.FirstOrDefault(x => x.Id == selectedType);
-
-                                    if (errorTypeItem != null)
-                                    {
-                                        item.ErrorTypes.Add(new AuditErrorTypeLite() { Id = selectedType, Name = errorTypeItem.Name, IsCriticalText = errorTypeItem.IsCritical ? "C" : "NC" });
-                                    }
-                                }
-                            }
+                            item.ErrorTypes.Add(new AuditErrorTypeLite() { Id = selectedType, Name = errorTypeItem.Name, IsCriticalText = errorTypeItem.IsCritical ? "C" : "NC" });
                         }
-
-                        string emailContent = GenerateErrorReportHtml(errorDeObject);
-                        string subject = string.Format("FNT Update - Errors in - Order No: {0}, Task: {1}", lastTimeEntry.Audit.OrderNo, tasks[lastTimeEntry.AuditTaskId]);
-
-                        sendMail(holdEmailTo, holdEmailFrom, subject, emailContent, null, userInfo.EMAIL, true);
                     }
-
                 }
             }
+
+            int? titleOrderId = audit.TitleOrderId;
+            if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
+            {
+                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+            }
+
+            var titleTaskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+            var recipientEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Add email of employee who did the error
+            foreach (var err in errorDeObject)
+            {
+                if (!string.IsNullOrWhiteSpace(err.ErrorDoneByEmail))
+                {
+                    recipientEmails.Add(err.ErrorDoneByEmail.Trim());
+                }
+                else if (err.ErrorDoneById.HasValue)
+                {
+                    var user = db.USERINFOes.FirstOrDefault(u => u.USERID == err.ErrorDoneById.Value);
+                    if (user != null && !string.IsNullOrWhiteSpace(user.EMAIL))
+                    {
+                        recipientEmails.Add(user.EMAIL.Trim());
+                    }
+                }
+            }
+
+            // Also add all employee(s) involved in the order from TitleOrders
+            foreach (var emp in titleTaskEmployees.Values)
+            {
+                if (!string.IsNullOrWhiteSpace(emp.Email))
+                {
+                    recipientEmails.Add(emp.Email.Trim());
+                }
+            }
+
+            // Determine FLM based on office-wise segregation
+            string flmEmails = GetFlmEmailForOrder(audit, titleTaskEmployees.Values);
+            foreach (var flm in flmEmails.Split(';'))
+            {
+                if (!string.IsNullOrWhiteSpace(flm))
+                {
+                    recipientEmails.Add(flm.Trim());
+                }
+            }
+
+            if (recipientEmails.Count == 0)
+            {
+                string defaultEmail = !string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("ERROREMAIL-TO")) ? ConfigurationManager.AppSettings.Get("ERROREMAIL-TO") : "ffaudit@firstfocusbpo.com";
+                recipientEmails.Add(defaultEmail);
+            }
+
+            string holdEmailFrom = !string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("ERROREMAIL-FROM")) ? ConfigurationManager.AppSettings.Get("ERROREMAIL-FROM") : "notifications@ftbpo.com";
+
+            string emailContent = GenerateErrorReportHtml(errorDeObject);
+            string taskName = tasks.ContainsKey(taskId) ? tasks[taskId] : "";
+            string officeName = audit.CRN != null ? audit.CRN.CRNNAME : "";
+            string subject = string.Format("FNT Update - Errors in - Order No: {0}, Office: {1}, Task: {2}", audit.OrderNo, officeName, taskName);
+
+            string mailTo = string.Join(";", recipientEmails);
+            sendMail(mailTo, holdEmailFrom, subject, emailContent, null, true);
+        }
+
+        private string GetFlmEmailForOrder(Audit audit, IEnumerable<TaskEmployeeDto> involvedEmployees)
+        {
+            var flmEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            string octFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-OCT") ?? "octflm@firstfocusbpo.com";
+            string mtcFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-MTC") ?? "mtcflm@firstfocusbpo.com";
+            string hospetFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-HOSPET") ?? "hospetflm@firstfocusbpo.com";
+            string defaultFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-DEFAULT") ?? "ffaudit@firstfocusbpo.com";
+
+            string groupName = audit.CRN != null ? (audit.CRN.GroupName ?? "") : "";
+            string crnName = audit.CRN != null ? (audit.CRN.CRNNAME ?? "") : "";
+
+            if (groupName.IndexOf("ORANGE COAST", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                crnName.IndexOf("ORANGE COAST", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                audit.CrnId == 37)
+            {
+                flmEmails.Add(octFlm);
+            }
+            else if (groupName.IndexOf("MONARCH", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("MONARCH", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     audit.CrnId == 38)
+            {
+                flmEmails.Add(mtcFlm);
+            }
+            else
+            {
+                flmEmails.Add(defaultFlm);
+            }
+
+            if (involvedEmployees != null && involvedEmployees.Any(e => string.Equals(e.Location, "HOSPET", StringComparison.OrdinalIgnoreCase)))
+            {
+                flmEmails.Add(hospetFlm);
+            }
+
+            return string.Join(";", flmEmails);
+        }
+
+        public Dictionary<string, TaskEmployeeDto> GetTaskEmployeesFromTitleOrder(int? titleOrderId)
+        {
+            var result = new Dictionary<string, TaskEmployeeDto>(StringComparer.OrdinalIgnoreCase);
+
+            if (!titleOrderId.HasValue)
+            {
+                titleOrderId = db.Database.SqlQuery<int?>(@"SELECT TOP 1 Id FROM TitleOrders WHERE ExaminingDoneBy IS NOT NULL ORDER BY Id DESC").FirstOrDefault();
+            }
+
+            if (!titleOrderId.HasValue) return result;
+
+            var data = db.Database.SqlQuery<TitleOrderRawDto>(@"
+                SELECT TOP 1
+                    t.SearchingDoneBy, t.SearchingDoneByUserId, ISNULL(NULLIF(uSearch.FULLNAME, ''), t.SearchingDoneBy) AS SearchingFullName, uSearch.EMAIL AS SearchingEmail, uSearch.LOCATION AS SearchingLocation,
+                    t.ExaminingDoneBy, t.ExaminingDoneByUserId, ISNULL(NULLIF(uExam.FULLNAME, ''), t.ExaminingDoneBy) AS ExaminingFullName, uExam.EMAIL AS ExaminingEmail, uExam.LOCATION AS ExaminingLocation,
+                    t.StarterCodeDoneBy, t.StarterCodeDoneByUserId, ISNULL(NULLIF(uStart.FULLNAME, ''), t.StarterCodeDoneBy) AS StarterCodeFullName, uStart.EMAIL AS StarterCodeEmail, uStart.LOCATION AS StarterCodeLocation,
+                    t.TypingDoneBy, t.TypingDoneByUserId, ISNULL(NULLIF(uType.FULLNAME, ''), t.TypingDoneBy) AS TypingFullName, uType.EMAIL AS TypingEmail, uType.LOCATION AS TypingLocation,
+                    t.ProofingDoneBy, t.ProofingDoneByUserId, ISNULL(NULLIF(uProof.FULLNAME, ''), t.ProofingDoneBy) AS ProofingFullName, uProof.EMAIL AS ProofingEmail, uProof.LOCATION AS ProofingLocation,
+                    t.QCDoneBy, t.QCDoneByUserId, ISNULL(NULLIF(uQC.FULLNAME, ''), t.QCDoneBy) AS QCFullName, uQC.EMAIL AS QCEmail, uQC.LOCATION AS QCLocation
+                FROM TitleOrders t
+                LEFT JOIN USERINFO uSearch ON t.SearchingDoneByUserId = uSearch.USERID
+                LEFT JOIN USERINFO uExam ON t.ExaminingDoneByUserId = uExam.USERID
+                LEFT JOIN USERINFO uStart ON t.StarterCodeDoneByUserId = uStart.USERID
+                LEFT JOIN USERINFO uType ON t.TypingDoneByUserId = uType.USERID
+                LEFT JOIN USERINFO uProof ON t.ProofingDoneByUserId = uProof.USERID
+                LEFT JOIN USERINFO uQC ON t.QCDoneByUserId = uQC.USERID
+                WHERE t.Id = @p0
+            ", titleOrderId.Value).FirstOrDefault();
+
+            if (data != null)
+            {
+                var examiner = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.ExaminingFullName) ? data.ExaminingFullName : data.ExaminingDoneBy,
+                    UserId = data.ExaminingDoneByUserId,
+                    Email = data.ExaminingEmail,
+                    Location = data.ExaminingLocation
+                };
+                result["Examiner"] = examiner;
+                result["Examining"] = examiner;
+
+                var proofer = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.ProofingFullName) ? data.ProofingFullName : data.ProofingDoneBy,
+                    UserId = data.ProofingDoneByUserId,
+                    Email = data.ProofingEmail,
+                    Location = data.ProofingLocation
+                };
+                result["Proofer"] = proofer;
+                result["Proofing"] = proofer;
+
+                var typer = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.TypingFullName) ? data.TypingFullName : data.TypingDoneBy,
+                    UserId = data.TypingDoneByUserId,
+                    Email = data.TypingEmail,
+                    Location = data.TypingLocation
+                };
+                result["Typer"] = typer;
+                result["Typing"] = typer;
+
+                var searcher = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.SearchingFullName) ? data.SearchingFullName : data.SearchingDoneBy,
+                    UserId = data.SearchingDoneByUserId,
+                    Email = data.SearchingEmail,
+                    Location = data.SearchingLocation
+                };
+                result["Searcher"] = searcher;
+                result["Searching"] = searcher;
+
+                var starter = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.StarterCodeFullName) ? data.StarterCodeFullName : data.StarterCodeDoneBy,
+                    UserId = data.StarterCodeDoneByUserId,
+                    Email = data.StarterCodeEmail,
+                    Location = data.StarterCodeLocation
+                };
+                result["Starter Code"] = starter;
+
+                var qc = new TaskEmployeeDto
+                {
+                    Name = !string.IsNullOrWhiteSpace(data.QCFullName) ? data.QCFullName : data.QCDoneBy,
+                    UserId = data.QCDoneByUserId,
+                    Email = data.QCEmail,
+                    Location = data.QCLocation
+                };
+                result["QC"] = qc;
+            }
+
+            return result;
+        }
+
+        [HttpGet]
+        public JsonResult GetTaskEmployeesByTitleOrderId(int? titleOrderId, int? auditId)
+        {
+            if (!titleOrderId.HasValue && auditId.HasValue)
+            {
+                var audit = db.Audits.Find(auditId.Value);
+                if (audit != null)
+                {
+                    titleOrderId = audit.TitleOrderId;
+                    if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
+                    {
+                        titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+                    }
+                }
+            }
+
+            var employees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+            return Json(new { success = true, taskEmployees = employees }, JsonRequestBehavior.AllowGet);
         }
 
         public string GenerateErrorReportHtml(List<AuditError> AuditErrors)
@@ -2273,38 +2477,40 @@ namespace Prelims.Controllers
                 })
                 .ToList();
 
-            sb.AppendLine("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>");
+            sb.AppendLine("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 13px;'>");
             sb.AppendLine("<thead>");
-            sb.AppendLine("<tr>");
-            sb.AppendLine("<th>Task Name</th>");
-            sb.AppendLine("<th>Selected Category</th>");
-            sb.AppendLine("<th>Error Types</th>");
-            sb.AppendLine("<th>Comments</th>");
+            sb.AppendLine("<tr style='background-color: #f2f2f2; font-weight: bold;'>");
+            sb.AppendLine("<th style='padding: 8px;'>Task Name</th>");
+            sb.AppendLine("<th style='padding: 8px;'>Error Category</th>");
+            sb.AppendLine("<th style='padding: 8px;'>Error Types</th>");
+            sb.AppendLine("<th style='padding: 8px;'>Error Done By</th>");
+            sb.AppendLine("<th style='padding: 8px;'>Comments</th>");
             sb.AppendLine("</tr>");
             sb.AppendLine("</thead>");
             sb.AppendLine("<tbody>");
 
             foreach (var group in groupedErrors)
             {
-                // Task Name as a separate row
-                sb.AppendLine($"<tr><td colspan='5' style='background-color: #f9f9f9; font-weight: bold;'>{group.TaskName}</td></tr>");
+                sb.AppendLine($"<tr><td colspan='5' style='background-color: #f9f9f9; font-weight: bold; padding: 8px;'>{group.TaskName}</td></tr>");
 
-                // Error details for the task
                 foreach (var error in group.Errors)
                 {
                     sb.AppendLine("<tr>");
-                    sb.AppendLine("<td></td>"); // Empty cell for spacing
-                    sb.AppendLine($"<td>{error.SelectedCategoryName}</td>");
+                    sb.AppendLine("<td></td>");
+                    sb.AppendLine($"<td style='padding: 8px;'>{error.SelectedCategoryName}</td>");
 
-                    // List of Error Types
-                    sb.AppendLine("<td>");
-                    foreach (var errorType in error.ErrorTypes)
+                    sb.AppendLine("<td style='padding: 8px;'>");
+                    if (error.ErrorTypes != null)
                     {
-                        sb.AppendLine($"{errorType.Name} ({errorType.IsCriticalText})<br />");
+                        foreach (var errorType in error.ErrorTypes)
+                        {
+                            sb.AppendLine($"{errorType.Name} ({errorType.IsCriticalText})<br />");
+                        }
                     }
                     sb.AppendLine("</td>");
 
-                    sb.AppendLine($"<td>{error.Comments}</td>");
+                    sb.AppendLine($"<td style='padding: 8px;'>{error.ErrorDoneBy}</td>");
+                    sb.AppendLine($"<td style='padding: 8px;'>{error.Comments}</td>");
                     sb.AppendLine("</tr>");
                 }
             }
@@ -2315,7 +2521,7 @@ namespace Prelims.Controllers
             return sb.ToString();
         }
 
-        private void sendMail(string mailTo, string from, string subject, string bodyContent, string mailCC = null)
+        private void sendMail(string mailTo, string from, string subject, string bodyContent, string mailCC = null, bool isHtml = false)
         {
             var emailMessage = new MailMessage();
 
@@ -2343,7 +2549,6 @@ namespace Prelims.Controllers
             string smtpPassword = !string.IsNullOrEmpty(smtpPasswordConfig) ? smtpPasswordConfig : "";
 
             var smtpEmailClient = new SmtpClient(smtpServer);
-            //smtpEmailClient.UseDefaultCredentials = true;
             smtpEmailClient.Port = 587;
             smtpEmailClient.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtpEmailClient.EnableSsl = true;
@@ -2351,6 +2556,7 @@ namespace Prelims.Controllers
 
             emailMessage.Subject = subject;
             emailMessage.Body = bodyContent;
+            emailMessage.IsBodyHtml = isHtml;
 
             try
             {
@@ -2370,16 +2576,58 @@ namespace Prelims.Controllers
             return jsonResult;
         }
 
-        public JsonResult GetErrorTypes(int categoryId)
+        public JsonResult GetErrorTypes(int categoryId, int? auditId = null)
         {
-            JsonResult jsonResult = new JsonResult() { JsonRequestBehavior = JsonRequestBehavior.AllowGet };
-
-            jsonResult.Data = db.AuditErrorTypes
+            var types = db.AuditErrorTypes
                             .Where(t => t.AuditErrorCategoryId == categoryId)
                             .Select(t => new { t.Id, t.Name, t.IsCritical })
                             .ToList();
 
-            return jsonResult;
+            var category = db.AuditErrorCategories.Find(categoryId);
+            string catName = category != null ? category.Name : "";
+
+            int? titleOrderId = null;
+            if (auditId.HasValue)
+            {
+                var audit = db.Audits.Find(auditId.Value);
+                if (audit != null)
+                {
+                    titleOrderId = audit.TitleOrderId;
+                    if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
+                    {
+                        titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+                    }
+                }
+            }
+
+            var employees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+            TaskEmployeeDto matchedEmployee = null;
+            if (!string.IsNullOrEmpty(catName))
+            {
+                if (employees.ContainsKey(catName))
+                {
+                    matchedEmployee = employees[catName];
+                }
+                else
+                {
+                    foreach (var kvp in employees)
+                    {
+                        if (kvp.Key.IndexOf(catName, StringComparison.OrdinalIgnoreCase) >= 0 || catName.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            matchedEmployee = kvp.Value;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return Json(new
+            {
+                errorTypes = types,
+                errorDoneBy = matchedEmployee != null ? matchedEmployee.Name : "",
+                errorDoneById = matchedEmployee != null ? matchedEmployee.UserId : null,
+                errorDoneByEmail = matchedEmployee != null ? matchedEmployee.Email : ""
+            }, JsonRequestBehavior.AllowGet);
         }
 
         private List<AuditCheckModel> GetAuditChecks(string orderNumber, int taskId, int crnId)
@@ -2842,10 +3090,60 @@ namespace Prelims.Controllers
         public string SelectedCategoryName { get; set; }
         public List<AuditErrorTypeLite> ErrorTypes { get; set; }
         public List<int> SelectedType { get; set; }
+        public string ErrorDoneBy { get; set; }
+        public int? ErrorDoneById { get; set; }
+        public string ErrorDoneByEmail { get; set; }
         public string Comments { get; set; }
         public bool IsCritical { get; set; }
 
         public string TaskName { get; set; }
+    }
+
+    public class TaskEmployeeDto
+    {
+        public string Name { get; set; }
+        public int? UserId { get; set; }
+        public string Email { get; set; }
+        public string Location { get; set; }
+    }
+
+    public class TitleOrderRawDto
+    {
+        public string SearchingDoneBy { get; set; }
+        public int? SearchingDoneByUserId { get; set; }
+        public string SearchingFullName { get; set; }
+        public string SearchingEmail { get; set; }
+        public string SearchingLocation { get; set; }
+
+        public string ExaminingDoneBy { get; set; }
+        public int? ExaminingDoneByUserId { get; set; }
+        public string ExaminingFullName { get; set; }
+        public string ExaminingEmail { get; set; }
+        public string ExaminingLocation { get; set; }
+
+        public string StarterCodeDoneBy { get; set; }
+        public int? StarterCodeDoneByUserId { get; set; }
+        public string StarterCodeFullName { get; set; }
+        public string StarterCodeEmail { get; set; }
+        public string StarterCodeLocation { get; set; }
+
+        public string TypingDoneBy { get; set; }
+        public int? TypingDoneByUserId { get; set; }
+        public string TypingFullName { get; set; }
+        public string TypingEmail { get; set; }
+        public string TypingLocation { get; set; }
+
+        public string ProofingDoneBy { get; set; }
+        public int? ProofingDoneByUserId { get; set; }
+        public string ProofingFullName { get; set; }
+        public string ProofingEmail { get; set; }
+        public string ProofingLocation { get; set; }
+
+        public string QCDoneBy { get; set; }
+        public int? QCDoneByUserId { get; set; }
+        public string QCFullName { get; set; }
+        public string QCEmail { get; set; }
+        public string QCLocation { get; set; }
     }
 
     public class AuditErrorTypeLite

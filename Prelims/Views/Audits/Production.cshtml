@@ -27,6 +27,11 @@
 @using (Html.BeginForm("Production", "Audits", FormMethod.Post, new { enctype = "multipart/form-data", name = "productionForm", id = "productionForm" }))
 {
     @Html.HiddenFor(model => model.Audit.TaskId);
+    <script type="text/javascript">
+        window.taskEmployeesData = @Html.Raw(ViewBag.TaskEmployeesJson ?? "{}");
+        window.errorCategoriesData = @Html.Raw(ViewBag.ErrorCategoriesJson ?? "[]");
+        window.currentAuditId = @Model.AuditId;
+    </script>
 <div ng-controller="AuditProductionController as $ctrl">
 
     <div ng-init="checks = { CWLTTitleOfficerName: '@(Model.CWLTTitleOfficerName)', CWLTTitleOfficeName: '@(Model.CWLTTitleOfficeName)' }">
@@ -466,6 +471,24 @@
                         </select>
                         <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorType{{$index}}.$invalid">
                             Type is required.
+                        </span>
+                    </div>
+                    <div style="min-width: 200px;">
+                        <label for="errorDoneBy{{$index}}">Error Done By</label>
+                        <input type="text"
+                               id="errorDoneBy{{$index}}"
+                               name="errorDoneBy{{$index}}"
+                               class="form-control"
+                               list="orderEmployeesList"
+                               ng-model="orderError.errorDoneBy"
+                               ng-change="$ctrl.onEmployeeChange($index)"
+                               placeholder="Auto-populated"
+                               required />
+                        <datalist id="orderEmployeesList">
+                            <option ng-repeat="emp in $ctrl.allEmployees" value="{{emp.Name}}">{{emp.Name}}</option>
+                        </datalist>
+                        <span style="color: red; font-size: 12px;" ng-show="anyerrorsform.errorDoneBy{{$index}}.$invalid">
+                            Error Done By is required.
                         </span>
                     </div>
                     <div style="min-width: 200px;">
