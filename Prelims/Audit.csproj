@@ -196,6 +196,7 @@
     <Compile Include="Controllers\AuditSendersController.cs" />
     <Compile Include="Controllers\AuditRequestTypesController.cs" />
     <Compile Include="Controllers\USERINFOesController.cs" />
+    <Compile Include="Controllers\UserTimeEntriesController.cs" />
     <Compile Include="CRN.cs">
       <DependentUpon>Prelims.tt</DependentUpon>
     </Compile>
@@ -313,6 +314,9 @@
       <DependentUpon>Prelims.tt</DependentUpon>
     </Compile>
     <Compile Include="UserCrn.cs">
+      <DependentUpon>Prelims.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UserTimeEntry.cs">
       <DependentUpon>Prelims.tt</DependentUpon>
     </Compile>
     <Compile Include="UserFilter.cs">

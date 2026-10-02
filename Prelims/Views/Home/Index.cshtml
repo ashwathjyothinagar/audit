@@ -4,6 +4,45 @@
     ViewBag.Title = "Prelims";
 }
 
+<div class="header-box" style="display: flex; align-items: center; justify-content: space-between;">
+    <span class="header-text">DASH BOARD</span>
+    <div style="display: flex; align-items: center;">
+        @if (ViewBag.IsLoggedIn == true && ViewBag.ActiveTime != null)
+        {
+            <span style="border: 2px solid #e8a317; padding: 4px 12px; font-size: 13px; color: #333; background-color: #fffbe6; margin-right: 8px;">
+                You have been active for <span id="activeHours">@ViewBag.ActiveTime.Hours</span> hours and <span id="activeMinutes">@ViewBag.ActiveTime.Minutes</span> minutes
+            </span>
+            @Html.ActionLink("Logout", "End", "UserTimeEntries", new { entryId = @ViewBag.ActiveEntryId }, new { @class = "btn btn-warning", style = "font-size: 13px;" })
+        }
+        else
+        {
+            @Html.ActionLink("Login", "Start", "UserTimeEntries", new { }, new { @class = "btn btn-success", style = "font-size: 13px;" })
+        }
+    </div>
+</div>
+
+@if (ViewBag.IsLoggedIn == true && ViewBag.ActiveTime != null)
+{
+    <script>
+        (function () {
+            var hours = @ViewBag.ActiveTime.Hours;
+            var minutes = @ViewBag.ActiveTime.Minutes;
+
+            setInterval(function () {
+                minutes++;
+                if (minutes >= 60) {
+                    minutes = 0;
+                    hours++;
+                }
+                var hoursEl = document.getElementById('activeHours');
+                var minutesEl = document.getElementById('activeMinutes');
+                if (hoursEl) hoursEl.textContent = hours;
+                if (minutesEl) minutesEl.textContent = minutes;
+            }, 60000);
+        })();
+    </script>
+}
+
 <div class="row dashboard-section">
     <div class="col-md-12">
         <h3 class="section-title">Live Status</h3>

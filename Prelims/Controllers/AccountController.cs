@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
@@ -105,7 +105,7 @@ namespace Prelims.Controllers
                 var authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
                 HttpContext.Response.Cookies.Add(authCookie);
                 Session.Add("UserInfo", user);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Start", "UserTimeEntries");
             }else
             {
                 ModelState.AddModelError("", "Invalid login attempt.");
@@ -428,8 +428,9 @@ namespace Prelims.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
+            Session.Clear();
             FormsAuthentication.SignOut();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Account");
         }
 
         //

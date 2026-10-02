@@ -294,6 +294,16 @@
           <Property Name="UserId" Type="int" Nullable="false" />
           <Property Name="CrnId" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="UserTimeEntries">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="StartTime" Type="datetime" Nullable="false" />
+          <Property Name="EndTime" Type="datetime" />
+          <Property Name="TotalSeconds" Type="int" />
+        </EntityType>
         <EntityType Name="UserFilters">
           <Key>
             <PropertyRef Name="Id" />
@@ -697,6 +707,7 @@
           <EntitySet Name="CWTTitleOfficerNames" EntityType="Self.CWTTitleOfficerNames" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="STATECOUNTY" EntityType="Self.STATECOUNTY" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserCrns" EntityType="Self.UserCrns" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="UserTimeEntries" EntityType="Self.UserTimeEntries" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="UserFilters" EntityType="Self.UserFilters" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="USERINFO" EntityType="Self.USERINFO" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="USERROLES" EntityType="Self.USERROLES" Schema="dbo" store:Type="Tables" />
@@ -1306,6 +1317,7 @@
           <EntitySet Name="CWTRequestedOffices" EntityType="FntModel.CWTRequestedOffice" />
           <EntitySet Name="CWTTitleOfficerNames" EntityType="FntModel.CWTTitleOfficerName" />
           <EntitySet Name="UserCrns" EntityType="FntModel.UserCrn" />
+          <EntitySet Name="UserTimeEntries" EntityType="FntModel.UserTimeEntry" />
         </EntityContainer>
         <EntityType Name="Audit">
           <Key>
@@ -1670,6 +1682,16 @@
           </Key>
           <Property Name="UserId" Type="Int32" Nullable="false" />
           <Property Name="CrnId" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="UserTimeEntry">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="StartTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="EndTime" Type="DateTime" Precision="3" />
+          <Property Name="TotalSeconds" Type="Int32" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -2043,6 +2065,17 @@
               <MappingFragment StoreEntitySet="UserCrns">
                 <ScalarProperty Name="CrnId" ColumnName="CrnId" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="UserTimeEntries">
+            <EntityTypeMapping TypeName="FntModel.UserTimeEntry">
+              <MappingFragment StoreEntitySet="UserTimeEntries">
+                <ScalarProperty Name="TotalSeconds" ColumnName="TotalSeconds" />
+                <ScalarProperty Name="EndTime" ColumnName="EndTime" />
+                <ScalarProperty Name="StartTime" ColumnName="StartTime" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

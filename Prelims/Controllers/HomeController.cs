@@ -116,6 +116,23 @@ namespace Prelims.Controllers
                 ViewBag.InprogressTitleOrderId = timeEntry.AuditId;
             }
 
+            // Login/Logout active time for dashboard (from UserTimeEntries table)
+            var activeSession = db.UserTimeEntries.AsNoTracking()
+                .Where(x => x.UserId == userInfo.USERID && !x.EndTime.HasValue)
+                .OrderByDescending(x => x.StartTime)
+                .FirstOrDefault();
+
+            if (activeSession != null)
+            {
+                ViewBag.IsLoggedIn = true;
+                ViewBag.ActiveTime = DateTime.Now - activeSession.StartTime;
+                ViewBag.ActiveEntryId = activeSession.Id;
+            }
+            else
+            {
+                ViewBag.IsLoggedIn = false;
+            }
+
             return View(homeViewModel);
         }
 
