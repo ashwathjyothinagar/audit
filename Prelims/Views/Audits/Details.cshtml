@@ -344,7 +344,15 @@
 <hr />
 <div class="row production-row">
     <div class="col-lg-6">
-        <h4>Errors</h4>
+        <h4>
+            Errors
+            @if (ViewBag.IsAuditFLM == true)
+            {
+                <span class="pull-right">
+                    @Html.ActionLink("Edit Errors", "EditErrors", new { id = Model.Id }, new { @class = "btn btn-sm btn-warning", @style = "margin-bottom: 5px;" })
+                </span>
+            }
+        </h4>
         @{
             List<AuditError> titleOrderErrors = Model.Errors;
 

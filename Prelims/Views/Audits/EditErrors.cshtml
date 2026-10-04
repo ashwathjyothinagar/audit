@@ -1,0 +1,179 @@
+@model Prelims.Audit
+
+@{
+    ViewBag.Title = "Edit Errors - " + Model.OrderNo;
+    ViewBag.PageTitle = "EDIT ERRORS: " + Model.OrderNo;
+}
+
+<script type="text/javascript">
+    window.currentAuditId = @Model.Id;
+    window.currentOrderNo = '@Model.OrderNo';
+    window.taskEmployeesData = @Html.Raw(ViewBag.TaskEmployeesJson ?? "{}");
+    window.errorCategoriesData = @Html.Raw(ViewBag.ErrorCategoriesJson ?? "[]");
+    window.auditTasksData = @Html.Raw(ViewBag.AuditTasksJson ?? "[]");
+    window.currentErrorsData = @Html.Raw(ViewBag.CurrentErrorsJson ?? "[]");
+</script>
+
+<div class="container-fluid" ng-controller="AuditEditErrorsController as ctrl" style="padding-top: 15px;">
+    <!-- Datalist for Employee Auto-complete -->
+    <datalist id="allEmployeesList">
+        <option ng-repeat="emp in ctrl.allEmployees" value="{{emp.Name}}">{{emp.Name}} ({{emp.Email}})</option>
+    </datalist>
+
+    <!-- Order Info Banner -->
+    <div class="panel panel-info">
+        <div class="panel-heading" style="padding: 10px 15px;">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Order Number:</strong> <span class="label label-primary" style="font-size: 14px;">@Model.OrderNo</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Office:</strong> @(Model.CRN != null ? Model.CRN.CRNNAME : "N/A")
+                </div>
+                <div class="col-md-3">
+                    <strong>Product Type:</strong> @(Model.AuditRequestType != null ? Model.AuditRequestType.Name : "N/A")
+                </div>
+                <div class="col-md-3 text-right">
+                    <strong>Status:</strong> <span class="label label-info">@(Model.AuditStatus != null ? Model.AuditStatus.Name : "N/A")</span>
+                    @Html.ActionLink("Back to Details", "Details", new { id = Model.Id }, new { @class = "btn btn-xs btn-default", @style = "margin-left: 10px;" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div class="alert alert-success" ng-if="ctrl.isSuccess">
+        <i class="glyphicon glyphicon-ok-sign"></i> {{ctrl.statusMessage}} Redirecting to order details...
+    </div>
+    <div class="alert alert-danger" ng-if="ctrl.isError">
+        <i class="glyphicon glyphicon-exclamation-sign"></i> {{ctrl.statusMessage}}
+    </div>
+
+    <div class="alert alert-warning" style="margin-bottom: 20px;">
+        <i class="glyphicon glyphicon-info-sign"></i> 
+        <strong>Audit FLM Access:</strong> Use this page to modify, add, or revoke/remove errors for this order across any task. Changes made here will immediately sync to the order tracker and all reporting modules.
+    </div>
+
+    <!-- Task Error Panels -->
+    <div class="row">
+        <div class="col-md-12">
+            <div ng-repeat="task in ctrl.auditTasks" class="panel" ng-class="ctrl.taskErrorsMap[task.Id].errors.length > 0 ? 'panel-danger' : 'panel-default'" style="margin-bottom: 20px;">
+                <div class="panel-heading" style="padding: 10px 15px;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 style="margin: 0; display: inline-block;">
+                                <strong>{{task.Name}} Task Errors</strong>
+                            </h4>
+                            <span class="label" ng-class="ctrl.taskErrorsMap[task.Id].errors.length > 0 ? 'label-danger' : 'label-default'" style="margin-left: 10px; font-size: 12px;">
+                                {{ctrl.taskErrorsMap[task.Id].errors.length}} Error(s)
+                            </span>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <label style="margin-right: 15px; font-weight: normal;">
+                                Any Errors Found?
+                                <select class="form-control input-sm" style="display: inline-block; width: 80px; margin-left: 5px;"
+                                        ng-model="ctrl.taskErrorsMap[task.Id].hasErrors"
+                                        ng-change="ctrl.onHasErrorsChange(task.Id)">
+                                    <option value="NO">NO</option>
+                                    <option value="YES">YES</option>
+                                </select>
+                            </label>
+                            <button type="button" class="btn btn-sm btn-success" ng-click="ctrl.addError(task.Id)" style="margin-right: 5px;">
+                                <i class="glyphicon glyphicon-plus"></i> Add Error
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" ng-if="ctrl.taskErrorsMap[task.Id].errors.length > 0" ng-click="ctrl.removeAllErrorsForTask(task.Id)">
+                                <i class="glyphicon glyphicon-trash"></i> Remove All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-body" ng-if="ctrl.taskErrorsMap[task.Id].hasErrors === 'YES'">
+                    <div ng-if="ctrl.taskErrorsMap[task.Id].errors.length === 0" class="text-muted text-center" style="padding: 20px;">
+                        No errors recorded for this task. Click <strong>"Add Error"</strong> to add an error.
+                    </div>
+
+                    <div ng-repeat="errorItem in ctrl.taskErrorsMap[task.Id].errors" class="well well-sm" style="background-color: #fff; border: 1px solid #ddd; margin-bottom: 15px; border-left: 5px solid #d9534f;">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">Error Category <span class="text-danger">*</span></label>
+                                    <select class="form-control"
+                                            ng-model="errorItem.selectedCategory"
+                                            ng-options="cat.Id as cat.Name for cat in ctrl.errorCategories"
+                                            ng-change="ctrl.loadErrorTypes(errorItem.selectedCategory, errorItem)">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">
+                                        Error Types <span class="text-danger">*</span>
+                                        <span ng-if="errorItem.isCritical" class="label label-danger" style="margin-left: 5px;">
+                                            &#9888; CRITICAL
+                                        </span>
+                                    </label>
+                                    <select multiple class="form-control" style="height: 100px;"
+                                            ng-model="errorItem.selectedType"
+                                            ng-options="et.Id as (et.Name + (et.IsCritical ? ' (C)' : ' (NC)')) for et in errorItem.errorTypes"
+                                            ng-change="ctrl.checkIfCritical(errorItem)">
+                                    </select>
+                                    <small class="text-muted">Hold Ctrl to select multiple types</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">Error Done By</label>
+                                    <input type="text" class="form-control"
+                                           ng-model="errorItem.errorDoneBy"
+                                           list="allEmployeesList"
+                                           ng-blur="ctrl.onEmployeeChange(errorItem)"
+                                           placeholder="Type name or select" />
+                                    <small class="text-muted" ng-if="errorItem.errorDoneByEmail">{{errorItem.errorDoneByEmail}}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">Comments</label>
+                                    <textarea class="form-control" rows="4"
+                                              ng-model="errorItem.comments"
+                                              placeholder="Enter comments / details about the error"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <button type="button" class="btn btn-sm btn-danger" ng-click="ctrl.removeError(task.Id, $index)">
+                                    <i class="glyphicon glyphicon-remove"></i> Remove This Error
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-body text-muted" ng-if="ctrl.taskErrorsMap[task.Id].hasErrors === 'NO'" style="padding: 10px 15px;">
+                    <em>No errors marked for this task.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Save / Action Footer -->
+    <div class="well well-sm" style="position: sticky; bottom: 10px; background-color: #f8f9fa; border: 2px solid #337ab7; box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 1000; padding: 15px;">
+        <div class="row">
+            <div class="col-md-6">
+                <p style="margin: 8px 0 0 0; color: #555;">
+                    <i class="glyphicon glyphicon-info-sign"></i> Click <strong>"Save All Changes"</strong> to commit all updates. Any modified or removed errors will immediately update reports and tracker.
+                </p>
+            </div>
+            <div class="col-md-6 text-right">
+                @Html.ActionLink("Cancel", "Details", new { id = Model.Id }, new { @class = "btn btn-default btn-lg", @style = "margin-right: 10px;" })
+                <button type="button" class="btn btn-primary btn-lg" ng-click="ctrl.saveAll()" ng-disabled="ctrl.saving">
+                    <i class="glyphicon glyphicon-floppy-disk"></i> {{ctrl.saving ? 'Saving Changes...' : 'Save All Changes'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

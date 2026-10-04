@@ -389,6 +389,7 @@
     <Content Include="src\Audit\Audit.rejectReport.js" />
     <Content Include="src\Audit\Audit.userReport.js" />
     <Content Include="src\Audit\titleOrder.orderAssignment.js" />
+    <Content Include="src\Audit\Audit.editErrors.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -473,6 +474,7 @@
     <Content Include="Views\Audits\UploadOrders.cshtml" />
     <Content Include="Views\Audits\SaveUploadedOrders.cshtml" />
     <Content Include="Views\Audits\SearchOrder.cshtml" />
+    <Content Include="Views\Audits\EditErrors.cshtml" />
     <Content Include="Views\Audits\TitleOrderTaskIsDone.cshtml" />
     <Content Include="Views\Audits\TitleOrderAlreadyCompleted.cshtml" />
     <Content Include="Views\Audits\MakeRush.cshtml" />

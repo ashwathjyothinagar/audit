@@ -120,8 +120,34 @@ namespace Prelims.Controllers
             return View(Audits.OrderByDescending(x => x.IsRushOrder).ToList());
         }
 
+        private bool IsAuditFLM(USERINFO userInfo)
+        {
+            if (userInfo == null || !userInfo.TitleOrderRoleId.HasValue) return false;
+            try
+            {
+                string sql = @"
+                    SELECT COUNT(1)
+                    FROM TitleOrderRoles r
+                    INNER JOIN TitleOrderRoleTasks rt ON r.Id = rt.RoleId
+                    WHERE r.Id = @p0 
+                      AND r.IsAllowedToViewInprogressOrders = 1 
+                      AND rt.TaskId = 3";
+                int count = db.Database.SqlQuery<int>(sql, userInfo.TitleOrderRoleId.Value).FirstOrDefault();
+                return count > 0;
+            }
+            catch
+            {
+                var allowedRoleIds = new HashSet<int> { 4, 23, 24, 26, 28, 35, 37, 40, 42, 43, 44, 46 };
+                return allowedRoleIds.Contains(userInfo.TitleOrderRoleId.Value);
+            }
+        }
+
         public ActionResult SearchOrder(string orderNo)
         {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            ViewBag.IsAuditFLM = IsAuditFLM(userInfo);
+            ViewBag.OrderNo = orderNo;
+
             if (string.IsNullOrEmpty(orderNo))
             {
                 return View(new List<Audit>());
@@ -158,9 +184,195 @@ namespace Prelims.Controllers
                 return HttpNotFound();
             }
 
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            ViewBag.IsAuditFLM = IsAuditFLM(userInfo);
+
             Audit.Errors = GetErrors(Audit.Id);
 
             return View(Audit);
+        }
+
+        // GET: Audits/EditErrors/5
+        public ActionResult EditErrors(int? id)
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (!IsAuditFLM(userInfo))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "Access to Edit Errors is restricted to Audit FLMs only.");
+            }
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            Audit audit = db.Audits
+                .Include(x => x.CRN)
+                .Include(x => x.AuditRequestType)
+                .Include(x => x.AuditStatus)
+                .Include(x => x.AuditTask)
+                .FirstOrDefault(x => x.Id == id.Value);
+
+            if (audit == null)
+            {
+                return HttpNotFound();
+            }
+
+            int? titleOrderId = audit.TitleOrderId;
+            if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
+            {
+                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+            }
+
+            var titleTaskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+            ViewBag.TaskEmployeesJson = JsonConvert.SerializeObject(titleTaskEmployees);
+
+            var errorCategories = db.AuditErrorCategories.Select(x => new { x.Id, x.Name }).ToList();
+            ViewBag.ErrorCategoriesJson = JsonConvert.SerializeObject(errorCategories);
+
+            var allTasks = db.AuditTasks.OrderBy(x => x.SortOrder).Select(x => new { x.Id, x.Name }).ToList();
+            ViewBag.AuditTasksJson = JsonConvert.SerializeObject(allTasks);
+
+            var currentErrors = db.AuditErrorJsons
+                .Where(x => x.AuditId == audit.Id)
+                .Select(x => new { x.Id, x.TaskId, x.OrderErrorJson })
+                .ToList();
+            ViewBag.CurrentErrorsJson = JsonConvert.SerializeObject(currentErrors);
+
+            ViewBag.AuditId = audit.Id;
+            ViewBag.OrderNo = audit.OrderNo;
+
+            return View(audit);
+        }
+
+        // POST: Audits/SaveEditedErrors
+        [HttpPost]
+        public JsonResult SaveEditedErrors(SaveTaskErrorsModel model)
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return Json(new { success = false, message = "Session expired. Please log in again." });
+            }
+
+            if (!IsAuditFLM(userInfo))
+            {
+                return Json(new { success = false, message = "Access denied: Restricted to Audit FLMs only." });
+            }
+
+            if (model == null || model.AuditId <= 0)
+            {
+                return Json(new { success = false, message = "Invalid data provided." });
+            }
+
+            var audit = db.Audits.Find(model.AuditId);
+            if (audit == null)
+            {
+                return Json(new { success = false, message = "Order not found." });
+            }
+
+            if (model.Tasks != null)
+            {
+                foreach (var taskEntry in model.Tasks)
+                {
+                    int taskId = taskEntry.TaskId;
+                    var existingErrorJson = db.AuditErrorJsons.FirstOrDefault(x => x.AuditId == model.AuditId && x.TaskId == taskId);
+
+                    bool hasErrors = false;
+                    string cleanedJson = "[]";
+
+                    if (taskEntry.HasErrors && !string.IsNullOrWhiteSpace(taskEntry.OrderErrorJson))
+                    {
+                        try
+                        {
+                            var errorsList = JsonConvert.DeserializeObject<List<AuditError>>(taskEntry.OrderErrorJson);
+                            if (errorsList != null && errorsList.Count > 0)
+                            {
+                                var validErrors = errorsList.Where(e => e.SelectedCategory > 0 && e.SelectedType != null && e.SelectedType.Count > 0).ToList();
+                                if (validErrors.Count > 0)
+                                {
+                                    hasErrors = true;
+                                    cleanedJson = JsonConvert.SerializeObject(validErrors);
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (hasErrors)
+                    {
+                        if (existingErrorJson != null)
+                        {
+                            existingErrorJson.OrderErrorJson = cleanedJson;
+                        }
+                        else
+                        {
+                            db.AuditErrorJsons.Add(new AuditErrorJson
+                            {
+                                AuditId = model.AuditId,
+                                TaskId = taskId,
+                                OrderErrorJson = cleanedJson
+                            });
+                        }
+                    }
+                    else
+                    {
+                        if (existingErrorJson != null)
+                        {
+                            db.AuditErrorJsons.Remove(existingErrorJson);
+                        }
+                    }
+                }
+
+                db.SaveChanges();
+            }
+
+            return Json(new { success = true, message = "Errors updated successfully!" });
+        }
+
+        // GET: Audits/GetAuditErrorsData/5 or ?id=5 or ?auditId=5
+        [HttpGet]
+        public JsonResult GetAuditErrorsData(int? id, int? auditId)
+        {
+            int targetId = id ?? auditId ?? 0;
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null || !IsAuditFLM(userInfo))
+            {
+                return Json(new { success = false, message = "Unauthorized" }, JsonRequestBehavior.AllowGet);
+            }
+
+            var audit = db.Audits.Find(targetId);
+            if (audit == null)
+            {
+                return Json(new { success = false, message = "Not found" }, JsonRequestBehavior.AllowGet);
+            }
+
+            int? titleOrderId = audit.TitleOrderId;
+            if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
+            {
+                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+            }
+
+            var taskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
+            var errorCategories = db.AuditErrorCategories.Select(x => new { x.Id, x.Name }).ToList();
+            var allAuditTasks = db.AuditTasks.OrderBy(x => x.SortOrder).Select(x => new { x.Id, x.Name }).ToList();
+            var existingErrorJsons = db.AuditErrorJsons.Where(x => x.AuditId == targetId).Select(x => new { x.Id, x.TaskId, x.OrderErrorJson }).ToList();
+
+            return Json(new
+            {
+                success = true,
+                auditId = audit.Id,
+                orderNo = audit.OrderNo,
+                taskEmployees = taskEmployees,
+                errorCategories = errorCategories,
+                auditTasks = allAuditTasks,
+                existingErrors = existingErrorJsons
+            }, JsonRequestBehavior.AllowGet);
         }
 
         // GET: Audits/Create
@@ -1042,6 +1254,70 @@ namespace Prelims.Controllers
             return View();
         }
 
+        private string FormatReportDateTime(DateTime? dt)
+        {
+            if (!dt.HasValue) return "";
+            return dt.Value.ToString("M/d/yy H:mm");
+        }
+
+        private string FormatReportTimeTaken(DateTime? start, DateTime? end)
+        {
+            if (!start.HasValue || !end.HasValue) return "";
+            var diff = end.Value - start.Value;
+            if (diff.TotalSeconds < 0) return "0:00";
+            return $"{(int)diff.TotalHours}:{diff.Minutes:D2}";
+        }
+
+        private Tuple<Dictionary<int, TitleOrderReportDto>, Dictionary<string, TitleOrderReportDto>> GetTitleOrdersReportData(List<int> titleOrderIds, List<string> orderNos)
+        {
+            var byId = new Dictionary<int, TitleOrderReportDto>();
+            var byOrderNo = new Dictionary<string, TitleOrderReportDto>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                var allIds = titleOrderIds.Distinct().ToList();
+                for (int i = 0; i < allIds.Count; i += 500)
+                {
+                    var chunk = allIds.Skip(i).Take(500).ToList();
+                    string idsStr = string.Join(",", chunk);
+                    string sql = $@"
+                        SELECT t.Id, t.OrderNo, t.TitleOrderProductSubTypeId, st.Name AS SubTypeName,
+                               t.ExaminingDoneBy, t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                        FROM TitleOrders t
+                        LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
+                        WHERE t.Id IN ({idsStr})";
+                    var results = db.Database.SqlQuery<TitleOrderReportDto>(sql).ToList();
+                    foreach (var r in results)
+                    {
+                        if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                        if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                    }
+                }
+
+                var remainingOrderNos = orderNos.Where(no => !byOrderNo.ContainsKey(no)).Distinct().ToList();
+                for (int i = 0; i < remainingOrderNos.Count; i += 500)
+                {
+                    var chunk = remainingOrderNos.Skip(i).Take(500).Select(x => "'" + x.Replace("'", "''") + "'").ToList();
+                    string ordersStr = string.Join(",", chunk);
+                    string sql = $@"
+                        SELECT t.Id, t.OrderNo, t.TitleOrderProductSubTypeId, st.Name AS SubTypeName,
+                               t.ExaminingDoneBy, t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                        FROM TitleOrders t
+                        LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
+                        WHERE t.OrderNo IN ({ordersStr})";
+                    var results = db.Database.SqlQuery<TitleOrderReportDto>(sql).ToList();
+                    foreach (var r in results)
+                    {
+                        if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                        if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                    }
+                }
+            }
+            catch { }
+
+            return Tuple.Create(byId, byOrderNo);
+        }
+
         public void ExportProductionReport(int taskId, DateTime startDateTime, DateTime endDateTime)
         {
             List<ProductionReportViewModel> productionViewModels = new List<ProductionReportViewModel>();
@@ -1063,161 +1339,198 @@ namespace Prelims.Controllers
             .Include(x => x.AuditRequestType)
             .Include(x => x.AuditStatus)
             .Include(x => x.AuditTask)
-            .Include(x => x.AuditTimeEntries)
+            .Include(x => x.AuditTimeEntries.Select(t => t.USERINFO))
             .Include(x => x.AuditSender)
             .Include(x => x.CRN)
             .Include(x => x.AuditUpdates);
 
+            var auditList = Audits.ToList();
+
+            var titleOrderIds = auditList.Where(x => x.TitleOrderId.HasValue).Select(x => x.TitleOrderId.Value).Distinct().ToList();
+            var orderNos = auditList.Where(x => !string.IsNullOrEmpty(x.OrderNo)).Select(x => x.OrderNo).Distinct().ToList();
+            var titleOrdersData = GetTitleOrdersReportData(titleOrderIds, orderNos);
+            var titleOrdersById = titleOrdersData.Item1;
+            var titleOrdersByOrderNo = titleOrdersData.Item2;
+
             int serialNumber = 1;
-            foreach (var Audit in Audits)
+            foreach (var Audit in auditList)
             {
                 ProductionReportViewModel productionViewModel = new ProductionReportViewModel();
                 List<AuditError> errors = GetErrors(Audit.Id);
+
+                TitleOrderReportDto titleOrder = null;
+                if (Audit.TitleOrderId.HasValue && titleOrdersById.ContainsKey(Audit.TitleOrderId.Value))
+                {
+                    titleOrder = titleOrdersById[Audit.TitleOrderId.Value];
+                }
+                else if (!string.IsNullOrEmpty(Audit.OrderNo) && titleOrdersByOrderNo.ContainsKey(Audit.OrderNo))
+                {
+                    titleOrder = titleOrdersByOrderNo[Audit.OrderNo];
+                }
+
                 productionViewModel.SerialNumber = serialNumber;
                 productionViewModel.OrderNo = Audit.OrderNo;
                 productionViewModel.OfficeName = Audit.CRN != null ? Audit.CRN.CRNNAME : "";
                 productionViewModel.ProductType = Audit.AuditRequestType != null ? Audit.AuditRequestType.Name : "";
+                productionViewModel.SubType = titleOrder != null ? (titleOrder.SubTypeName ?? "") : "";
 
                 if (Audit.DateCreated.HasValue)
                 {
-                    productionViewModel.RecievedDateTime = Audit.DateCreated.Value.ToString("yyyy/MM/dd hh:mm tt");
+                    productionViewModel.RecievedDateTime = FormatReportDateTime(Audit.DateCreated);
                 }
 
-                // Taxes (TaskId = 6)
-                var taxesTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 6);
-                if (taxesTaskInfo != null)
+                // --- Exam Task (from TitleOrder Examining Task) ---
+                if (titleOrder != null)
                 {
-                    productionViewModel.TaxesDoneBy = taxesTaskInfo.USERINFO != null ? taxesTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.TaxesStartTime = taxesTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (taxesTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.TaxesEndTime = taxesTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.TaxesTimeTaken = taxesTaskInfo.EndTime.Value.Subtract(taxesTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var taxesUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 6);
-                    if (taxesUpdate != null)
-                    {
-                        productionViewModel.TaxesComments = taxesUpdate.Updates;
-                    }
+                    productionViewModel.ExamDoneBy = titleOrder.ExaminingDoneBy ?? "";
+                    productionViewModel.ExamStartTime = FormatReportDateTime(titleOrder.ExaminingStartTime);
+                    productionViewModel.ExamEndTime = FormatReportDateTime(titleOrder.ExaminingEndTime);
+                    productionViewModel.ExamTimeTaken = FormatReportTimeTaken(titleOrder.ExaminingStartTime, titleOrder.ExaminingEndTime);
                 }
 
-                // L&V (TaskId = 1)
-                var processingTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 1);
-                if (processingTaskInfo != null)
+                var examErrors = errors.Where(x => x.TaskId == 6 || string.Equals(x.TaskName, "Taxes", StringComparison.OrdinalIgnoreCase) || string.Equals(x.SelectedCategoryName, "Examiner", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (examErrors.Any())
                 {
-                    productionViewModel.ProcessingDoneBy = processingTaskInfo.USERINFO != null ? processingTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.ProcessingStartTime = processingTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (processingTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.ProcessingEndTime = processingTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.ProcessingTimeTaken = processingTaskInfo.EndTime.Value.Subtract(processingTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var lvUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 1);
-                    if (lvUpdate != null)
-                    {
-                        productionViewModel.ProcessingComments = lvUpdate.Updates;
-                    }
-                }
-
-                // PI (TaskId = 2)
-                var qcTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 2);
-                if (qcTaskInfo != null)
-                {
-                    productionViewModel.QCDoneBy = qcTaskInfo.USERINFO != null ? qcTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.QCStartTime = qcTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (qcTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.QCEndTime = qcTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.QCTimeTaken = qcTaskInfo.EndTime.Value.Subtract(qcTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var piUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 2);
-                    if (piUpdate != null)
-                    {
-                        productionViewModel.QCComments = piUpdate.Updates;
-                    }
-                }
-
-                // GI (TaskId = 3)
-                var deliveryTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 3);
-                if (deliveryTaskInfo != null)
-                {
-                    productionViewModel.DeliveryDoneBy = deliveryTaskInfo.USERINFO != null ? deliveryTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.DeliveryStartTime = deliveryTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (deliveryTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.DeliveryEndTime = deliveryTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.DeliveryTimeTaken = deliveryTaskInfo.EndTime.Value.Subtract(deliveryTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var giUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 3);
-                    if (giUpdate != null)
-                    {
-                        productionViewModel.DeliveryComments = giUpdate.Updates;
-                    }
-                }
-
-                // Starter (TaskId = 4)
-                var starterTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 4);
-                if (starterTaskInfo != null)
-                {
-                    productionViewModel.StarterDoneBy = starterTaskInfo.USERINFO != null ? starterTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.StarterStartTime = starterTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (starterTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.StarterEndTime = starterTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.StarterTimeTaken = starterTaskInfo.EndTime.Value.Subtract(starterTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var starterUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 4);
-                    if (starterUpdate != null)
-                    {
-                        productionViewModel.StarterComments = starterUpdate.Updates;
-                    }
-                }
-
-                // Notes (TaskId = 5)
-                var notesTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 5);
-                if (notesTaskInfo != null)
-                {
-                    productionViewModel.NotesDoneBy = notesTaskInfo.USERINFO != null ? notesTaskInfo.USERINFO.USERNAME : "";
-                    productionViewModel.NotesStartTime = notesTaskInfo.StartTime.ToString("yyyy/MM/dd hh:mm tt");
-
-                    if (notesTaskInfo.EndTime.HasValue)
-                    {
-                        productionViewModel.NotesEndTime = notesTaskInfo.EndTime.Value.ToString("yyyy/MM/dd hh:mm tt");
-                        productionViewModel.NotesTimeTaken = notesTaskInfo.EndTime.Value.Subtract(notesTaskInfo.StartTime).ToString("c");
-                    }
-
-                    var notesUpdate = Audit.AuditUpdates.FirstOrDefault(x => x.AuditTaskId == 5);
-                    if (notesUpdate != null)
-                    {
-                        productionViewModel.NotesComments = notesUpdate.Updates;
-                    }
-                }
-
-                // Populate Errors (for selected task or all tasks)
-                if (taskId == -1)
-                {
-                    productionViewModel.AuditErrors = errors;
+                    productionViewModel.ExamErrorFound = "YES";
+                    productionViewModel.ExamErrorCategories = string.Join(", ", examErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.ExamErrorType = string.Join(", ", examErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.ExamErrorDoneBy = string.Join(", ", examErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.ExamErrorComments = string.Join("; ", examErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
                 }
                 else
                 {
-                    var taskObj = db.AuditTasks.Find(taskId);
-                    string taskName = taskObj != null ? taskObj.Name : "";
-                    productionViewModel.AuditErrors = errors.Where(x => string.Equals(x.TaskName, taskName, StringComparison.OrdinalIgnoreCase)).ToList();
+                    productionViewModel.ExamErrorFound = (!string.IsNullOrEmpty(productionViewModel.ExamDoneBy)) ? "NO" : "";
+                    productionViewModel.ExamErrorCategories = "";
+                    productionViewModel.ExamErrorType = "";
+                    productionViewModel.ExamErrorDoneBy = "";
+                    productionViewModel.ExamErrorComments = "";
                 }
-                productionViewModel.AnyCriticalErrors = productionViewModel.AuditErrors != null && productionViewModel.AuditErrors.Any(x => x.IsCritical) ? "YES" : (productionViewModel.AuditErrors != null && productionViewModel.AuditErrors.Any() ? "NO" : "NO");
+
+                // --- L&V Task (TaskId = 1) ---
+                var lvTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 1);
+                if (lvTaskInfo != null)
+                {
+                    productionViewModel.LVDoneBy = lvTaskInfo.USERINFO != null ? lvTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.LVStartTime = FormatReportDateTime(lvTaskInfo.StartTime);
+                    if (lvTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.LVEndTime = FormatReportDateTime(lvTaskInfo.EndTime);
+                        productionViewModel.LVTimeTaken = FormatReportTimeTaken(lvTaskInfo.StartTime, lvTaskInfo.EndTime);
+                    }
+                }
+
+                var lvErrors = errors.Where(x => x.TaskId == 1 || string.Equals(x.TaskName, "L&V", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (lvErrors.Any())
+                {
+                    productionViewModel.LVErrorFound = "YES";
+                    productionViewModel.LVErrorCategories = string.Join(", ", lvErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.LVErrorType = string.Join(", ", lvErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.LVErrorDoneBy = string.Join(", ", lvErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.LVErrorComments = string.Join("; ", lvErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.LVErrorFound = (lvTaskInfo != null) ? "NO" : "";
+                    productionViewModel.LVErrorCategories = "";
+                    productionViewModel.LVErrorType = "";
+                    productionViewModel.LVErrorDoneBy = "";
+                    productionViewModel.LVErrorComments = "";
+                }
+
+                // --- PI Task (TaskId = 2) ---
+                var piTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 2);
+                if (piTaskInfo != null)
+                {
+                    productionViewModel.PIDoneBy = piTaskInfo.USERINFO != null ? piTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.PIStartTime = FormatReportDateTime(piTaskInfo.StartTime);
+                    if (piTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.PIEndTime = FormatReportDateTime(piTaskInfo.EndTime);
+                        productionViewModel.PITimeTaken = FormatReportTimeTaken(piTaskInfo.StartTime, piTaskInfo.EndTime);
+                    }
+                }
+
+                var piErrors = errors.Where(x => x.TaskId == 2 || string.Equals(x.TaskName, "PI", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (piErrors.Any())
+                {
+                    productionViewModel.PIErrorFound = "YES";
+                    productionViewModel.PIErrorCategories = string.Join(", ", piErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.PIErrorType = string.Join(", ", piErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.PIErrorDoneBy = string.Join(", ", piErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.PIErrorComments = string.Join("; ", piErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.PIErrorFound = (piTaskInfo != null) ? "NO" : "";
+                    productionViewModel.PIErrorCategories = "";
+                    productionViewModel.PIErrorType = "";
+                    productionViewModel.PIErrorDoneBy = "";
+                    productionViewModel.PIErrorComments = "";
+                }
+
+                // --- GI Task (TaskId = 3) ---
+                var giTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 3);
+                if (giTaskInfo != null)
+                {
+                    productionViewModel.GIDoneBy = giTaskInfo.USERINFO != null ? giTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.GIStartTime = FormatReportDateTime(giTaskInfo.StartTime);
+                    if (giTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.GIEndTime = FormatReportDateTime(giTaskInfo.EndTime);
+                        productionViewModel.GITimeTaken = FormatReportTimeTaken(giTaskInfo.StartTime, giTaskInfo.EndTime);
+                    }
+                }
+
+                var giErrors = errors.Where(x => x.TaskId == 3 || string.Equals(x.TaskName, "GI", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (giErrors.Any())
+                {
+                    productionViewModel.GIErrorFound = "YES";
+                    productionViewModel.GIErrorCategories = string.Join(", ", giErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.GIErrorType = string.Join(", ", giErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.GIErrorDoneBy = string.Join(", ", giErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.GIErrorComments = string.Join("; ", giErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.GIErrorFound = (giTaskInfo != null) ? "NO" : "";
+                    productionViewModel.GIErrorCategories = "";
+                    productionViewModel.GIErrorType = "";
+                    productionViewModel.GIErrorDoneBy = "";
+                    productionViewModel.GIErrorComments = "";
+                }
+
+                // --- Starter Code Task (TaskId = 4) ---
+                var starterTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 4);
+                if (starterTaskInfo != null)
+                {
+                    productionViewModel.StarterCodeDoneBy = starterTaskInfo.USERINFO != null ? starterTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.StarterCodeStartTime = FormatReportDateTime(starterTaskInfo.StartTime);
+                    if (starterTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.StarterCodeEndTime = FormatReportDateTime(starterTaskInfo.EndTime);
+                        productionViewModel.StarterCodeTimeTaken = FormatReportTimeTaken(starterTaskInfo.StartTime, starterTaskInfo.EndTime);
+                    }
+                }
+
+                var starterErrors = errors.Where(x => x.TaskId == 4 || string.Equals(x.TaskName, "Starter", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (starterErrors.Any())
+                {
+                    productionViewModel.StarterCodeErrorFound = "YES";
+                    productionViewModel.StarterCodeErrorCategories = string.Join(", ", starterErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.StarterCodeErrorType = string.Join(", ", starterErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.StarterCodeErrorDoneBy = string.Join(", ", starterErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.StarterCodeErrorComments = string.Join("; ", starterErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.StarterCodeErrorFound = (starterTaskInfo != null) ? "NO" : "";
+                    productionViewModel.StarterCodeErrorCategories = "";
+                    productionViewModel.StarterCodeErrorType = "";
+                    productionViewModel.StarterCodeErrorDoneBy = "";
+                    productionViewModel.StarterCodeErrorComments = "";
+                }
 
                 productionViewModels.Add(productionViewModel);
-
                 serialNumber++;
             }
 
@@ -2197,16 +2510,20 @@ namespace Prelims.Controllers
                 {
                     foreach (var item in errorDeObject)
                     {
-                        item.TaskName = tasks[AuditError.TaskId];
-                        item.SelectedCategoryName = errorCategories[item.SelectedCategory];
+                        item.TaskId = AuditError.TaskId;
+                        item.TaskName = tasks.ContainsKey(AuditError.TaskId) ? tasks[AuditError.TaskId] : "";
+                        item.SelectedCategoryName = errorCategories.ContainsKey(item.SelectedCategory) ? errorCategories[item.SelectedCategory] : "";
                         item.ErrorTypes = new List<AuditErrorTypeLite>();
-                        foreach (var selectedType in item.SelectedType)
+                        if (item.SelectedType != null)
                         {
-                            var errorTypeItem = errorTypes.FirstOrDefault(x => x.Id == selectedType);
-
-                            if (errorTypeItem != null)
+                            foreach (var selectedType in item.SelectedType)
                             {
-                                item.ErrorTypes.Add(new AuditErrorTypeLite() { Id = selectedType, Name = errorTypeItem.Name, IsCriticalText = errorTypeItem.IsCritical ? "C" : "NC" });
+                                var errorTypeItem = errorTypes.FirstOrDefault(x => x.Id == selectedType);
+
+                                if (errorTypeItem != null)
+                                {
+                                    item.ErrorTypes.Add(new AuditErrorTypeLite() { Id = selectedType, Name = errorTypeItem.Name, IsCriticalText = errorTypeItem.IsCritical ? "C" : "NC" });
+                                }
                             }
                         }
                     }
@@ -3086,6 +3403,7 @@ namespace Prelims.Controllers
 
     public class AuditError
     {
+        public int TaskId { get; set; }
         public int SelectedCategory { get; set; }
         public string SelectedCategoryName { get; set; }
         public List<AuditErrorTypeLite> ErrorTypes { get; set; }
@@ -3097,6 +3415,31 @@ namespace Prelims.Controllers
         public bool IsCritical { get; set; }
 
         public string TaskName { get; set; }
+    }
+
+    public class SaveTaskErrorsModel
+    {
+        public int AuditId { get; set; }
+        public List<TaskErrorEntryDto> Tasks { get; set; }
+    }
+
+    public class TaskErrorEntryDto
+    {
+        public int TaskId { get; set; }
+        public string OrderErrorJson { get; set; }
+        public bool HasErrors { get; set; }
+    }
+
+    public class TitleOrderReportDto
+    {
+        public int Id { get; set; }
+        public string OrderNo { get; set; }
+        public int? TitleOrderProductSubTypeId { get; set; }
+        public string SubTypeName { get; set; }
+        public string ExaminingDoneBy { get; set; }
+        public DateTime? ExaminingStartTime { get; set; }
+        public DateTime? ExaminingEndTime { get; set; }
+        public int? ExaminingTimeTaken { get; set; }
     }
 
     public class TaskEmployeeDto

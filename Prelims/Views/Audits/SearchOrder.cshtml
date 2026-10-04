@@ -48,8 +48,12 @@
             <th>
                 @Html.DisplayNameFor(model => model.AuditStatus.Name)
             </th>
-
-
+            @if (ViewBag.IsAuditFLM == true)
+            {
+                <th>
+                    Action
+                </th>
+            }
         </tr>
 
         @foreach (var item in Model)
@@ -79,6 +83,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.AuditStatus.Name)
             </td>
+            @if (ViewBag.IsAuditFLM == true)
+            {
+                <td>
+                    @Html.ActionLink("Edit Errors", "EditErrors", new { id = item.Id }, new { @class = "btn btn-xs btn-warning" })
+                </td>
+            }
         </tr>
         }
 
