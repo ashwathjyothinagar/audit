@@ -895,3 +895,7 @@ UPDATE [dbo].[AuditTasks] SET [SortOrder] = 5 WHERE [Id] = 4; -- Starter
 UPDATE [dbo].[AuditTasks] SET [SortOrder] = 6 WHERE [Id] = 5; -- Notes
 GO
 
+----2-10-2026----
+truncate table  AuditErrorTypes;
+delete  from AuditErrorCategories;
+
