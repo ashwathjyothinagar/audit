@@ -431,6 +431,7 @@
     <Content Include="Views\Audits\Details.cshtml" />
     <Content Include="Views\Audits\Edit.cshtml" />
     <Content Include="Views\Audits\Index.cshtml" />
+    <Content Include="Views\Audits\MoveToPreviousTask.cshtml" />
     <Content Include="Views\AuditRequestTypes\Create.cshtml" />
     <Content Include="Views\AuditRequestTypes\Delete.cshtml" />
     <Content Include="Views\AuditRequestTypes\Details.cshtml" />

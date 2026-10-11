@@ -21,6 +21,26 @@
 </style>
 
 
+@if (ViewBag.PreviousTasks != null && ViewBag.PreviousTasks.Count > 0 && ViewBag.UserInfo != null && ViewBag.UserInfo.IsAllowedToMoveToPreviousTask)
+{
+    <div class="row production-row">
+        <div class="col-lg-2 production-label">
+        </div>
+        <div class="col-lg-2">
+        </div>
+        <div class="col-lg-2 production-label">
+            Move to
+        </div>
+        <div class="col-lg-2">
+            @foreach (var previousTask in ViewBag.PreviousTasks as List<AuditTask>)
+            {
+                @Html.ActionLink(previousTask.Name, "MoveToPreviousTask", new { orderId = Model.Id, taskId = previousTask.Id }, new { @style = "padding-right: 10px" })
+            }
+        </div>
+    </div>
+    <hr />
+}
+
 <div class="row production-row">
 
     <div class="col-lg-2 production-label">
@@ -118,10 +138,11 @@
         }
     </div>
     <div class="col-lg-2 production-label">
-
+        Movement Comment
     </div>
 
-    <div class="col-lg-2">
+    <div class="col-lg-2" style="white-space: pre-line;">
+        @Html.DisplayFor(model => model.OrderMovementComments)
     </div>
 </div>
 <hr />

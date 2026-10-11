@@ -185,7 +185,25 @@ namespace Prelims.Controllers
             }
 
             USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             ViewBag.IsAuditFLM = IsAuditFLM(userInfo);
+            ViewBag.UserInfo = userInfo;
+
+            if (Audit.StatusId != 3 && Audit.StatusId != 4 && Audit.StatusId != 5)
+            {
+                ViewBag.PreviousTasks = db.AuditTasks.Where(x => x.SortOrder < Audit.AuditTask.SortOrder).OrderBy(x => x.SortOrder).ToList();
+            }
+
+            ViewBag.IsInprogress = false;
+            AuditTimeEntry timeEntry = db.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress && x.AuditId == Audit.Id);
+            if (timeEntry != null)
+            {
+                ViewBag.IsInprogress = true;
+            }
 
             Audit.Errors = GetErrors(Audit.Id);
 
@@ -975,6 +993,80 @@ namespace Prelims.Controllers
             var AuditDocument = db.AuditDocuments.FirstOrDefault(x => x.AuditId == AuditId);
 
             return File(AuditDocument.DocumentPath, "application/pdf", Server.UrlEncode(AuditDocument.FileName));
+        }
+
+        public ActionResult MoveToPreviousTask(int orderId, int taskId)
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            Audit audit = db.Audits.Find(orderId);
+            AuditTask auditTask = db.AuditTasks.Find(taskId);
+
+            if (audit == null || auditTask == null)
+            {
+                return HttpNotFound();
+            }
+
+            ViewBag.OrderNo = audit.OrderNo;
+            ViewBag.TaskName = auditTask.Name;
+
+            return View();
+        }
+
+        [HttpPost, ActionName("MoveToPreviousTask")]
+        [ValidateAntiForgeryToken]
+        public ActionResult MoveToPreviousTaskConfirmed(int orderId, int taskId, string OrderMovementComments)
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var previousTask = db.AuditTasks.First(x => x.Id == taskId);
+            var taskIds = db.AuditTasks.Where(x => x.SortOrder >= previousTask.SortOrder).Select(x => x.Id).ToList();
+
+            Audit audit = db.Audits.Find(orderId);
+            if (audit == null)
+            {
+                return HttpNotFound();
+            }
+
+            var auditTasks = db.AuditTasks.Select(x => new { x.Id, x.Name }).ToList();
+            var currentTaskObj = auditTasks.FirstOrDefault(x => x.Id == audit.TaskId);
+            var currentTaskName = currentTaskObj != null ? currentTaskObj.Name : "Unknown";
+            var targetTaskName = previousTask.Name;
+
+            string formattedComment = string.Format("[{0:yyyy-MM-dd HH:mm}] Moved from {1} to {2} by {3}: {4}",
+                DateTime.Now, currentTaskName, targetTaskName, userInfo.USERNAME, OrderMovementComments ?? "");
+
+            audit.OrderMovementComments = string.IsNullOrEmpty(audit.OrderMovementComments)
+                ? formattedComment
+                : audit.OrderMovementComments + Environment.NewLine + formattedComment;
+
+            var timeEntries = db.AuditTimeEntries.Where(x => x.AuditId == orderId && taskIds.Contains(x.AuditTaskId)).ToList();
+            foreach (var timeEntry in timeEntries)
+            {
+                db.AuditTimeEntries.Remove(timeEntry);
+            }
+
+            var updates = db.AuditUpdates.Where(x => x.AuditId == orderId && taskIds.Contains(x.AuditTaskId)).ToList();
+            foreach (var update in updates)
+            {
+                db.AuditUpdates.Remove(update);
+            }
+
+            audit.TaskId = taskId;
+            audit.StatusId = 1;
+            audit.UserAssigned = null;
+
+            db.SaveChanges();
+
+            return RedirectToAction("Details", new { id = audit.Id });
         }
 
         public ActionResult Hold(int orderId)

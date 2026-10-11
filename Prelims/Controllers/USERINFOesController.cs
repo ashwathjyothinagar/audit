@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -46,7 +46,7 @@ namespace Prelims.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "USERID,USERNAME,FULLNAME,PASSWORD,FIRSTNAME,LASTNAME,VENDORID,CUSTOMERID,ROLEID,DT_ADDED,LOGINDATE,ISACTIVE,EMAIL,USERTYPE,ASSIGNCUSTOMER,ISDELETED,ISREVIEWER,IsSupportingServicesReviewer")] USERINFO uSERINFO)
+        public ActionResult Create([Bind(Include = "USERID,USERNAME,FULLNAME,PASSWORD,FIRSTNAME,LASTNAME,VENDORID,CUSTOMERID,ROLEID,DT_ADDED,LOGINDATE,ISACTIVE,EMAIL,USERTYPE,ASSIGNCUSTOMER,ISDELETED,ISREVIEWER,IsSupportingServicesReviewer,IsAllowedToMoveToPreviousTask")] USERINFO uSERINFO)
         {
             if (ModelState.IsValid)
             {
@@ -78,7 +78,7 @@ namespace Prelims.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "USERID,USERNAME,FULLNAME,PASSWORD,FIRSTNAME,LASTNAME,VENDORID,CUSTOMERID,ROLEID,DT_ADDED,LOGINDATE,ISACTIVE,EMAIL,USERTYPE,ASSIGNCUSTOMER,ISDELETED,ISREVIEWER,IsSupportingServicesReviewer")] USERINFO uSERINFO)
+        public ActionResult Edit([Bind(Include = "USERID,USERNAME,FULLNAME,PASSWORD,FIRSTNAME,LASTNAME,VENDORID,CUSTOMERID,ROLEID,DT_ADDED,LOGINDATE,ISACTIVE,EMAIL,USERTYPE,ASSIGNCUSTOMER,ISDELETED,ISREVIEWER,IsSupportingServicesReviewer,IsAllowedToMoveToPreviousTask")] USERINFO uSERINFO)
         {
             if (ModelState.IsValid)
             {
