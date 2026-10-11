@@ -1,0 +1,11 @@
+﻿@{
+    ViewBag.PageTitle = "WAITING FOR PRELIMS TRACKER";
+}
+
+<div class="alert alert-warning" style="margin-top: 20px;">
+    <h3>@ViewBag.OrderNo</h3>
+    <p style="font-size: 16px;">@ViewBag.Message</p>
+</div>
+<p>
+    @Html.ActionLink("Back to List", "Index", "Audits", null, new { @class = "btn btn-default" })
+</p>

@@ -84,6 +84,37 @@ namespace Prelims.Controllers
                 Audits = Audits.Where(x => x.TaskId == taskId.Value);
             }
 
+            // Step 2: Hide Starter Audit tasks (TaskId = 4) if Prelims Audit task is not yet completed
+            if (taskId.HasValue && taskId.Value == 4)
+            {
+                var blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.TaskId = 4 
+                        AND t.AuditEndTime IS NULL 
+                        AND t.TaskId IN (1, 2, 7, 3)").ToList();
+
+                if (blockedAuditIds.Count > 0)
+                {
+                    Audits = Audits.Where(x => !blockedAuditIds.Contains(x.Id));
+                }
+            }
+            // Step 3: Hide Audit Proofing tasks (TaskId = 5) if Prelims Proofing task is not yet completed
+            else if (taskId.HasValue && taskId.Value == 5)
+            {
+                var blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.TaskId = 5 
+                        AND t.ProofingEndTime IS NULL 
+                        AND t.TaskId IN (1, 2, 7, 3, 4, 5)").ToList();
+
+                if (blockedAuditIds.Count > 0)
+                {
+                    Audits = Audits.Where(x => !blockedAuditIds.Contains(x.Id));
+                }
+            }
+
             if (requestTypeId.HasValue)
             {
                 Audits = Audits.Where(x => x.RequestTypeId == requestTypeId.Value);
@@ -533,7 +564,43 @@ namespace Prelims.Controllers
             {
                 return HttpNotFound();
             }
-            else if (Audit != null && Audit.StatusId == 2)
+
+            // Step 2: Prevent locking/working on Starter Audit task (TaskId = 4) until Prelims Audit task completes
+            if (Audit.TaskId == 4)
+            {
+                bool isBlocked = db.Database.SqlQuery<int>(
+                    @"SELECT COUNT(1) FROM TitleOrders t
+                      WHERE (t.Id = @p0 OR (t.OrderNo = @p1))
+                        AND t.AuditEndTime IS NULL
+                        AND t.TaskId IN (1, 2, 7, 3)",
+                    Audit.TitleOrderId ?? 0, Audit.OrderNo).FirstOrDefault() > 0;
+
+                if (isBlocked)
+                {
+                    ViewBag.OrderNo = Audit.OrderNo;
+                    ViewBag.Message = "This order cannot be locked or processed yet. It is waiting for the Audit task to be completed in the Prelims Tracker.";
+                    return View("WaitingForPrelimsTask");
+                }
+            }
+            // Step 3: Prevent locking/working on Audit Proofing task (TaskId = 5) until Prelims Proofing task completes
+            else if (Audit.TaskId == 5)
+            {
+                bool isBlocked = db.Database.SqlQuery<int>(
+                    @"SELECT COUNT(1) FROM TitleOrders t
+                      WHERE (t.Id = @p0 OR (t.OrderNo = @p1))
+                        AND t.ProofingEndTime IS NULL
+                        AND t.TaskId IN (1, 2, 7, 3, 4, 5)",
+                    Audit.TitleOrderId ?? 0, Audit.OrderNo).FirstOrDefault() > 0;
+
+                if (isBlocked)
+                {
+                    ViewBag.OrderNo = Audit.OrderNo;
+                    ViewBag.Message = "This order cannot be locked or processed yet. It is waiting for the Proofing task to be completed in the Prelims Tracker.";
+                    return View("WaitingForPrelimsTask");
+                }
+            }
+
+            if (Audit.StatusId == 2)
             {
                 AuditTimeEntry timeEntry = db.AuditTimeEntries.FirstOrDefault(x => x.AuditId == Audit.Id && x.IsInprogress);
 
@@ -772,7 +839,7 @@ namespace Prelims.Controllers
                                       AuditStartTime = @p1, AuditEndTime = @p2,
                                       AuditDoneBy = @p3, AuditDoneByUserId = @p4,
                                       AuditComments = @p5, DateModified = @p6
-                                  WHERE Id = @p0 AND StatusId = 6",
+                                  WHERE Id = @p0",
                                 Audit.TitleOrderId.Value,
                                 timeEntry.StartTime,
                                 (object)(timeEntry.EndTime ?? DateTime.Now),
@@ -791,7 +858,7 @@ namespace Prelims.Controllers
                                       AuditStartTime = @p1, AuditEndTime = @p2,
                                       AuditDoneBy = @p3, AuditDoneByUserId = @p4,
                                       AuditComments = @p5, DateModified = @p6
-                                  WHERE OrderNo = @p0 AND StatusId = 6",
+                                  WHERE OrderNo = @p0",
                                 Audit.OrderNo,
                                 timeEntry.StartTime,
                                 (object)(timeEntry.EndTime ?? DateTime.Now),
