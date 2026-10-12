@@ -109,13 +109,38 @@
         @Html.DisplayFor(model => model.AuditTask.Name)
     </div>
     <div class="col-lg-2 production-label">
-        @Html.DisplayNameFor(model => model.ClientInstructions)
+        Status
     </div>
 
     <div class="col-lg-2">
-        @Html.DisplayFor(model => model.ClientInstructions)
+        @if (Model.StatusId == 4)
+        {
+            <span class="label label-success" style="font-size: 13px;">@Model.AuditStatus.Name</span>
+        }
+        else if (Model.StatusId == 3)
+        {
+            <span class="label label-warning" style="font-size: 13px;">@Model.AuditStatus.Name</span>
+        }
+        else if (Model.StatusId == 2)
+        {
+            <span class="label label-primary" style="font-size: 13px;">@Model.AuditStatus.Name</span>
+        }
+        else
+        {
+            <span class="label label-default" style="font-size: 13px;">@(Model.AuditStatus != null ? Model.AuditStatus.Name : "Pending")</span>
+        }
     </div>
 
+</div>
+<hr />
+<div class="row production-row">
+    <div class="col-lg-2 production-label">
+        @Html.DisplayNameFor(model => model.ClientInstructions)
+    </div>
+
+    <div class="col-lg-6">
+        @Html.DisplayFor(model => model.ClientInstructions)
+    </div>
 </div>
 <hr />
 <div class="row production-row">

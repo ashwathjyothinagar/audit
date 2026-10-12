@@ -99,7 +99,7 @@ namespace Prelims.Controllers
                     Audits = Audits.Where(x => !blockedAuditIds.Contains(x.Id));
                 }
             }
-            // Step 3: Hide Audit Proofing tasks (TaskId = 5) if Prelims Proofing task is not yet completed
+        
             else if (taskId.HasValue && taskId.Value == 5)
             {
                 var blockedAuditIds = db.Database.SqlQuery<int>(
@@ -107,7 +107,7 @@ namespace Prelims.Controllers
                       INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
                       WHERE a.TaskId = 5 
                         AND t.ProofingEndTime IS NULL 
-                        AND t.TaskId IN (1, 2, 7, 3, 4, 5)").ToList();
+                        AND t.TaskId IN (1, 2, 7, 3, 4, 5, 8)").ToList();
 
                 if (blockedAuditIds.Count > 0)
                 {
@@ -582,14 +582,14 @@ namespace Prelims.Controllers
                     return View("WaitingForPrelimsTask");
                 }
             }
-            // Step 3: Prevent locking/working on Audit Proofing task (TaskId = 5) until Prelims Proofing task completes
+
             else if (Audit.TaskId == 5)
             {
                 bool isBlocked = db.Database.SqlQuery<int>(
                     @"SELECT COUNT(1) FROM TitleOrders t
                       WHERE (t.Id = @p0 OR (t.OrderNo = @p1))
                         AND t.ProofingEndTime IS NULL
-                        AND t.TaskId IN (1, 2, 7, 3, 4, 5)",
+                        AND t.TaskId IN (1, 2, 7, 3, 4, 5, 8)",
                     Audit.TitleOrderId ?? 0, Audit.OrderNo).FirstOrDefault() > 0;
 
                 if (isBlocked)
@@ -818,9 +818,11 @@ namespace Prelims.Controllers
                 }
                 else if (Audit.TaskId == 5)
                 {
-                    // Task 5: Notes -> After the 5th task, order should be completed
+                    // Task 5: Audit Proofing -> Order is marked as Completed (StatusId = 4)
                     Audit.StatusId = 4;
                     Audit.UploadDateTime = DateTime.Now;
+                    Audit.DateModified = DateTime.Now;
+                    Audit.UserModified = userInfo.USERID;
 
                     SaveAuditFiles(Audit.Id, this.Request.Files);
 
