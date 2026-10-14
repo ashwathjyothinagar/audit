@@ -1178,7 +1178,7 @@ namespace Prelims.Controllers
             if (!string.IsNullOrEmpty(holdEmailTo) && !string.IsNullOrEmpty(holdEmailFrom))
             {
                 string emailContent = string.Format("Hi,\n\nThe subject order has been put on hold for \"{0}\".\n\nPlease verify and advice.\n\nRegards,\nUser:{1}", holdReason, userInfo.FIRSTNAME + " " + userInfo.LASTNAME);
-                string subject = string.Format("FNT Update Hold  Order No: {0}, Office: {1}, Task: {2}", orderInfo.OrderNo, orderInfo.CRN.CRNNAME, orderInfo.AuditTask.Name);
+                string subject = string.Format("FNT Audit Hold  Order No: {0}, Office: {1}, Task: {2}", orderInfo.OrderNo, orderInfo.CRN.CRNNAME, orderInfo.AuditTask.Name);
 
                 sendMail(holdEmailTo, holdEmailFrom, subject, emailContent);
             }
@@ -2783,7 +2783,7 @@ namespace Prelims.Controllers
             string emailContent = GenerateErrorReportHtml(errorDeObject);
             string taskName = tasks.ContainsKey(taskId) ? tasks[taskId] : "";
             string officeName = audit.CRN != null ? audit.CRN.CRNNAME : "";
-            string subject = string.Format("FNT Update - Errors in - Order No: {0}, Office: {1}, Task: {2}", audit.OrderNo, officeName, taskName);
+            string subject = string.Format("FNT Audit - Errors in - Order No: {0}, Office: {1}, Task: {2}", audit.OrderNo, officeName, taskName);
 
             string mailTo = string.Join(";", recipientEmails);
             sendMail(mailTo, holdEmailFrom, subject, emailContent, null, true);
@@ -2943,7 +2943,7 @@ namespace Prelims.Controllers
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("<h4>FNT Update Error Report</h4>");
+            sb.AppendLine("<h4>FNT Audit Error Report</h4>");
 
             // Group by TaskName
             var groupedErrors = AuditErrors
