@@ -892,7 +892,7 @@ UPDATE [dbo].[AuditTasks] SET [SortOrder] = 2 WHERE [Id] = 1; -- L&V
 UPDATE [dbo].[AuditTasks] SET [SortOrder] = 3 WHERE [Id] = 2; -- PI
 UPDATE [dbo].[AuditTasks] SET [SortOrder] = 4 WHERE [Id] = 3; -- GI
 UPDATE [dbo].[AuditTasks] SET [SortOrder] = 5 WHERE [Id] = 4; -- Starter
-UPDATE [dbo].[AuditTasks] SET [SortOrder] = 6 WHERE [Id] = 5; -- Notes
+UPDATE [dbo].[AuditTasks] SET [SortOrder] = 6 WHERE [Id] = 5; -- Audit Proofing
 GO
 
 ----2-10-2026----

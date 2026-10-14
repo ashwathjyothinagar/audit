@@ -811,7 +811,7 @@ namespace Prelims.Controllers
                 }
                 else if (Audit.TaskId == 4)
                 {
-                    // Task 4: Starter -> Move to Task 5: Notes
+                    // Task 4: Starter -> Move to Task 5: Audit Proofing
                     Audit.TaskId = 5;
                     Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
@@ -3333,7 +3333,7 @@ namespace Prelims.Controllers
                     userReportViewModel.StarterOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime >= sDate && x.EndTime <= eDate && x.AuditTaskId == 4 && x.Audit.RequestTypeId == 4 && x.UserId == user.USERID);
                     userReportViewModel.StarterCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime >= sDate && x.EndTime <= eDate && x.AuditTaskId == 4 && x.UserId == user.USERID);
 
-                    // Notes (TaskId = 5)
+                    // Audit Proofing (TaskId = 5)
                     userReportViewModel.NotesUpdatesCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime >= sDate && x.EndTime <= eDate && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 1 && x.UserId == user.USERID);
                     userReportViewModel.NotesDatedownsCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime >= sDate && x.EndTime <= eDate && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 2 && x.UserId == user.USERID);
                     userReportViewModel.NotesOtherCount = GetAuditTimeEntryQuerable(crnIds).Count(x => x.StartTime >= sDate && x.EndTime <= eDate && x.AuditTaskId == 5 && x.Audit.RequestTypeId == 4 && x.UserId == user.USERID);
