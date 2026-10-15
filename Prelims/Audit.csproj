@@ -286,6 +286,7 @@
     <Compile Include="Models\Reports\TaskWisePendingReportViewModel.cs" />
     <Compile Include="Models\TaxOrderProductionModel.cs" />
     <Compile Include="Models\UserReportViewModel.cs" />
+    <Compile Include="Models\WriteUpModels.cs" />
     <Compile Include="Partials\AuditCheck.custom.cs" />
     <Compile Include="Partials\TaxOrder.custom.cs" />
     <Compile Include="Partials\TaxOrderSender.custom.cs" />
@@ -500,6 +501,7 @@
     <Content Include="Views\AuditChecks\Index.cshtml" />
     <Content Include="Views\Audits\HourTasks.cshtml" />
     <Content Include="Views\Audits\UserReport.cshtml" />
+    <Content Include="Views\Audits\ViewWriteup.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,372 @@
+@using System.Linq
+@model Prelims.Models.WriteUp
+@{
+    Layout = null;
+    string formattedPlantDate = "";
+    DateTime parsedPlantDate;
+    if (!string.IsNullOrEmpty(Model.PlantDate) && DateTime.TryParse(Model.PlantDate, out parsedPlantDate))
+    {
+        formattedPlantDate = parsedPlantDate.ToString("MM/dd/yyyy");
+    }
+    else if (!string.IsNullOrEmpty(Model.PlantDate))
+    {
+        formattedPlantDate = Model.PlantDate;
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write-Up Sheet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            padding: 15px;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        h1 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        h2 {
+            margin-top: 25px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+            font-size: 16px;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .general-info-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .general-info-table td {
+            padding: 5px;
+        }
+
+        .special-instruction-highlight {
+            background-color: #fff59d;
+            padding: 8px;
+            border-left: 4px solid #fbc02d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Write-Up Sheet</h1>
+
+    <table class="general-info-table">
+        <tr>
+            <td style="width:50%"><strong>Order No:</strong> @Model.OrderNo</td>
+            <td style="width:50%"><strong>Customer:</strong> @Model.Customer</td>
+        </tr>
+        <tr>
+            <td><strong>Plant Date:</strong> @formattedPlantDate</td>
+            <td><strong>Property Address:</strong> @Model.PropertyAddress</td>
+        </tr>
+        <tr>
+            <td><strong>Legal City:</strong> @Model.LegalCity</td>
+            <td><strong>County:</strong> @Model.CountOf</td>
+        </tr>
+        <tr>
+            <td><strong>Zip Code:</strong> @Model.ZipCode</td>
+            <td><strong>Estate Type:</strong> @Model.EstateType</td>
+        </tr>
+        <tr>
+            @if (Model.EstateType == "Easement")
+            {
+                <td><strong>Description:</strong> @Model.EasementDescription</td>
+                <td><strong></strong> </td>
+            }
+            else
+            {
+                <td><strong>Fee:</strong> @Model.Fee</td>
+                <td><strong>Easement:</strong> @Model.Easement</td>
+            }
+        </tr>
+
+        <tr>
+            <td><strong>Vesting:</strong> @Model.Vesting</td>
+            <td><strong>Subject To:</strong> @Model.SubjectTo</td>
+        </tr>
+        <tr>
+            <td><strong>Policy Type:</strong> @Model.PolicyType</td>
+            <td><strong></strong> </td>
+        </tr>
+        <tr>
+            <td><strong>Legal Description:</strong> @Model.LegalDesc</td>
+            <td><strong>Property Type:</strong> @Model.PropertyType</td>
+        </tr>
+        <tr>
+            <td><strong>Plotted Easement:</strong> @Model.PlottedEasement</td>
+            <td>
+                <strong>APNs:</strong>
+                @if (Model.Apns != null && Model.Apns.Count > 0)
+                {
+                    var first = true;
+                    foreach (var apn in Model.Apns)
+                    {
+                        if (!first) { <text>, </text> }
+                        @apn.Apn
+                        first = false;
+                    }
+                }
+            </td>
+        </tr>
+
+        @if (Model.CrnId == 32)
+        {
+            <tr>
+                <td><div> <strong>CWLT Policy Type:</strong> @(Model.CwltPolicyTypes != null ? string.Join(", ", Model.CwltPolicyTypes) : "")</div></td>
+                <td></td>
+            </tr>
+        }
+        @if (Model.CrnId == 36)
+        {
+            <tr>
+                <td><strong>Estate Phrase:</strong> @Model.EstatePhrase</td>
+                <td></td>
+            </tr>
+        }
+    </table>
+    <div><strong>All Codes:</strong> @ViewBag.AllCodes</div>
+
+    @if (!string.IsNullOrEmpty(Model.SpecialInstruction) || !string.IsNullOrEmpty(Model.ClientInstructions))
+    {
+        <h2>Special Instructions</h2>
+
+        if (!string.IsNullOrEmpty(Model.SpecialInstruction))
+        {
+            <p class="special-instruction-highlight">@Model.SpecialInstruction</p>
+        }
+
+        if (!string.IsNullOrEmpty(Model.ClientInstructions))
+        {
+            <p class="special-instruction-highlight">@Model.ClientInstructions</p>
+        }
+    }
+
+    <!-- Display Taxes -->
+    @if (Model.Taxs1 != null && Model.Taxs1.Count > 0)
+    {
+        <h2>Taxes</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Sl No</strong></td>
+                    <td><strong>Code</strong></td>
+                    <td><strong>Item No</strong></td>
+                    <td><strong>Recording Date</strong></td>
+                    <td><strong>Instrument No</strong></td>
+                    <td><strong>Comments</strong></td>
+                </tr>
+                @foreach (var tax in Model.Taxs1)
+                {
+                    <tr>
+                        @if (Model.CrnId != 38)
+                        {
+                            <td>@tax.SlNo</td>
+                        }
+                        else
+                        {
+                            <td>@tax.MtcSlNo</td>
+                        }
+                        <td>@tax.Code</td>
+                        <td>@tax.ItemNo</td>
+                        <td>@tax.RecordingDate</td>
+                        <td>@tax.InstrumentNo</td>
+                        <td>@tax.Comments</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Display Starters -->
+    @if (Model.Starters1 != null && Model.Starters1.Count > 0)
+    {
+        <h2>Starters</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Sl No</strong></td>
+                    <td><strong>Code</strong></td>
+                    <td><strong>Item No</strong></td>
+                    <td><strong>Recording Date</strong></td>
+                    <td><strong>Instrument No</strong></td>
+                    <td><strong>Comments</strong></td>
+                </tr>
+                @foreach (var tax in Model.Starters1)
+                {
+                    <tr>
+                        @if (Model.CrnId != 38)
+                        {
+                            <td>@tax.SlNo</td>
+                        }
+                        else
+                        {
+                            <td>@tax.MtcSlNo</td>
+                        }
+                        <td>@tax.Code</td>
+                        <td>@tax.ItemNo</td>
+                        <td>@tax.RecordingDate</td>
+                        <td>@tax.InstrumentNo</td>
+                        <td>@tax.Comments</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Display PIGIs -->
+    @if (Model.Pigis1 != null && Model.Pigis1.Count > 0)
+    {
+        <h2>PIGIs</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Sl No</strong></td>
+                    <td><strong>Code</strong></td>
+                    <td><strong>Item No</strong></td>
+                    <td><strong>Recording Date</strong></td>
+                    <td><strong>Instrument No</strong></td>
+                    <td><strong>Comments</strong></td>
+                </tr>
+                @foreach (var tax in Model.Pigis1)
+                {
+                    <tr>
+                        @if (Model.CrnId != 38)
+                        {
+                            <td>@tax.SlNo</td>
+                        }
+                        else
+                        {
+                            <td>@tax.MtcSlNo</td>
+                        }
+                        <td>@tax.Code</td>
+                        <td>@tax.ItemNo</td>
+                        <td>@tax.RecordingDate</td>
+                        <td>@tax.InstrumentNo</td>
+                        <td>@tax.Comments</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (Model.CrnId == 38)
+    {
+        <h2>MTC</h2>
+
+        <table class="general-info-table">
+            <tr>
+                <td style="width:50%"><strong>Lender suplemental:</strong> @Model.LenderSuplemental</td>
+                <td style="width:50%"><strong>Property Type:</strong> @Model.MtcPropertyType</td>
+            </tr>
+            <tr>
+                <td style="width:50%"><strong>24 Months Deed:</strong> @Model.TwentyFourMonthsDeed</td>
+                <td style="width:50%">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td><strong>Sl No</strong></td>
+                                <td><strong>Recording Date</strong></td>
+                                <td><strong>Instrument #</strong></td>
+                            </tr>
+
+                            @foreach (var requirement in Model.MtcMonthDeeds)
+                            {
+                                <tr>
+                                    <td>@requirement.SlNo</td>
+                                    <td>@requirement.RecordingDate</td>
+                                    <td>@requirement.InstrumentNo</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    }
+
+    <!-- Display Requirements -->
+    @if (Model.Requirements != null && Model.Requirements.Count > 0)
+    {
+        <h2>Requirements</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Sl No</strong></td>
+                    <td><strong>Code</strong></td>
+                    <td><strong>Page No</strong></td>
+                    <td><strong>Item No</strong></td>
+                </tr>
+
+                @foreach (var requirement in Model.Requirements)
+                {
+                    <tr>
+                        <td>@requirement.SlNo</td>
+                        <td>@requirement.Code</td>
+                        <td>@requirement.PageNo</td>
+                        <td>@requirement.ItemNo</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Display Notes -->
+    @if (Model.Notes != null && Model.Notes.Count > 0)
+    {
+        <h2>Notes</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Sl No</strong></td>
+                    <td><strong>Code</strong></td>
+                    <td><strong>Recording Date</strong></td>
+                    <td><strong>Instrument #</strong></td>
+                </tr>
+
+                @foreach (var note in Model.Notes)
+                {
+                    <tr>
+                        <td>@note.SlNo</td>
+                        <td>@note.Code</td>
+                        <td>@note.PageNo</td>
+                        <td>@note.ItemNo</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</body>
+</html>

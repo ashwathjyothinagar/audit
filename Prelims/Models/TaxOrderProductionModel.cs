@@ -60,6 +60,9 @@ namespace Prelims.Models
         public string CWLTTitleOfficerName { get; set; }
 
         public Nullable<System.DateTime> AmendmentDate { get; set; }
+        public string SearchPackageOneDriveLink { get; set; }
+        public bool HasWriteupSheet { get; set; }
+        public int? TitleOrderId { get; set; }
     }
 
     public class AuditCheckModel

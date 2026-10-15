@@ -720,6 +720,21 @@ namespace Prelims.Controllers
                 titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", Audit.OrderNo).FirstOrDefault();
             }
 
+            AuditProductionModel.TitleOrderId = titleOrderId;
+            if (titleOrderId.HasValue && titleOrderId.Value > 0)
+            {
+                var titleOrderData = db.Database.SqlQuery<TitleOrderMirrorDto>(
+                    "SELECT TOP 1 Id, OrderNo, SearchPackageOneDriveLink, WorkSheetJson, CrnId FROM TitleOrders WHERE Id = @p0",
+                    titleOrderId.Value
+                ).FirstOrDefault();
+
+                if (titleOrderData != null)
+                {
+                    AuditProductionModel.SearchPackageOneDriveLink = titleOrderData.SearchPackageOneDriveLink;
+                    AuditProductionModel.HasWriteupSheet = !string.IsNullOrEmpty(titleOrderData.WorkSheetJson);
+                }
+            }
+
             var taskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
 
             ViewBag.TaskEmployeesJson = JsonConvert.SerializeObject(taskEmployees);
@@ -976,9 +991,32 @@ namespace Prelims.Controllers
                     sendErrorEmail(Audit.Id, previousTaskId, AuditProductionModel.OrderErrorJson, timeEntry.Id);
                 }
 
+                int? targetTitleOrderId = AuditProductionModel.TitleOrderId ?? Audit.TitleOrderId;
+                if (!targetTitleOrderId.HasValue && !string.IsNullOrEmpty(Audit.OrderNo))
+                {
+                    targetTitleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", Audit.OrderNo).FirstOrDefault();
+                }
+
+                if (targetTitleOrderId.HasValue && targetTitleOrderId.Value > 0)
+                {
+                    if (!Audit.TitleOrderId.HasValue)
+                    {
+                        Audit.TitleOrderId = targetTitleOrderId.Value;
+                    }
+                }
+
                 var isFailded = false;
                 try { 
-                db.SaveChanges();
+                    db.SaveChanges();
+
+                    if (targetTitleOrderId.HasValue && targetTitleOrderId.Value > 0 && AuditProductionModel.SearchPackageOneDriveLink != null)
+                    {
+                        db.Database.ExecuteSqlCommand(
+                            "UPDATE TitleOrders SET SearchPackageOneDriveLink = @p0 WHERE Id = @p1",
+                            AuditProductionModel.SearchPackageOneDriveLink.Trim(),
+                            targetTitleOrderId.Value
+                        );
+                    }
                 }
                 catch (DbEntityValidationException dbEx)
                 {
@@ -1062,6 +1100,110 @@ namespace Prelims.Controllers
             var AuditDocument = db.AuditDocuments.FirstOrDefault(x => x.AuditId == AuditId);
 
             return File(AuditDocument.DocumentPath, "application/pdf", Server.UrlEncode(AuditDocument.FileName));
+        }
+
+        public ActionResult ViewWriteup(int auditId)
+        {
+            var audit = db.Audits.Find(auditId);
+            TitleOrderMirrorDto titleOrder = null;
+
+            if (audit != null)
+            {
+                if (audit.TitleOrderId.HasValue && audit.TitleOrderId.Value > 0)
+                {
+                    titleOrder = db.Database.SqlQuery<TitleOrderMirrorDto>(
+                        "SELECT TOP 1 Id, OrderNo, SearchPackageOneDriveLink, WorkSheetJson, CrnId FROM TitleOrders WHERE Id = @p0",
+                        audit.TitleOrderId.Value
+                    ).FirstOrDefault();
+                }
+
+                if (titleOrder == null && !string.IsNullOrEmpty(audit.OrderNo))
+                {
+                    titleOrder = db.Database.SqlQuery<TitleOrderMirrorDto>(
+                        "SELECT TOP 1 Id, OrderNo, SearchPackageOneDriveLink, WorkSheetJson, CrnId FROM TitleOrders WHERE OrderNo = @p0",
+                        audit.OrderNo
+                    ).FirstOrDefault();
+                }
+            }
+            else
+            {
+                // Fallback if auditId passed was titleOrderId
+                titleOrder = db.Database.SqlQuery<TitleOrderMirrorDto>(
+                    "SELECT TOP 1 Id, OrderNo, SearchPackageOneDriveLink, WorkSheetJson, CrnId FROM TitleOrders WHERE Id = @p0",
+                    auditId
+                ).FirstOrDefault();
+            }
+
+            var writeUp = new WriteUp();
+
+            if (titleOrder != null && !string.IsNullOrEmpty(titleOrder.WorkSheetJson))
+            {
+                try
+                {
+                    writeUp = JsonConvert.DeserializeObject<WriteUp>(titleOrder.WorkSheetJson) ?? new WriteUp();
+                }
+                catch
+                {
+                    writeUp = new WriteUp();
+                }
+
+                writeUp.Apns = db.Database.SqlQuery<WriteupApn>(
+                    "SELECT Id, APN AS Apn FROM TitleOrderApns WHERE TitleOrderId = @p0",
+                    titleOrder.Id
+                ).ToList();
+                writeUp.CrnId = titleOrder.CrnId;
+
+                var allExceptionCodes = new List<string>();
+
+                if (writeUp.Taxs1 != null)
+                {
+                    foreach (var tax in writeUp.Taxs1)
+                    {
+                        if (!string.IsNullOrEmpty(tax.Code))
+                            allExceptionCodes.Add(tax.Code);
+                    }
+                }
+
+                if (writeUp.Starters1 != null)
+                {
+                    foreach (var starter in writeUp.Starters1)
+                    {
+                        if (!string.IsNullOrEmpty(starter.Code))
+                            allExceptionCodes.Add(starter.Code);
+                    }
+                }
+
+                if (writeUp.Pigis1 != null)
+                {
+                    foreach (var pigi in writeUp.Pigis1)
+                    {
+                        if (!string.IsNullOrEmpty(pigi.Code))
+                            allExceptionCodes.Add(pigi.Code);
+                    }
+                }
+
+                if (writeUp.Requirements != null)
+                {
+                    foreach (var requirement in writeUp.Requirements)
+                    {
+                        if (!string.IsNullOrEmpty(requirement.Code))
+                            allExceptionCodes.Add(requirement.Code);
+                    }
+                }
+
+                if (writeUp.Notes != null)
+                {
+                    foreach (var note in writeUp.Notes)
+                    {
+                        if (!string.IsNullOrEmpty(note.Code))
+                            allExceptionCodes.Add(note.Code);
+                    }
+                }
+
+                ViewBag.AllCodes = string.Join(",", allExceptionCodes);
+            }
+
+            return View(writeUp);
         }
 
         public ActionResult MoveToPreviousTask(int orderId, int taskId)
