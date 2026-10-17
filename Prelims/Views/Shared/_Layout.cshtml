@@ -11,58 +11,64 @@
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-full">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+                @if (Request.IsAuthenticated && Session["UserInfo"] != null && ViewBag.HideMenu != true)
+                {
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                }
                 @Html.ActionLink("AUDIT", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Orders", "Index", "Audits")</li>
-                    <li style="display:none">@Html.ActionLink("Loading", "Create", "Audits")</li>
-                    <li style="display:none">@Html.ActionLink("Bulk Loading", "UploadOrders", "Audits")</li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("EOD", "EOD", "Audits")</li>
-                            <li>@Html.ActionLink("Production + QC", "ProductionReport", "Audits")</li>
-                            <li>@Html.ActionLink("Uploaded Orders", "OrderCompleted", "Audits")</li>
-                            <li>@Html.ActionLink("Completed Orders", "OrderCompleted", "Audits")</li>
-                            <li>@Html.ActionLink("User Report", "UserReport", "Audits")</li>
-                            <li>@Html.ActionLink("Hourly Count  Report", "HourTasks", "Audits")</li>
+                @if (Request.IsAuthenticated && Session["UserInfo"] != null && ViewBag.HideMenu != true)
+                {
+                    <ul class="nav navbar-nav">
+                        <li>@Html.ActionLink("Orders", "Index", "Audits")</li>
+                        <li style="display:none">@Html.ActionLink("Loading", "Create", "Audits")</li>
+                        <li style="display:none">@Html.ActionLink("Bulk Loading", "UploadOrders", "Audits")</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("EOD", "EOD", "Audits")</li>
+                                <li>@Html.ActionLink("Production + QC", "ProductionReport", "Audits")</li>
+                                <li>@Html.ActionLink("Uploaded Orders", "OrderCompleted", "Audits")</li>
+                                <li>@Html.ActionLink("Completed Orders", "OrderCompleted", "Audits")</li>
+                                <li>@Html.ActionLink("User Report", "UserReport", "Audits")</li>
+                                <li>@Html.ActionLink("Hourly Count  Report", "HourTasks", "Audits")</li>
 
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Live Status <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("Hold Orders", "HoldOrders", "Audits")</li>
-                            <li>@Html.ActionLink("Rejected Orders", "RejectedOrders", "Audits")</li>
-                            <li>@Html.ActionLink("Task wise Pending", "TaskWisePending", "Audits")</li>
-                            <li>@Html.ActionLink("Rush Orders", "RushOrders", "Audits")</li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Masters <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li>@Html.ActionLink("Product Types", "Index", "AuditRequestTypes")</li>
-                            <li>@Html.ActionLink("Request By", "Index", "AuditSenders")</li>
-                            <li>@Html.ActionLink("Reject Reasons", "Index", "AuditRejectReasons")</li>
-                            <li>@Html.ActionLink("Hold Reasons", "Index", "AuditHoldReasons")</li>
-                            <li>@Html.ActionLink("Error Categories", "Index", "AuditErrorCategories")</li>
-                            <li>@Html.ActionLink("Errors", "Index", "AuditErrorTypes")</li>
-                            <li>@Html.ActionLink("Checks", "Index", "AuditChecks")</li>
-                        </ul>
-                    </li>
-                    <li>@Html.ActionLink("Assign", "OrderAssignment", "Audits")</li>
-                    <li class="dropdown">
-                        @Html.ActionLink("Search", "SearchOrder", "Audits")
-                    </li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Live Status <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Hold Orders", "HoldOrders", "Audits")</li>
+                                <li>@Html.ActionLink("Rejected Orders", "RejectedOrders", "Audits")</li>
+                                <li>@Html.ActionLink("Task wise Pending", "TaskWisePending", "Audits")</li>
+                                <li>@Html.ActionLink("Rush Orders", "RushOrders", "Audits")</li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Masters <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Product Types", "Index", "AuditRequestTypes")</li>
+                                <li>@Html.ActionLink("Request By", "Index", "AuditSenders")</li>
+                                <li>@Html.ActionLink("Reject Reasons", "Index", "AuditRejectReasons")</li>
+                                <li>@Html.ActionLink("Hold Reasons", "Index", "AuditHoldReasons")</li>
+                                <li>@Html.ActionLink("Error Categories", "Index", "AuditErrorCategories")</li>
+                                <li>@Html.ActionLink("Errors", "Index", "AuditErrorTypes")</li>
+                                <li>@Html.ActionLink("Checks", "Index", "AuditChecks")</li>
+                            </ul>
+                        </li>
+                        <li>@Html.ActionLink("Assign", "OrderAssignment", "Audits")</li>
+                        <li class="dropdown">
+                            @Html.ActionLink("Search", "SearchOrder", "Audits")
+                        </li>
 
-                </ul>
-                @Html.Partial("_LoginPartial")
+                    </ul>
+                    @Html.Partial("_LoginPartial")
+                }
             </div>
         </div>
     </div>
