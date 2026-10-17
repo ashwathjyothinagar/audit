@@ -91,8 +91,8 @@ namespace Prelims.Controllers
                     @"SELECT a.Id FROM Audits a
                       INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
                       WHERE a.TaskId = 4 
-                        AND t.AuditEndTime IS NULL 
-                        AND t.TaskId IN (1, 2, 7, 3)").ToList();
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL))").ToList();
 
                 if (blockedAuditIds.Count > 0)
                 {
@@ -106,8 +106,8 @@ namespace Prelims.Controllers
                     @"SELECT a.Id FROM Audits a
                       INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
                       WHERE a.TaskId = 5 
-                        AND t.ProofingEndTime IS NULL 
-                        AND t.TaskId IN (1, 2, 7, 3, 4, 5, 8)").ToList();
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))").ToList();
 
                 if (blockedAuditIds.Count > 0)
                 {
@@ -571,8 +571,8 @@ namespace Prelims.Controllers
                 bool isBlocked = db.Database.SqlQuery<int>(
                     @"SELECT COUNT(1) FROM TitleOrders t
                       WHERE (t.Id = @p0 OR (t.OrderNo = @p1))
-                        AND t.AuditEndTime IS NULL
-                        AND t.TaskId IN (1, 2, 7, 3)",
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL))",
                     Audit.TitleOrderId ?? 0, Audit.OrderNo).FirstOrDefault() > 0;
 
                 if (isBlocked)
@@ -588,8 +588,8 @@ namespace Prelims.Controllers
                 bool isBlocked = db.Database.SqlQuery<int>(
                     @"SELECT COUNT(1) FROM TitleOrders t
                       WHERE (t.Id = @p0 OR (t.OrderNo = @p1))
-                        AND t.ProofingEndTime IS NULL
-                        AND t.TaskId IN (1, 2, 7, 3, 4, 5, 8)",
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))",
                     Audit.TitleOrderId ?? 0, Audit.OrderNo).FirstOrDefault() > 0;
 
                 if (isBlocked)
@@ -853,9 +853,12 @@ namespace Prelims.Controllers
                             db.Database.ExecuteSqlCommand(
                                 @"UPDATE TitleOrders 
                                   SET TaskId = 6, StatusId = 1, UserAssigned = NULL,
-                                      AuditStartTime = @p1, AuditEndTime = @p2,
-                                      AuditDoneBy = @p3, AuditDoneByUserId = @p4,
-                                      AuditComments = @p5, DateModified = @p6
+                                      AuditStartTime = ISNULL(AuditStartTime, @p1),
+                                      AuditEndTime = ISNULL(AuditEndTime, @p2),
+                                      AuditDoneBy = ISNULL(AuditDoneBy, @p3),
+                                      AuditDoneByUserId = ISNULL(AuditDoneByUserId, @p4),
+                                      AuditComments = CASE WHEN AuditComments IS NULL OR AuditComments = '' THEN @p5 ELSE AuditComments + ' | ' + @p5 END,
+                                      DateModified = @p6
                                   WHERE Id = @p0",
                                 Audit.TitleOrderId.Value,
                                 timeEntry.StartTime,
@@ -872,9 +875,12 @@ namespace Prelims.Controllers
                             db.Database.ExecuteSqlCommand(
                                 @"UPDATE TitleOrders 
                                   SET TaskId = 6, StatusId = 1, UserAssigned = NULL,
-                                      AuditStartTime = @p1, AuditEndTime = @p2,
-                                      AuditDoneBy = @p3, AuditDoneByUserId = @p4,
-                                      AuditComments = @p5, DateModified = @p6
+                                      AuditStartTime = ISNULL(AuditStartTime, @p1),
+                                      AuditEndTime = ISNULL(AuditEndTime, @p2),
+                                      AuditDoneBy = ISNULL(AuditDoneBy, @p3),
+                                      AuditDoneByUserId = ISNULL(AuditDoneByUserId, @p4),
+                                      AuditComments = CASE WHEN AuditComments IS NULL OR AuditComments = '' THEN @p5 ELSE AuditComments + ' | ' + @p5 END,
+                                      DateModified = @p6
                                   WHERE OrderNo = @p0",
                                 Audit.OrderNo,
                                 timeEntry.StartTime,
