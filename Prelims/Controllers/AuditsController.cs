@@ -459,7 +459,10 @@ namespace Prelims.Controllers
                 //{
                 Audit.StatusId = 1;
                 Audit.TaskId = 6;
-                //Audit.DateCreated = DateTime.Now;
+                if (!Audit.DateCreated.HasValue)
+                {
+                    Audit.DateCreated = DateTime.Now;
+                }
                 db.Audits.Add(Audit);
                 db.SaveChanges();
                 TempData.Add("SuccessMessage", "Order Created successfully.");
@@ -1839,6 +1842,36 @@ namespace Prelims.Controllers
                     productionViewModel.StarterCodeErrorComments = "";
                 }
 
+                var auditProofingTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 5);
+                if (auditProofingTaskInfo != null)
+                {
+                    productionViewModel.AuditProofingDoneBy = auditProofingTaskInfo.USERINFO != null ? auditProofingTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.AuditProofingStartTime = FormatReportDateTime(auditProofingTaskInfo.StartTime);
+                    if (auditProofingTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.AuditProofingEndTime = FormatReportDateTime(auditProofingTaskInfo.EndTime);
+                        productionViewModel.AuditProofingTimeTaken = FormatReportTimeTaken(auditProofingTaskInfo.StartTime, auditProofingTaskInfo.EndTime);
+                    }
+                }
+
+                var auditProofingErrors = errors.Where(x => x.TaskId == 5 || string.Equals(x.TaskName, "Audit Proofing", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (auditProofingErrors.Any())
+                {
+                    productionViewModel.AuditProofingErrorFound = "YES";
+                    productionViewModel.AuditProofingErrorCategories = string.Join(", ", auditProofingErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.AuditProofingErrorType = string.Join(", ", auditProofingErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.AuditProofingErrorDoneBy = string.Join(", ", auditProofingErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.AuditProofingErrorComments = string.Join("; ", auditProofingErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.AuditProofingErrorFound = (auditProofingTaskInfo != null) ? "NO" : "";
+                    productionViewModel.AuditProofingErrorCategories = "";
+                    productionViewModel.AuditProofingErrorType = "";
+                    productionViewModel.AuditProofingErrorDoneBy = "";
+                    productionViewModel.AuditProofingErrorComments = "";
+                }
+
                 productionViewModels.Add(productionViewModel);
                 serialNumber++;
             }
@@ -2393,8 +2426,7 @@ namespace Prelims.Controllers
                         }
                         else
                         {
-                            anyErrors = true;
-                            orderUploadModel.Message = orderUploadModel.Message + " - INVALID RECEIVED DATE TIME - ";
+                            newTitleOrder.DateCreated = DateTime.Now;
                         }
 
                         if (uploadModelItems.Any(x => x.OrderNumber.Equals(orderUploadModel.OrderNumber)))

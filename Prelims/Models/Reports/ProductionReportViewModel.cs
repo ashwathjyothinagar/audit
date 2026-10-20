@@ -28,7 +28,7 @@ namespace Prelims.Models.Reports
         public string RecievedDateTime { get; set; }
 
         // --- Exam Task (from TitleOrder Examining Task) ---
-        [DisplayName("Exam done by")]
+        [DisplayName("Taxes done by")]
         public string ExamDoneBy { get; set; }
 
         [DisplayName("Start Time")]
@@ -166,5 +166,33 @@ namespace Prelims.Models.Reports
 
         [DisplayName("Error Comments")]
         public string StarterCodeErrorComments { get; set; }
+
+        // --- Audit Proofing Task (TaskId = 5) ---
+        [DisplayName("Audit Proofing done by")]
+        public string AuditProofingDoneBy { get; set; }
+
+        [DisplayName("Start Time")]
+        public string AuditProofingStartTime { get; set; }
+
+        [DisplayName("End Time")]
+        public string AuditProofingEndTime { get; set; }
+
+        [DisplayName("Time Taken")]
+        public string AuditProofingTimeTaken { get; set; }
+
+        [DisplayName("Error Found")]
+        public string AuditProofingErrorFound { get; set; }
+
+        [DisplayName("Error Categorys")]
+        public string AuditProofingErrorCategories { get; set; }
+
+        [DisplayName("Error Type")]
+        public string AuditProofingErrorType { get; set; }
+
+        [DisplayName("Error done by")]
+        public string AuditProofingErrorDoneBy { get; set; }
+
+        [DisplayName("Error Comments")]
+        public string AuditProofingErrorComments { get; set; }
     }
 }
