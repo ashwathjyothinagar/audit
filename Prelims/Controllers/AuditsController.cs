@@ -1594,9 +1594,21 @@ namespace Prelims.Controllers
                     string idsStr = string.Join(",", chunk);
                     string sql = $@"
                         SELECT t.Id, t.OrderNo, t.TitleOrderProductSubTypeId, st.Name AS SubTypeName,
-                               t.ExaminingDoneBy, t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                               COALESCE(NULLIF(t.SearchingDoneBy, ''), uSearch.USERNAME, uSearch.FULLNAME) AS SearchingDoneBy,
+                               COALESCE(NULLIF(t.ExaminingDoneBy, ''), uExam.USERNAME, uExam.FULLNAME) AS ExaminingDoneBy,
+                               COALESCE(NULLIF(t.StarterCodeDoneBy, ''), uStart.USERNAME, uStart.FULLNAME) AS StarterCodeDoneBy,
+                               COALESCE(NULLIF(t.AuditDoneBy, ''), uAudit.USERNAME, uAudit.FULLNAME) AS AuditDoneBy,
+                               COALESCE(NULLIF(t.TypingDoneBy, ''), uType.USERNAME, uType.FULLNAME) AS TypingDoneBy,
+                               COALESCE(NULLIF(t.ProofingDoneBy, ''), uProof.USERNAME, uProof.FULLNAME) AS ProofingDoneBy,
+                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
                         FROM TitleOrders t
                         LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
+                        LEFT JOIN USERINFO uSearch ON t.SearchingDoneByUserId = uSearch.USERID
+                        LEFT JOIN USERINFO uExam ON t.ExaminingDoneByUserId = uExam.USERID
+                        LEFT JOIN USERINFO uStart ON t.StarterCodeDoneByUserId = uStart.USERID
+                        LEFT JOIN USERINFO uAudit ON t.AuditDoneByUserId = uAudit.USERID
+                        LEFT JOIN USERINFO uType ON t.TypingDoneByUserId = uType.USERID
+                        LEFT JOIN USERINFO uProof ON t.ProofingDoneByUserId = uProof.USERID
                         WHERE t.Id IN ({idsStr})";
                     var results = db.Database.SqlQuery<TitleOrderReportDto>(sql).ToList();
                     foreach (var r in results)
@@ -1613,9 +1625,21 @@ namespace Prelims.Controllers
                     string ordersStr = string.Join(",", chunk);
                     string sql = $@"
                         SELECT t.Id, t.OrderNo, t.TitleOrderProductSubTypeId, st.Name AS SubTypeName,
-                               t.ExaminingDoneBy, t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                               COALESCE(NULLIF(t.SearchingDoneBy, ''), uSearch.USERNAME, uSearch.FULLNAME) AS SearchingDoneBy,
+                               COALESCE(NULLIF(t.ExaminingDoneBy, ''), uExam.USERNAME, uExam.FULLNAME) AS ExaminingDoneBy,
+                               COALESCE(NULLIF(t.StarterCodeDoneBy, ''), uStart.USERNAME, uStart.FULLNAME) AS StarterCodeDoneBy,
+                               COALESCE(NULLIF(t.AuditDoneBy, ''), uAudit.USERNAME, uAudit.FULLNAME) AS AuditDoneBy,
+                               COALESCE(NULLIF(t.TypingDoneBy, ''), uType.USERNAME, uType.FULLNAME) AS TypingDoneBy,
+                               COALESCE(NULLIF(t.ProofingDoneBy, ''), uProof.USERNAME, uProof.FULLNAME) AS ProofingDoneBy,
+                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
                         FROM TitleOrders t
                         LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
+                        LEFT JOIN USERINFO uSearch ON t.SearchingDoneByUserId = uSearch.USERID
+                        LEFT JOIN USERINFO uExam ON t.ExaminingDoneByUserId = uExam.USERID
+                        LEFT JOIN USERINFO uStart ON t.StarterCodeDoneByUserId = uStart.USERID
+                        LEFT JOIN USERINFO uAudit ON t.AuditDoneByUserId = uAudit.USERID
+                        LEFT JOIN USERINFO uType ON t.TypingDoneByUserId = uType.USERID
+                        LEFT JOIN USERINFO uProof ON t.ProofingDoneByUserId = uProof.USERID
                         WHERE t.OrderNo IN ({ordersStr})";
                     var results = db.Database.SqlQuery<TitleOrderReportDto>(sql).ToList();
                     foreach (var r in results)
@@ -1691,31 +1715,55 @@ namespace Prelims.Controllers
                     productionViewModel.RecievedDateTime = FormatReportDateTime(Audit.DateCreated);
                 }
 
-                // --- Exam Task (from TitleOrder Examining Task) ---
+                // --- Prelims Tracker Tasks ---
                 if (titleOrder != null)
                 {
-                    productionViewModel.ExamDoneBy = titleOrder.ExaminingDoneBy ?? "";
-                    productionViewModel.ExamStartTime = FormatReportDateTime(titleOrder.ExaminingStartTime);
-                    productionViewModel.ExamEndTime = FormatReportDateTime(titleOrder.ExaminingEndTime);
-                    productionViewModel.ExamTimeTaken = FormatReportTimeTaken(titleOrder.ExaminingStartTime, titleOrder.ExaminingEndTime);
-                }
-
-                var examErrors = errors.Where(x => x.TaskId == 6 || string.Equals(x.TaskName, "Taxes", StringComparison.OrdinalIgnoreCase) || string.Equals(x.SelectedCategoryName, "Examiner", StringComparison.OrdinalIgnoreCase)).ToList();
-                if (examErrors.Any())
-                {
-                    productionViewModel.ExamErrorFound = "YES";
-                    productionViewModel.ExamErrorCategories = string.Join(", ", examErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
-                    productionViewModel.ExamErrorType = string.Join(", ", examErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
-                    productionViewModel.ExamErrorDoneBy = string.Join(", ", examErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
-                    productionViewModel.ExamErrorComments = string.Join("; ", examErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.PrelimsSearchingDoneBy = titleOrder.SearchingDoneBy ?? "";
+                    productionViewModel.PrelimsExaminingDoneBy = titleOrder.ExaminingDoneBy ?? "";
+                    productionViewModel.PrelimsStarterCodeDoneBy = titleOrder.StarterCodeDoneBy ?? "";
+                    productionViewModel.PrelimsAuditDoneBy = titleOrder.AuditDoneBy ?? "";
+                    productionViewModel.PrelimsTypingDoneBy = titleOrder.TypingDoneBy ?? "";
+                    productionViewModel.PrelimsProofingDoneBy = titleOrder.ProofingDoneBy ?? "";
                 }
                 else
                 {
-                    productionViewModel.ExamErrorFound = (!string.IsNullOrEmpty(productionViewModel.ExamDoneBy)) ? "NO" : "";
-                    productionViewModel.ExamErrorCategories = "";
-                    productionViewModel.ExamErrorType = "";
-                    productionViewModel.ExamErrorDoneBy = "";
-                    productionViewModel.ExamErrorComments = "";
+                    productionViewModel.PrelimsSearchingDoneBy = "";
+                    productionViewModel.PrelimsExaminingDoneBy = "";
+                    productionViewModel.PrelimsStarterCodeDoneBy = "";
+                    productionViewModel.PrelimsAuditDoneBy = "";
+                    productionViewModel.PrelimsTypingDoneBy = "";
+                    productionViewModel.PrelimsProofingDoneBy = "";
+                }
+
+                // --- Taxes Task (TaskId = 6) ---
+                var taxesTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 6);
+                if (taxesTaskInfo != null)
+                {
+                    productionViewModel.TaxesDoneBy = taxesTaskInfo.USERINFO != null ? taxesTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.TaxesStartTime = FormatReportDateTime(taxesTaskInfo.StartTime);
+                    if (taxesTaskInfo.EndTime.HasValue)
+                    {
+                        productionViewModel.TaxesEndTime = FormatReportDateTime(taxesTaskInfo.EndTime);
+                        productionViewModel.TaxesTimeTaken = FormatReportTimeTaken(taxesTaskInfo.StartTime, taxesTaskInfo.EndTime);
+                    }
+                }
+
+                var taxesErrors = errors.Where(x => x.TaskId == 6 || string.Equals(x.TaskName, "Taxes", StringComparison.OrdinalIgnoreCase)).ToList();
+                if (taxesErrors.Any())
+                {
+                    productionViewModel.TaxesErrorFound = "YES";
+                    productionViewModel.TaxesErrorCategories = string.Join(", ", taxesErrors.Select(x => x.SelectedCategoryName).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.TaxesErrorType = string.Join(", ", taxesErrors.SelectMany(x => (x.ErrorTypes ?? new List<AuditErrorTypeLite>()).Select(t => t.Name)).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.TaxesErrorDoneBy = string.Join(", ", taxesErrors.Select(x => x.ErrorDoneBy).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                    productionViewModel.TaxesErrorComments = string.Join("; ", taxesErrors.Select(x => x.Comments).Where(x => !string.IsNullOrEmpty(x)).Distinct());
+                }
+                else
+                {
+                    productionViewModel.TaxesErrorFound = (taxesTaskInfo != null) ? "NO" : "";
+                    productionViewModel.TaxesErrorCategories = "";
+                    productionViewModel.TaxesErrorType = "";
+                    productionViewModel.TaxesErrorDoneBy = "";
+                    productionViewModel.TaxesErrorComments = "";
                 }
 
                 // --- L&V Task (TaskId = 1) ---
@@ -1815,7 +1863,7 @@ namespace Prelims.Controllers
                 var starterTaskInfo = Audit.AuditTimeEntries.FirstOrDefault(x => x.AuditTaskId == 4);
                 if (starterTaskInfo != null)
                 {
-                    productionViewModel.StarterCodeDoneBy = starterTaskInfo.USERINFO != null ? starterTaskInfo.USERINFO.USERNAME : "";
+                    productionViewModel.AuditStarterCodeDoneBy = starterTaskInfo.USERINFO != null ? starterTaskInfo.USERINFO.USERNAME : "";
                     productionViewModel.StarterCodeStartTime = FormatReportDateTime(starterTaskInfo.StartTime);
                     if (starterTaskInfo.EndTime.HasValue)
                     {
@@ -3777,7 +3825,12 @@ namespace Prelims.Controllers
         public string OrderNo { get; set; }
         public int? TitleOrderProductSubTypeId { get; set; }
         public string SubTypeName { get; set; }
+        public string SearchingDoneBy { get; set; }
         public string ExaminingDoneBy { get; set; }
+        public string StarterCodeDoneBy { get; set; }
+        public string AuditDoneBy { get; set; }
+        public string TypingDoneBy { get; set; }
+        public string ProofingDoneBy { get; set; }
         public DateTime? ExaminingStartTime { get; set; }
         public DateTime? ExaminingEndTime { get; set; }
         public int? ExaminingTimeTaken { get; set; }

@@ -27,33 +27,52 @@ namespace Prelims.Models.Reports
         [DisplayName("Recieved Date Time")]
         public string RecievedDateTime { get; set; }
 
-        // --- Exam Task (from TitleOrder Examining Task) ---
+        // --- Prelims Tracker Tasks ---
+        [DisplayName("Searching done by")]
+        public string PrelimsSearchingDoneBy { get; set; }
+
+        [DisplayName("Examining done by")]
+        public string PrelimsExaminingDoneBy { get; set; }
+
+        [DisplayName("Starter Code done by")]
+        public string PrelimsStarterCodeDoneBy { get; set; }
+
+        [DisplayName("Audit done by")]
+        public string PrelimsAuditDoneBy { get; set; }
+
+        [DisplayName("Typing done by")]
+        public string PrelimsTypingDoneBy { get; set; }
+
+        [DisplayName("Proofing done by")]
+        public string PrelimsProofingDoneBy { get; set; }
+
+        // --- Taxes Task (TaskId = 6) ---
         [DisplayName("Taxes done by")]
-        public string ExamDoneBy { get; set; }
+        public string TaxesDoneBy { get; set; }
 
         [DisplayName("Start Time")]
-        public string ExamStartTime { get; set; }
+        public string TaxesStartTime { get; set; }
 
         [DisplayName("End Time")]
-        public string ExamEndTime { get; set; }
+        public string TaxesEndTime { get; set; }
 
         [DisplayName("Time Taken")]
-        public string ExamTimeTaken { get; set; }
+        public string TaxesTimeTaken { get; set; }
 
         [DisplayName("Error Found")]
-        public string ExamErrorFound { get; set; }
+        public string TaxesErrorFound { get; set; }
 
         [DisplayName("Error Categorys")]
-        public string ExamErrorCategories { get; set; }
+        public string TaxesErrorCategories { get; set; }
 
         [DisplayName("Error Type")]
-        public string ExamErrorType { get; set; }
+        public string TaxesErrorType { get; set; }
 
         [DisplayName("Error done by")]
-        public string ExamErrorDoneBy { get; set; }
+        public string TaxesErrorDoneBy { get; set; }
 
         [DisplayName("Error Comments")]
-        public string ExamErrorComments { get; set; }
+        public string TaxesErrorComments { get; set; }
 
         // --- L&V Task ---
         [DisplayName("L&V done by")]
@@ -141,7 +160,7 @@ namespace Prelims.Models.Reports
 
         // --- Starter Code Task ---
         [DisplayName("Starter Code done by")]
-        public string StarterCodeDoneBy { get; set; }
+        public string AuditStarterCodeDoneBy { get; set; }
 
         [DisplayName("Start Time")]
         public string StarterCodeStartTime { get; set; }
