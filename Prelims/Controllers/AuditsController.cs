@@ -148,7 +148,9 @@ namespace Prelims.Controllers
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
             ViewBag.Crns = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => new { x.CRNID, x.CRNNAME, x.GroupName }).ToList();
             ViewBag.GroupName = groupName;
-            return View(Audits.OrderByDescending(x => x.IsRushOrder).ToList());
+            var auditList = Audits.OrderByDescending(x => x.IsRushOrder).ToList();
+            PopulateAuditTitleOrderDetails(auditList);
+            return View(auditList);
         }
 
         private bool IsAuditFLM(USERINFO userInfo)
@@ -237,6 +239,7 @@ namespace Prelims.Controllers
             }
 
             Audit.Errors = GetErrors(Audit.Id);
+            PopulateAuditTitleOrderDetails(new List<Audit> { Audit });
 
             return View(Audit);
         }
@@ -1580,6 +1583,95 @@ namespace Prelims.Controllers
             return $"{(int)diff.TotalHours}:{diff.Minutes:D2}";
         }
 
+        private void PopulateAuditTitleOrderDetails(IEnumerable<Audit> audits)
+        {
+            if (audits == null) return;
+            var auditList = audits.ToList();
+            if (!auditList.Any()) return;
+
+            var titleOrderIds = auditList.Where(a => a.TitleOrderId.HasValue && a.TitleOrderId.Value > 0)
+                                         .Select(a => a.TitleOrderId.Value).Distinct().ToList();
+            var orderNos = auditList.Where(a => !string.IsNullOrEmpty(a.OrderNo))
+                                    .Select(a => a.OrderNo).Distinct().ToList();
+
+            var byId = new Dictionary<int, TitleOrderInfoDto>();
+            var byOrderNo = new Dictionary<string, TitleOrderInfoDto>(StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                for (int i = 0; i < titleOrderIds.Count; i += 500)
+                {
+                    var chunk = titleOrderIds.Skip(i).Take(500).ToList();
+                    string idsStr = string.Join(",", chunk);
+                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE Id IN ({idsStr})";
+                    var results = db.Database.SqlQuery<TitleOrderInfoDto>(sql).ToList();
+                    foreach (var r in results)
+                    {
+                        if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                        if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                    }
+                }
+
+                var remainingOrderNos = orderNos.Where(no => !byOrderNo.ContainsKey(no)).Distinct().ToList();
+                for (int i = 0; i < remainingOrderNos.Count; i += 500)
+                {
+                    var chunk = remainingOrderNos.Skip(i).Take(500).Select(x => "'" + x.Replace("'", "''") + "'").ToList();
+                    string ordersStr = string.Join(",", chunk);
+                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE OrderNo IN ({ordersStr})";
+                    var results = db.Database.SqlQuery<TitleOrderInfoDto>(sql).ToList();
+                    foreach (var r in results)
+                    {
+                        if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                        if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                    }
+                }
+            }
+            catch
+            {
+                // Suppress if TitleOrders query fails
+            }
+
+            foreach (var audit in auditList)
+            {
+                TitleOrderInfoDto info = null;
+                if (audit.TitleOrderId.HasValue && byId.TryGetValue(audit.TitleOrderId.Value, out info))
+                {
+                }
+                else if (!string.IsNullOrEmpty(audit.OrderNo) && byOrderNo.TryGetValue(audit.OrderNo, out info))
+                {
+                }
+
+                if (info != null)
+                {
+                    audit.MoreThanCodeValue = info.MoreThanCodeValue;
+                    audit.FFAssignedDate = info.FFAssignedDate;
+                    audit.TOT = info.TOT;
+                }
+
+                if (audit.AuditTimeEntries != null)
+                {
+                    var inprogressTime = audit.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
+                    if (inprogressTime != null)
+                    {
+                        var diff = DateTime.Now - inprogressTime.StartTime;
+                        if (diff.TotalSeconds < 0) diff = TimeSpan.Zero;
+                        audit.TimeTaken = $"{(int)diff.TotalHours:D2}:{diff.Minutes:D2}";
+                    }
+                    else
+                    {
+                        var completedEntries = audit.AuditTimeEntries.Where(x => !x.IsInprogress && x.EndTime.HasValue).ToList();
+                        if (completedEntries.Any())
+                        {
+                            var lastTask = completedEntries.OrderByDescending(x => x.EndTime).First();
+                            var diff = lastTask.EndTime.Value - lastTask.StartTime;
+                            if (diff.TotalSeconds < 0) diff = TimeSpan.Zero;
+                            audit.TimeTaken = $"{(int)diff.TotalHours:D2}:{diff.Minutes:D2}";
+                        }
+                    }
+                }
+            }
+        }
+
         private Tuple<Dictionary<int, TitleOrderReportDto>, Dictionary<string, TitleOrderReportDto>> GetTitleOrdersReportData(List<int> titleOrderIds, List<string> orderNos)
         {
             var byId = new Dictionary<int, TitleOrderReportDto>();
@@ -1600,7 +1692,7 @@ namespace Prelims.Controllers
                                COALESCE(NULLIF(t.AuditDoneBy, ''), uAudit.USERNAME, uAudit.FULLNAME) AS AuditDoneBy,
                                COALESCE(NULLIF(t.TypingDoneBy, ''), uType.USERNAME, uType.FULLNAME) AS TypingDoneBy,
                                COALESCE(NULLIF(t.ProofingDoneBy, ''), uProof.USERNAME, uProof.FULLNAME) AS ProofingDoneBy,
-                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken, t.MoreThanCodeValue
                         FROM TitleOrders t
                         LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
                         LEFT JOIN USERINFO uSearch ON t.SearchingDoneByUserId = uSearch.USERID
@@ -1631,7 +1723,7 @@ namespace Prelims.Controllers
                                COALESCE(NULLIF(t.AuditDoneBy, ''), uAudit.USERNAME, uAudit.FULLNAME) AS AuditDoneBy,
                                COALESCE(NULLIF(t.TypingDoneBy, ''), uType.USERNAME, uType.FULLNAME) AS TypingDoneBy,
                                COALESCE(NULLIF(t.ProofingDoneBy, ''), uProof.USERNAME, uProof.FULLNAME) AS ProofingDoneBy,
-                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken
+                               t.ExaminingStartTime, t.ExaminingEndTime, t.ExaminingTimeTaken, t.MoreThanCodeValue
                         FROM TitleOrders t
                         LEFT JOIN TitleOrderProductSubTypes st ON t.TitleOrderProductSubTypeId = st.Id
                         LEFT JOIN USERINFO uSearch ON t.SearchingDoneByUserId = uSearch.USERID
@@ -1709,6 +1801,7 @@ namespace Prelims.Controllers
                 productionViewModel.OfficeName = Audit.CRN != null ? Audit.CRN.CRNNAME : "";
                 productionViewModel.ProductType = Audit.AuditRequestType != null ? Audit.AuditRequestType.Name : "";
                 productionViewModel.SubType = titleOrder != null ? (titleOrder.SubTypeName ?? "") : "";
+                productionViewModel.Codes = titleOrder != null && titleOrder.MoreThanCodeValue.HasValue ? titleOrder.MoreThanCodeValue.Value.ToString() : "";
 
                 if (Audit.DateCreated.HasValue)
                 {
@@ -1999,6 +2092,7 @@ namespace Prelims.Controllers
             TaskWisePendingReportDetailViewModel viewModel = new TaskWisePendingReportDetailViewModel();
 
             viewModel.Audits = Audits.ToList();
+            PopulateAuditTitleOrderDetails(viewModel.Audits);
             viewModel.IsHoldOrders = showHold ?? false;
 
             if (showCrnTotal.HasValue && showCrnTotal.Value)
@@ -2047,8 +2141,9 @@ namespace Prelims.Controllers
                 Audits = Audits.Where(x => x.CrnId == crnId.Value);
             }
             Audits = Audits.Include(x => x.CRN).Include(x => x.AuditRequestType).Include(x => x.AuditTask).Include(y => y.AuditHolds);
-
-            return View(Audits.ToList());
+            var holdList = Audits.ToList();
+            PopulateAuditTitleOrderDetails(holdList);
+            return View(holdList);
         }
 
         public ActionResult RejectedOrders()
@@ -2748,8 +2843,9 @@ namespace Prelims.Controllers
                 titleOrders = titleOrders.Where(x => x.CrnId == crnId.Value);
             }
             titleOrders = titleOrders.Include(x => x.CRN).Include(x => x.AuditRequestType).Include(x => x.AuditTask).Include(y => y.AuditHolds);
-
-            return View(titleOrders.OrderBy(x => x.CRN.CRNNAME).ThenBy(x => x.DateCreated).ToList());
+            var rushList = titleOrders.OrderBy(x => x.CRN.CRNNAME).ThenBy(x => x.DateCreated).ToList();
+            PopulateAuditTitleOrderDetails(rushList);
+            return View(rushList);
         }
 
         public ActionResult OrderAssignment(int? crnId, int? taskId, int? requestTypeId, bool? isRush, string groupName)
@@ -2865,6 +2961,8 @@ namespace Prelims.Controllers
                     item.UserAssignedName = userInfoObj.USERNAME;
                 }
             }
+
+            PopulateAuditTitleOrderDetails(items);
 
             return View(items);
         }
@@ -3834,6 +3932,7 @@ namespace Prelims.Controllers
         public DateTime? ExaminingStartTime { get; set; }
         public DateTime? ExaminingEndTime { get; set; }
         public int? ExaminingTimeTaken { get; set; }
+        public int? MoreThanCodeValue { get; set; }
     }
 
     public class TaskEmployeeDto

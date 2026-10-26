@@ -197,7 +197,7 @@
 <div class="row dashboard-section">
     <div class="col-md-12">
         <h3 class="section-title">My Orders</h3>
-        <table class="table table-condensed table-striped">
+        <table class="table table-condensed table-striped" id="myOrdersTable">
             <tr>
                 <th>
                     SL No
@@ -266,78 +266,262 @@
     </div>
 </div>
 
-<div class="row dashboard-section">
-    <div class="col-md-12">
-        <h3 class="section-title">In Progress Orders</h3>
-        <table class="table table-condensed table-striped">
-            <tr>
-                <th>
-                    SL No
-                </th>
-                <th>
-                    Order Number
-                </th>
-                <th> Office Name </th>
-                <th>Type</th>
-                <th>Task</th>
-                <th>Recieved Date Time</th>
-                <th>User Name</th>
-                <th>Start Time</th>
-                <th>Priority</th>
-            </tr>
-            @{  var serialNumberIndex = 1;  }
-            @foreach (var item in Model.InprogressAudits)
-            {
-                var inprogressTimeEntry = item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
-                var userName = "";
-                DateTime? dateStarted = null;
-                if (inprogressTimeEntry != null)
-                {
-                    userName = inprogressTimeEntry.USERINFO.USERNAME;
-                    dateStarted = inprogressTimeEntry.StartTime;
+@if (Model.IsAllowedToViewInprogressOrders)
+{
+<div class="row" style="margin-top: 15px;">
+    <div class="col-md-12 order-section" style="padding-left: 15px; padding-right: 15px;">
+        <div class="panel panel-info">
+            <div class="panel-heading" ng-click="isInprogressCollapsed=!isInprogressCollapsed" style="cursor: pointer;" ng-init="isInprogressCollapsed=true">
+                <span class="panel-title" style="font-weight: bold;">INPROGRESS ORDERS</span>
+                <span class="pull-right clickable">
+                    <i class="glyphicon glyphicon-chevron-up" ng-if="isInprogressCollapsed"></i>
+                    <i class="glyphicon glyphicon-chevron-down" ng-if="!isInprogressCollapsed"></i>
+                </span>
+            </div>
+            <div class="panel-body" ng-if="isInprogressCollapsed">
+                <!-- CHENNAI Section -->
+                <div id="inprogressChennaiTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke;" ng-init="inprogressChennaiTable=true">
+                    <div>
+                        <div ng-click="inprogressChennaiTable=!inprogressChennaiTable" style="font-weight: bold;">
+                            <i class="glyphicon glyphicon-chevron-right" ng-if="!inprogressChennaiTable"></i>
+                            <i class="glyphicon glyphicon-chevron-down" ng-if="inprogressChennaiTable"></i>
+                            CHENNAI
+                        </div>
+                    </div>
+                    <div id="inProgressOrdersTableChennai">
+                        <table style="margin-top: 10px" class="table table-condensed table-striped" id="inProgressOrdersTableIdChennai" ng-if="inprogressChennaiTable">
+                            <tr>
+                                <th>SL No</th>
+                                <th>Order Number</th>
+                                <th>County</th>
+                                <th onclick="sortTable(3,'inProgressOrdersTableIdChennai')" style="cursor:pointer;">Office Name <span class="sort-icon"></span></th>
+                                <th>Type</th>
+                                <th>Priority</th>
+                                <th style="cursor:pointer;" onclick="sortTable(6, 'inProgressOrdersTableIdChennai')">Task <span class="sort-icon"></span></th>
+                                <th>Received Date Time</th>
+                                <th>FF Assigned Date</th>
+                                <th>TAT</th>
+                                <th>User Name</th>
+                                <th>Codes</th>
+                                <th>Start Time</th>
+                                <th>
+                                    Time Taken
+                                    <div class="pull-right">
+                                        <i class="fa fa-file-excel-o exportToExcelButton" table-id="inProgressOrdersTableIdChennai" title="Export to Excel" aria-hidden="true" file-name="InProgressOrders_Chennai"></i>
+                                    </div>
+                                </th>
+                            </tr>
+                            @{ var serialNumberIndexChennai = 1; }
+                            @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == "CHENNAI"))
+                            {
+                            <tr>
+                                <td style="text-align:center;">@serialNumberIndexChennai</td>
+                                <td>@item.OrderNo</td>
+                                <td>@item.CountyName</td>
+                                <td>@item.CRNName</td>
+                                <td>@item.RequestTypeName</td>
+                                <td>@(item.IsRushOrder ? "RUSH" : "Normal")</td>
+                                <td>@item.TaskName</td>
+                                <td>@(item.ReceivedDateTime.HasValue ? item.ReceivedDateTime.Value.ToString() : "")</td>
+                                <td>@(item.FFAssignedDate.HasValue ? item.FFAssignedDate.Value.ToString() : "")</td>
+                                <td>@(item.TOT.HasValue ? item.TOT.Value.ToString() : "")</td>
+                                <td>@item.UserName</td>
+                                <td style="text-align:center; font-weight:bold; color:red;">@(item.CodesCount.HasValue ? item.CodesCount.Value.ToString() : "")</td>
+                                <td>@item.StartTime.ToString()</td>
+                                <td>@item.TimeTaken</td>
+                            </tr>
+                            serialNumberIndexChennai++;
+                            }
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HOSPET Section -->
+                <div id="inprogressHospetTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke;" ng-init="inprogressHospetTable=true">
+                    <div>
+                        <div ng-click="inprogressHospetTable=!inprogressHospetTable" style="font-weight: bold;">
+                            <i class="glyphicon glyphicon-chevron-right" ng-if="!inprogressHospetTable"></i>
+                            <i class="glyphicon glyphicon-chevron-down" ng-if="inprogressHospetTable"></i>
+                            HOSPET
+                        </div>
+                    </div>
+                    <div id="inProgressOrdersTableHospet">
+                        <table style="margin-top: 10px" class="table table-condensed table-striped" id="inProgressOrdersTableIdHospet" ng-if="inprogressHospetTable">
+                            <tr>
+                                <th>SL No</th>
+                                <th>Order Number</th>
+                                <th>County</th>
+                                <th onclick="sortTable(3,'inProgressOrdersTableIdHospet')" style="cursor:pointer;">Office Name <span class="sort-icon"></span></th>
+                                <th>Type</th>
+                                <th>Priority</th>
+                                <th style="cursor:pointer;" onclick="sortTable(6,'inProgressOrdersTableIdHospet')">Task <span class="sort-icon"></span></th>
+                                <th>Received Date Time</th>
+                                <th>FF Assigned Date</th>
+                                <th>TAT</th>
+                                <th>User Name</th>
+                                <th>Codes</th>
+                                <th>Start Time</th>
+                                <th>
+                                    Time Taken
+                                    <div class="pull-right">
+                                        <i class="fa fa-file-excel-o exportToExcelButton" table-id="inProgressOrdersTableIdHospet" title="Export to Excel" aria-hidden="true" file-name="InProgressOrders_Hospet"></i>
+                                    </div>
+                                </th>
+                            </tr>
+                            @{ var serialNumberIndexHospet = 1; }
+                            @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == "HOSPET"))
+                            {
+                            <tr>
+                                <td style="text-align:center;">@serialNumberIndexHospet</td>
+                                <td>@item.OrderNo</td>
+                                <td>@item.CountyName</td>
+                                <td>@item.CRNName</td>
+                                <td>@item.RequestTypeName</td>
+                                <td>@(item.IsRushOrder ? "RUSH" : "Normal")</td>
+                                <td>@item.TaskName</td>
+                                <td>@(item.ReceivedDateTime.HasValue ? item.ReceivedDateTime.Value.ToString() : "")</td>
+                                <td>@(item.FFAssignedDate.HasValue ? item.FFAssignedDate.Value.ToString() : "")</td>
+                                <td>@(item.TOT.HasValue ? item.TOT.Value.ToString() : "")</td>
+                                <td>@item.UserName</td>
+                                <td style="text-align:center; font-weight:bold; color:red;">@(item.CodesCount.HasValue ? item.CodesCount.Value.ToString() : "")</td>
+                                <td>@item.StartTime.ToString()</td>
+                                <td>@item.TimeTaken</td>
+                            </tr>
+                            serialNumberIndexHospet++;
+                            }
+                        </table>
+                    </div>
+                </div>
+
+                @{
+                    var otherLocations = Model.InprogressAudits
+                        .Where(x => (x.Location ?? "").ToUpper().Trim() != "CHENNAI" && (x.Location ?? "").ToUpper().Trim() != "HOSPET")
+                        .Select(x => (x.Location ?? "").ToUpper().Trim())
+                        .Distinct()
+                        .ToList();
                 }
-
-                <tr>
-                    <td style="text-align:center;">
-                        @serialNumberIndex.ToString()
-                    </td>
-                    <td>
-                        @item.OrderNo
-                    </td>
-                    <td>
-                        @item.CRN.CRNNAME
-                    </td>
-                    <td>
-                        @item.AuditRequestType.Name
-                    </td>
-                    <td>
-                        @item.AuditTask.Name
-                    </td>
-                    <td>
-                        @item.DateCreated.ToString()
-                    </td>
-                    <td>
-                        @userName
-                    </td>
-                    <td>
-                        @(dateStarted.HasValue ? dateStarted.Value.ToString() : "")
-                    </td>
-                    <td>
-                        @if (item.IsRushOrder)
-                        {
-                            <span class="priority-badge priority-rush">Rush</span>
-                        }
-                        else
-                        {
-                            <span class="priority-badge priority-normal">Normal</span>
-                        }
-                    </td>
-                </tr>
-
-                serialNumberIndex++;
-            }
-        </table>
-
-       
+                @foreach (var loc in otherLocations)
+                {
+                    var locKey = string.IsNullOrEmpty(loc) ? "OTHER" : loc;
+                    var tableId = "inProgressOrdersTableId" + locKey.Replace(" ", "");
+                    <div style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke;">
+                        <div style="font-weight: bold;">
+                            @locKey
+                        </div>
+                        <div>
+                            <table style="margin-top: 10px" class="table table-condensed table-striped" id="@tableId">
+                                <tr>
+                                    <th>SL No</th>
+                                    <th>Order Number</th>
+                                    <th>County</th>
+                                    <th>Office Name</th>
+                                    <th>Type</th>
+                                    <th>Priority</th>
+                                    <th>Task</th>
+                                    <th>Received Date Time</th>
+                                    <th>FF Assigned Date</th>
+                                    <th>TAT</th>
+                                    <th>User Name</th>
+                                    <th>Codes</th>
+                                    <th>Start Time</th>
+                                    <th>Time Taken</th>
+                                </tr>
+                                @{ var serialOther = 1; }
+                                @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == loc))
+                                {
+                                <tr>
+                                    <td style="text-align:center;">@serialOther</td>
+                                    <td>@item.OrderNo</td>
+                                    <td>@item.CountyName</td>
+                                    <td>@item.CRNName</td>
+                                    <td>@item.RequestTypeName</td>
+                                    <td>@(item.IsRushOrder ? "RUSH" : "Normal")</td>
+                                    <td>@item.TaskName</td>
+                                    <td>@(item.ReceivedDateTime.HasValue ? item.ReceivedDateTime.Value.ToString() : "")</td>
+                                    <td>@(item.FFAssignedDate.HasValue ? item.FFAssignedDate.Value.ToString() : "")</td>
+                                    <td>@(item.TOT.HasValue ? item.TOT.Value.ToString() : "")</td>
+                                    <td>@item.UserName</td>
+                                    <td style="text-align:center; font-weight:bold; color:red;">@(item.CodesCount.HasValue ? item.CodesCount.Value.ToString() : "")</td>
+                                    <td>@item.StartTime.ToString()</td>
+                                    <td>@item.TimeTaken</td>
+                                </tr>
+                                serialOther++;
+                                }
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>
+}
+
+<script>
+    var sortOrders = {};
+
+    function sortTable(columnIndex, tableName) {
+        let table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById(tableName);
+        if (!table) return;
+        switching = true;
+
+        if (sortOrders[columnIndex] === undefined) {
+            sortOrders[columnIndex] = 'asc';
+        } else if (sortOrders[columnIndex] === 'asc') {
+            sortOrders[columnIndex] = 'desc';
+        } else {
+            sortOrders[columnIndex] = 'asc';
+        }
+
+        let sortIcons = table.querySelectorAll('.sort-icon');
+        sortIcons.forEach(icon => {
+            icon.innerHTML = '';
+        });
+
+        let th = table.rows[0].getElementsByTagName("th")[columnIndex];
+        let sortIcon = th ? th.querySelector('.sort-icon') : null;
+        if (sortIcon) {
+            let iconEl = document.createElement('i');
+            iconEl.classList.add('glyphicon');
+            if (sortOrders[columnIndex] === 'asc') {
+                iconEl.classList.add('glyphicon-arrow-up');
+            } else {
+                iconEl.classList.add('glyphicon-arrow-down');
+            }
+            sortIcon.appendChild(iconEl);
+        }
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("td")[columnIndex];
+                y = rows[i + 1].getElementsByTagName("td")[columnIndex];
+
+                if (!x || !y) continue;
+
+                let xValue = x.innerText.trim().toLowerCase();
+                let yValue = y.innerText.trim().toLowerCase();
+
+                if (sortOrders[columnIndex] === 'asc') {
+                    if (xValue > yValue) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else {
+                    if (xValue < yValue) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+</script>

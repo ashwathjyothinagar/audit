@@ -14,6 +14,7 @@ namespace Prelims.Controllers
     public class HomeController : Controller
     {
         private FntEntities db = new FntEntities();
+
         public ActionResult Index()
         {
             USERINFO userInfo = (USERINFO)Session["UserInfo"];
@@ -24,12 +25,122 @@ namespace Prelims.Controllers
 
             HomeViewModel homeViewModel = new HomeViewModel();
 
-            homeViewModel.InprogressAudits = db.Audits.AsQueryable().Include(x => x.AuditRequestType)
-                .Include(x => x.AuditStatus)
-                .Include(x => x.AuditTask)
-                .Include(x => x.AuditTimeEntries)
-                .Include(x => x.AuditSender)
-                .Include(x => x.CRN).Where(x => x.AuditTimeEntries.Any(y => y.IsInprogress)).ToList();
+            // 1. Fetch Inprogress Audit Time Entries
+            var inprogressEntries = (from tote in db.AuditTimeEntries.AsNoTracking()
+                                     join a in db.Audits.AsNoTracking() on tote.AuditId equals a.Id
+                                     join cr in db.CRNs.AsNoTracking() on a.CrnId equals cr.CRNID
+                                     join art in db.AuditRequestTypes.AsNoTracking() on a.RequestTypeId equals art.Id
+                                     join atask in db.AuditTasks.AsNoTracking() on a.TaskId equals atask.Id
+                                     join astatus in db.AuditStatuses.AsNoTracking() on a.StatusId equals astatus.Id into astatusJoin
+                                     from astatus in astatusJoin.DefaultIfEmpty()
+                                     join ui in db.USERINFOes.AsNoTracking() on tote.UserId equals ui.USERID
+                                     where tote.IsInprogress
+                                     select new
+                                     {
+                                         AuditId = a.Id,
+                                         TitleOrderId = a.TitleOrderId,
+                                         OrderNo = a.OrderNo,
+                                         CountyName = a.County,
+                                         CRNName = cr.CRNNAME,
+                                         RequestTypeName = art.Name,
+                                         TaskName = atask.Name,
+                                         IsRushOrder = a.IsRushOrder,
+                                         StatusName = astatus != null ? astatus.Name : "",
+                                         ReceivedDateTime = a.DateCreated,
+                                         UserName = ui.USERNAME,
+                                         Location = ui.LOCATION,
+                                         StartTime = tote.StartTime
+                                     }).ToList();
+
+            var titleOrderIds = inprogressEntries.Where(x => x.TitleOrderId.HasValue && x.TitleOrderId.Value > 0)
+                                                 .Select(x => x.TitleOrderId.Value).Distinct().ToList();
+            var orderNos = inprogressEntries.Where(x => !string.IsNullOrEmpty(x.OrderNo))
+                                            .Select(x => x.OrderNo).Distinct().ToList();
+
+            var byId = new Dictionary<int, TitleOrderInfoDto>();
+            var byOrderNo = new Dictionary<string, TitleOrderInfoDto>(StringComparer.OrdinalIgnoreCase);
+
+            if (titleOrderIds.Count > 0)
+            {
+                try
+                {
+                    for (int i = 0; i < titleOrderIds.Count; i += 500)
+                    {
+                        var chunk = titleOrderIds.Skip(i).Take(500).ToList();
+                        string idsStr = string.Join(",", chunk);
+                        var results = db.Database.SqlQuery<TitleOrderInfoDto>(
+                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE Id IN ({idsStr})"
+                        ).ToList();
+                        foreach (var r in results)
+                        {
+                            if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                            if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            var remainingOrderNos = orderNos.Where(no => !byOrderNo.ContainsKey(no)).Distinct().ToList();
+            if (remainingOrderNos.Count > 0)
+            {
+                try
+                {
+                    for (int i = 0; i < remainingOrderNos.Count; i += 500)
+                    {
+                        var chunk = remainingOrderNos.Skip(i).Take(500).Select(x => "'" + x.Replace("'", "''") + "'").ToList();
+                        string ordersStr = string.Join(",", chunk);
+                        var results = db.Database.SqlQuery<TitleOrderInfoDto>(
+                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE OrderNo IN ({ordersStr})"
+                        ).ToList();
+                        foreach (var r in results)
+                        {
+                            if (!byId.ContainsKey(r.Id)) byId[r.Id] = r;
+                            if (!string.IsNullOrEmpty(r.OrderNo) && !byOrderNo.ContainsKey(r.OrderNo)) byOrderNo[r.OrderNo] = r;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            var inprogressList = new List<AuditTimeEntryViewModel>();
+            foreach (var e in inprogressEntries)
+            {
+                TitleOrderInfoDto titleInfo = null;
+                if (e.TitleOrderId.HasValue && byId.TryGetValue(e.TitleOrderId.Value, out titleInfo))
+                {
+                }
+                else if (!string.IsNullOrEmpty(e.OrderNo) && byOrderNo.TryGetValue(e.OrderNo, out titleInfo))
+                {
+                }
+
+                var diff = DateTime.Now - e.StartTime;
+                if (diff.TotalSeconds < 0) diff = TimeSpan.Zero;
+                string timeTakenStr = $"{(int)diff.TotalHours:D2}:{diff.Minutes:D2}";
+
+                inprogressList.Add(new AuditTimeEntryViewModel
+                {
+                    Id = e.AuditId,
+                    OrderNo = e.OrderNo,
+                    StartTime = e.StartTime,
+                    CountyName = e.CountyName,
+                    CRNName = e.CRNName,
+                    RequestTypeName = e.RequestTypeName,
+                    TaskName = e.TaskName,
+                    IsRushOrder = e.IsRushOrder,
+                    StatusName = e.StatusName,
+                    ReceivedDateTime = e.ReceivedDateTime,
+                    FFAssignedDate = titleInfo != null ? titleInfo.FFAssignedDate : null,
+                    TOT = titleInfo != null ? titleInfo.TOT : null,
+                    UserName = e.UserName,
+                    CodesCount = titleInfo != null ? titleInfo.MoreThanCodeValue : null,
+                    TimeTaken = timeTakenStr,
+                    Location = string.IsNullOrWhiteSpace(e.Location) ? "CHENNAI" : e.Location.ToUpper().Trim()
+                });
+            }
+
+            homeViewModel.InprogressAudits = inprogressList.OrderByDescending(x => x.TimeTaken).ToList();
+            homeViewModel.IsAllowedToViewInprogressOrders = userInfo.IsAllowedToViewInprogressOrders || IsAuditFLM(userInfo) || userInfo.ISREVIEWER;
 
 
             List<LiveStatusReportViewModel> liveStatusItems = new List<LiveStatusReportViewModel>();
@@ -134,6 +245,28 @@ namespace Prelims.Controllers
             }
 
             return View(homeViewModel);
+        }
+
+        private bool IsAuditFLM(USERINFO userInfo)
+        {
+            if (userInfo == null || !userInfo.TitleOrderRoleId.HasValue) return false;
+            try
+            {
+                string sql = @"
+                    SELECT COUNT(1)
+                    FROM TitleOrderRoles r
+                    INNER JOIN TitleOrderRoleTasks rt ON r.Id = rt.RoleId
+                    WHERE r.Id = @p0 
+                      AND r.IsAllowedToViewInprogressOrders = 1 
+                      AND rt.TaskId = 3";
+                int count = db.Database.SqlQuery<int>(sql, userInfo.TitleOrderRoleId.Value).FirstOrDefault();
+                return count > 0;
+            }
+            catch
+            {
+                var allowedRoleIds = new HashSet<int> { 4, 23, 24, 26, 28, 35, 37, 40, 42, 43, 44, 46 };
+                return allowedRoleIds.Contains(userInfo.TitleOrderRoleId.Value);
+            }
         }
 
         public ActionResult About()

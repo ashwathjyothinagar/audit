@@ -8,79 +8,104 @@
     @Html.ActionLink("Back", "TaskWisePending", new {  })
 </p>
 
+<div id="taskWisePendingDetailsTable">
+    <table class="table table-condensed table-striped">
+        <thead>
+            <tr>
+                <th>SL No</th>
+                <th>Order Number</th>
+                <th>Office Name</th>
+                <th>Type</th>
+                <th>Priority</th>
+                <th>Task</th>
+                <th>Last Task Time</th>
+                <th>Received Date Time</th>
+                <th>FF Assigned Date</th>
+                <th>User Name</th>
+                <th style="color:red;">Codes</th>
+                <th>Start Time</th>
+                <th>Time Taken</th>
 
-<table class="table table-condensed table-striped">
-    <tr>
-        <th>
-            SL No
-        </th>
-        <th>
-            Order Number
-        </th>
-        <th> Office Name </th>
-        <th>Type</th>
-        <th>Task</th>
-        <th>Last Task Time</th>
-        <th>Recieved Date Time</th>
-        <th>User Name</th>
-        <th>Priority</th>
-        <th>Start Time</th>
+                @if (Model.IsHoldOrders)
+                {
+                    <th></th>
+                }
 
-        @if (Model.IsHoldOrders)
-        {
-            <th></th>
-        }
-
-    </tr>
-    @{  var serialNumberIndex = 1;  }
-    @foreach (var item in Model.Audits)
-    {
-        var inprogressTimeEntry = item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress);
-        var lastTaskTime = item.AuditTimeEntries.Where(x => !x.IsInprogress).Any() ? item.AuditTimeEntries.Where(x => !x.IsInprogress).OrderBy(x => x.AuditTask.SortOrder ?? x.AuditTaskId).Last().EndTime.ToString() : "";
-        var userName = "";
-        DateTime? dateStarted = null;
-        if (inprogressTimeEntry != null)
-        {
-            userName = inprogressTimeEntry.USERINFO.USERNAME;
-            dateStarted = inprogressTimeEntry.StartTime;
-        }
-
-        <tr class="@( item.IsRushOrder ? "danger" : "" )">
-            <td style="text-align:center;">
-                @serialNumberIndex.ToString()
-            </td>
-            <td>
-                @item.OrderNo
-            </td>
-            <td>
-                @item.CRN.CRNNAME
-            </td>
-            <td>
-                @item.AuditRequestType.Name
-            </td>
-            <td>
-                @item.AuditTask.Name
-            </td>
-            <td>
-                @(lastTaskTime)
-            </td>
-            <td>
-                @item.DateCreated.ToString()
-            </td>
-            <td>
-                @userName
-            </td>
-            <td>@(item.IsRushOrder ? "Rush" : "Normal")</td>
-            <td>
-                @(dateStarted.HasValue ? dateStarted.Value.ToString(): "")
-            </td>
-            @if (Model.IsHoldOrders)
+                <th>
+                    <div class="pull-right">
+                        <i class="fa fa-file-excel-o exportToExcelButton"
+                           table-id="taskWisePendingDetailsTable"
+                           title="Export to Excel"
+                           aria-hidden="true"
+                           file-name="TaskWisePendingDetails">
+                        </i>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ var serialNumberIndex = 1; }
+            @foreach (var item in Model.Audits)
             {
-                <th>@Html.ActionLink("Un hold", "UnHold", new { id = item.Id })</th>
+                var inprogressTimeEntry = item.AuditTimeEntries != null ? item.AuditTimeEntries.FirstOrDefault(x => x.IsInprogress) : null;
+                var lastTaskTime = item.AuditTimeEntries != null && item.AuditTimeEntries.Where(x => !x.IsInprogress).Any()
+                    ? item.AuditTimeEntries.Where(x => !x.IsInprogress).OrderBy(x => x.AuditTask.SortOrder ?? x.AuditTaskId).Last().EndTime.ToString()
+                    : "";
+                var userName = "";
+                DateTime? dateStarted = null;
+                if (inprogressTimeEntry != null)
+                {
+                    userName = inprogressTimeEntry.USERINFO != null ? inprogressTimeEntry.USERINFO.USERNAME : "";
+                    dateStarted = inprogressTimeEntry.StartTime;
+                }
+
+                <tr class="@( item.IsRushOrder ? "danger" : "" )">
+                    <td style="text-align:center;">
+                        @serialNumberIndex.ToString()
+                    </td>
+                    <td>
+                        @item.OrderNo
+                    </td>
+                    <td>
+                        @(item.CRN != null ? item.CRN.CRNNAME : "")
+                    </td>
+                    <td>
+                        @(item.AuditRequestType != null ? item.AuditRequestType.Name : "")
+                    </td>
+                    <td>@(item.IsRushOrder ? "Rush" : "Normal")</td>
+                    <td>
+                        @(item.AuditTask != null ? item.AuditTask.Name : "")
+                    </td>
+                    <td>
+                        @(lastTaskTime)
+                    </td>
+                    <td>
+                        @(item.DateCreated.HasValue ? item.DateCreated.Value.ToString() : "")
+                    </td>
+                    <td>
+                        @(item.FFAssignedDate.HasValue ? item.FFAssignedDate.Value.ToString() : "")
+                    </td>
+                    <td>
+                        @userName
+                    </td>
+                    <td style="text-align:center; font-weight:bold; color:red;">
+                        @(item.MoreThanCodeValue.HasValue ? item.MoreThanCodeValue.Value.ToString() : "")
+                    </td>
+                    <td>
+                        @(dateStarted.HasValue ? dateStarted.Value.ToString() : "")
+                    </td>
+                    <td>
+                        @item.TimeTaken
+                    </td>
+                    @if (Model.IsHoldOrders)
+                    {
+                        <td>@Html.ActionLink("Un hold", "UnHold", new { id = item.Id })</td>
+                    }
+                    <td></td>
+                </tr>
+
+                serialNumberIndex++;
             }
-        </tr>
-
-        serialNumberIndex++;
-    }
-</table>
-
+        </tbody>
+    </table>
+</div>

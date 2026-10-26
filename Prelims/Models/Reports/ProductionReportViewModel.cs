@@ -24,6 +24,9 @@ namespace Prelims.Models.Reports
         [DisplayName("Sub Type")]
         public string SubType { get; set; }
 
+        [DisplayName("Codes")]
+        public string Codes { get; set; }
+
         [DisplayName("Recieved Date Time")]
         public string RecievedDateTime { get; set; }
 

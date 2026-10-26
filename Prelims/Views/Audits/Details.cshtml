@@ -97,7 +97,14 @@
     <div class="col-lg-2">
         @Html.DisplayFor(modelItem => Model.DateCreated)
     </div>
-</div>
+
+    <div class="col-lg-2 production-label">
+        Codes
+    </div>
+
+    <div class="col-lg-2" style="font-weight: bold; color: red;">
+        @Model.MoreThanCodeValue
+    </div>
 </div>
 <hr />
 <div class="row production-row">
@@ -190,6 +197,10 @@
                 <th>
                     End Time
                 </th>
+
+                <th>
+                    Time Taken
+                </th>
             </tr>
             @foreach (var item in Model.AuditTimeEntries)
             {
@@ -198,13 +209,29 @@
                         @item.AuditTask.Name
                     </td>
                     <td>
-                        @item.USERINFO.USERNAME
+                        @(item.USERINFO != null ? item.USERINFO.USERNAME : "")
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.StartTime)
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.EndTime)
+                    </td>
+                    <td>
+                        @{
+                            if (item.EndTime.HasValue)
+                            {
+                                var diff = item.EndTime.Value - item.StartTime;
+                                if (diff.TotalSeconds < 0) { diff = TimeSpan.Zero; }
+                                @($"{(int)diff.TotalHours:D2}:{diff.Minutes:D2}")
+                            }
+                            else if (item.IsInprogress)
+                            {
+                                var diff = DateTime.Now - item.StartTime;
+                                if (diff.TotalSeconds < 0) { diff = TimeSpan.Zero; }
+                                @($"{(int)diff.TotalHours:D2}:{diff.Minutes:D2}")
+                            }
+                        }
                     </td>
                 </tr>
             }

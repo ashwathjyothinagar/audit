@@ -16,5 +16,24 @@ namespace Prelims
 
         [NotMapped]
         public List<AuditError> Errors { get; set; }
+
+        [NotMapped]
+        public int? MoreThanCodeValue { get; set; }
+
+        [NotMapped]
+        public int? CodesCount
+        {
+            get { return MoreThanCodeValue; }
+            set { MoreThanCodeValue = value; }
+        }
+
+        [NotMapped]
+        public DateTime? FFAssignedDate { get; set; }
+
+        [NotMapped]
+        public DateTime? TOT { get; set; }
+
+        [NotMapped]
+        public string TimeTaken { get; set; }
     }
 }

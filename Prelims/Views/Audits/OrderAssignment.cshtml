@@ -92,27 +92,27 @@
             <th>
                 Task
             </th>
+            <th style="color:red;">
+                Codes
+            </th>
             <th>
                 Assigned To
             </th>
             <th>
                 Received On
+            </th>
+            <th>
+                FF Assigned Date
                 <div class="pull-right">
                     <i class="fa fa-file-excel-o exportToExcelButton" table-id="orderAssignment" title="Export to Excel" aria-hidden="true" file-name="OrderAssignment"></i>
                 </div>
-
             </th>
-            
-            
         </tr>
         @{
             var counter = 0;
         }
         @foreach (var item in Model)
         {
-
-
-
             <tr itemId="@item.Id" class="trrow @( item.IsRushOrder  ? "danger"  : "" )">
                 <td>
                     <span>@item.OrderNo</span>
@@ -133,16 +133,20 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.AuditTask.Name)
                 </td>
+                <td style="text-align:center; font-weight:bold; color:red;">
+                    @item.MoreThanCodeValue
+                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.UserAssignedName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DateCreated)
                 </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FFAssignedDate)
+                </td>
             </tr>
             counter++;
         }
-
-
     </table>
 </div>

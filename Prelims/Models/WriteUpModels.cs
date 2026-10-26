@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Prelims.Models
@@ -151,5 +151,14 @@ namespace Prelims.Models
         public string SearchPackageOneDriveLink { get; set; }
         public string WorkSheetJson { get; set; }
         public int CrnId { get; set; }
+    }
+
+    public class TitleOrderInfoDto
+    {
+        public int Id { get; set; }
+        public string OrderNo { get; set; }
+        public int? MoreThanCodeValue { get; set; }
+        public DateTime? FFAssignedDate { get; set; }
+        public DateTime? TOT { get; set; }
     }
 }
