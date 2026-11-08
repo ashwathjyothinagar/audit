@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Prelims.Models
@@ -160,5 +160,6 @@ namespace Prelims.Models
         public int? MoreThanCodeValue { get; set; }
         public DateTime? FFAssignedDate { get; set; }
         public DateTime? TOT { get; set; }
+        public bool? IsRushOrder { get; set; }
     }
 }

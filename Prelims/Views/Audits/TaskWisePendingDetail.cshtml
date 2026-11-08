@@ -1,4 +1,4 @@
-@model Prelims.Models.Reports.TaskWisePendingReportDetailViewModel
+﻿@model Prelims.Models.Reports.TaskWisePendingReportDetailViewModel
 
 @{
     ViewBag.PageTitle = "Task Wise Pending Details";
@@ -25,6 +25,7 @@
                 <th style="color:red;">Codes</th>
                 <th>Start Time</th>
                 <th>Time Taken</th>
+                <th>Comments</th>
 
                 @if (Model.IsHoldOrders)
                 {
@@ -57,6 +58,24 @@
                 {
                     userName = inprogressTimeEntry.USERINFO != null ? inprogressTimeEntry.USERINFO.USERNAME : "";
                     dateStarted = inprogressTimeEntry.StartTime;
+                }
+
+                var comment = "";
+                if (item.IsRushOrder && !string.IsNullOrEmpty(item.RushOrderComments))
+                {
+                    comment = item.RushOrderComments;
+                }
+                if (item.StatusId == 3 && item.AuditHolds != null && item.AuditHolds.Any(h => !h.HoldRelivedDateTime.HasValue))
+                {
+                    var holdComment = item.AuditHolds.Where(h => !h.HoldRelivedDateTime.HasValue).OrderByDescending(h => h.HoldDateTime).Select(h => h.Comment).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(holdComment))
+                    {
+                        comment = string.IsNullOrEmpty(comment) ? "Hold Reason - " + holdComment : comment + ", Hold Reason - " + holdComment;
+                    }
+                }
+                if (!string.IsNullOrEmpty(item.OrderMovementComments))
+                {
+                    comment = string.IsNullOrEmpty(comment) ? item.OrderMovementComments : comment + ", " + item.OrderMovementComments;
                 }
 
                 <tr class="@( item.IsRushOrder ? "danger" : "" )">
@@ -96,6 +115,9 @@
                     </td>
                     <td>
                         @item.TimeTaken
+                    </td>
+                    <td>
+                        @comment
                     </td>
                     @if (Model.IsHoldOrders)
                     {

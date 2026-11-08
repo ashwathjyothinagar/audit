@@ -1,4 +1,4 @@
-using Prelims.Models;
+﻿using Prelims.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +69,7 @@ namespace Prelims.Controllers
                         var chunk = titleOrderIds.Skip(i).Take(500).ToList();
                         string idsStr = string.Join(",", chunk);
                         var results = db.Database.SqlQuery<TitleOrderInfoDto>(
-                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE Id IN ({idsStr})"
+                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT, IsRushOrder FROM TitleOrders WHERE Id IN ({idsStr})"
                         ).ToList();
                         foreach (var r in results)
                         {
@@ -91,7 +91,7 @@ namespace Prelims.Controllers
                         var chunk = remainingOrderNos.Skip(i).Take(500).Select(x => "'" + x.Replace("'", "''") + "'").ToList();
                         string ordersStr = string.Join(",", chunk);
                         var results = db.Database.SqlQuery<TitleOrderInfoDto>(
-                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE OrderNo IN ({ordersStr})"
+                            $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT, IsRushOrder FROM TitleOrders WHERE OrderNo IN ({ordersStr})"
                         ).ToList();
                         foreach (var r in results)
                         {
@@ -127,7 +127,7 @@ namespace Prelims.Controllers
                     CRNName = e.CRNName,
                     RequestTypeName = e.RequestTypeName,
                     TaskName = e.TaskName,
-                    IsRushOrder = e.IsRushOrder,
+                    IsRushOrder = e.IsRushOrder || (titleInfo != null && titleInfo.IsRushOrder.HasValue && titleInfo.IsRushOrder.Value),
                     StatusName = e.StatusName,
                     ReceivedDateTime = e.ReceivedDateTime,
                     FFAssignedDate = titleInfo != null ? titleInfo.FFAssignedDate : null,
@@ -139,7 +139,7 @@ namespace Prelims.Controllers
                 });
             }
 
-            homeViewModel.InprogressAudits = inprogressList.OrderByDescending(x => x.TimeTaken).ToList();
+            homeViewModel.InprogressAudits = inprogressList.OrderByDescending(x => x.IsRushOrder).ThenByDescending(x => x.TimeTaken).ToList();
             homeViewModel.IsAllowedToViewInprogressOrders = userInfo.IsAllowedToViewInprogressOrders || IsAuditFLM(userInfo) || userInfo.ISREVIEWER;
 
 

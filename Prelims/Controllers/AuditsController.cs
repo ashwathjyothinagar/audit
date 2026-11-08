@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -148,8 +148,9 @@ namespace Prelims.Controllers
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
             ViewBag.Crns = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => new { x.CRNID, x.CRNNAME, x.GroupName }).ToList();
             ViewBag.GroupName = groupName;
-            var auditList = Audits.OrderByDescending(x => x.IsRushOrder).ToList();
+            var auditList = Audits.ToList();
             PopulateAuditTitleOrderDetails(auditList);
+            auditList = auditList.OrderByDescending(x => x.IsRushOrder).ThenBy(x => x.DateCreated).ToList();
             return View(auditList);
         }
 
@@ -202,6 +203,27 @@ namespace Prelims.Controllers
             var orderInfo = db.Audits.Any(x => x.DateCreated > lastTwentyFourHour && x.OrderNo == orderNo);
 
             return new JsonResult() { JsonRequestBehavior = JsonRequestBehavior.AllowGet, Data = orderInfo };
+        }
+
+        public JsonResult GetTimeElapsed()
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                return new JsonResult() { JsonRequestBehavior = JsonRequestBehavior.AllowGet, Data = "TIMEOUT" };
+            }
+
+            AuditTimeEntry timeEntry = db.AuditTimeEntries.AsNoTracking().FirstOrDefault(x => x.IsInprogress && x.UserId == userInfo.USERID);
+
+            string timeElapse = null;
+            if (timeEntry != null)
+            {
+                var diff = DateTime.Now - timeEntry.StartTime;
+                if (diff.TotalSeconds < 0) diff = TimeSpan.Zero;
+                timeElapse = string.Format("{0:D2}:{1:D2}", (int)diff.TotalHours, diff.Minutes);
+            }
+
+            return new JsonResult() { JsonRequestBehavior = JsonRequestBehavior.AllowGet, Data = timeElapse };
         }
 
         // GET: Audits/Details/5
@@ -1603,7 +1625,7 @@ namespace Prelims.Controllers
                 {
                     var chunk = titleOrderIds.Skip(i).Take(500).ToList();
                     string idsStr = string.Join(",", chunk);
-                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE Id IN ({idsStr})";
+                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT, IsRushOrder FROM TitleOrders WHERE Id IN ({idsStr})";
                     var results = db.Database.SqlQuery<TitleOrderInfoDto>(sql).ToList();
                     foreach (var r in results)
                     {
@@ -1617,7 +1639,7 @@ namespace Prelims.Controllers
                 {
                     var chunk = remainingOrderNos.Skip(i).Take(500).Select(x => "'" + x.Replace("'", "''") + "'").ToList();
                     string ordersStr = string.Join(",", chunk);
-                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT FROM TitleOrders WHERE OrderNo IN ({ordersStr})";
+                    string sql = $"SELECT Id, OrderNo, MoreThanCodeValue, FFAssignedDate, TOT, IsRushOrder FROM TitleOrders WHERE OrderNo IN ({ordersStr})";
                     var results = db.Database.SqlQuery<TitleOrderInfoDto>(sql).ToList();
                     foreach (var r in results)
                     {
@@ -1646,6 +1668,18 @@ namespace Prelims.Controllers
                     audit.MoreThanCodeValue = info.MoreThanCodeValue;
                     audit.FFAssignedDate = info.FFAssignedDate;
                     audit.TOT = info.TOT;
+                    if (info.IsRushOrder.HasValue && info.IsRushOrder.Value)
+                    {
+                        if (!audit.IsRushOrder)
+                        {
+                            audit.IsRushOrder = true;
+                            try
+                            {
+                                db.Database.ExecuteSqlCommand("UPDATE Audits SET IsRushOrder = 1 WHERE Id = @p0", audit.Id);
+                            }
+                            catch { }
+                        }
+                    }
                 }
 
                 if (audit.AuditTimeEntries != null)
@@ -2088,11 +2122,15 @@ namespace Prelims.Controllers
                 Audits = Audits.Where(x => x.StatusId != 3);
             }
 
-            Audits = Audits.Include(x => x.CRN).Include(x => x.AuditRequestType).Include(x => x.AuditTimeEntries);
+            Audits = Audits.Include(x => x.CRN).Include(x => x.AuditRequestType).Include(x => x.AuditTimeEntries).Include(x => x.AuditHolds);
             TaskWisePendingReportDetailViewModel viewModel = new TaskWisePendingReportDetailViewModel();
 
             viewModel.Audits = Audits.ToList();
             PopulateAuditTitleOrderDetails(viewModel.Audits);
+            viewModel.Audits = viewModel.Audits
+                .OrderByDescending(x => x.IsRushOrder)
+                .ThenBy(x => x.DateCreated)
+                .ToList();
             viewModel.IsHoldOrders = showHold ?? false;
 
             if (showCrnTotal.HasValue && showCrnTotal.Value)
@@ -2963,6 +3001,10 @@ namespace Prelims.Controllers
             }
 
             PopulateAuditTitleOrderDetails(items);
+            items = items
+                .OrderByDescending(x => x.IsRushOrder)
+                .ThenBy(x => x.DateCreated)
+                .ToList();
 
             return View(items);
         }

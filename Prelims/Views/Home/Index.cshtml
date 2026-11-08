@@ -1,4 +1,4 @@
-@model  Prelims.Models.HomeViewModel
+﻿@model  Prelims.Models.HomeViewModel
 
 @{
     ViewBag.Title = "Prelims";
@@ -220,7 +220,7 @@
             @{ var myOrderSerialNumberIndex = 1; }
             @foreach (var item in Model.MyOrders)
             {
-                <tr>
+                <tr class="@(item.IsRushOrder ?? false ? "danger" : "")">
                     <td style="text-align:center;">
                         @myOrderSerialNumberIndex.ToString()
                     </td>
@@ -314,7 +314,7 @@
                             @{ var serialNumberIndexChennai = 1; }
                             @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == "CHENNAI"))
                             {
-                            <tr>
+                            <tr class="@(item.IsRushOrder ? "danger" : "")">
                                 <td style="text-align:center;">@serialNumberIndexChennai</td>
                                 <td>@item.OrderNo</td>
                                 <td>@item.CountyName</td>
@@ -371,7 +371,7 @@
                             @{ var serialNumberIndexHospet = 1; }
                             @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == "HOSPET"))
                             {
-                            <tr>
+                            <tr class="@(item.IsRushOrder ? "danger" : "")">
                                 <td style="text-align:center;">@serialNumberIndexHospet</td>
                                 <td>@item.OrderNo</td>
                                 <td>@item.CountyName</td>
@@ -429,7 +429,7 @@
                                 @{ var serialOther = 1; }
                                 @foreach (var item in Model.InprogressAudits.Where(x => (x.Location ?? "").ToUpper().Trim() == loc))
                                 {
-                                <tr>
+                                <tr class="@(item.IsRushOrder ? "danger" : "")">
                                     <td style="text-align:center;">@serialOther</td>
                                     <td>@item.OrderNo</td>
                                     <td>@item.CountyName</td>

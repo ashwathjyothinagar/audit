@@ -1,4 +1,4 @@
-@model List<Prelims.Audit>
+﻿@model List<Prelims.Audit>
 
 @{
     ViewBag.PageTitle = "RUSH ORDER DETAILS";
@@ -31,7 +31,7 @@
         @{ var serialNumberIndex = 1; }
         @foreach (var item in Model)
         {
-            <tr>
+            <tr class="danger">
                 <td style="text-align:center;">
                     @serialNumberIndex.ToString()
                 </td>

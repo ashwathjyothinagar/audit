@@ -1,4 +1,4 @@
-$('#submitButton').click(function (e) {
+﻿$('#submitButton').click(function (e) {
     if ($('#Audit_TaskId').val() == "3") {
         if (!confirm("Are you sure that you have sent mail to client?")) {
             e.preventDefault();
@@ -32,6 +32,26 @@ var App;
             rebuildAllEmployees();
 
             this.init = function () {
+                // Real-time Processing Time (GetTimeElapsed)
+                function fetchProcessingTime() {
+                    $.ajax({
+                        url: ROOTURL + "Audits/GetTimeElapsed",
+                        success: function (response) {
+                            if (response && response.length < 10) {
+                                if (response !== "TIMEOUT") {
+                                    $('#timeElapsed').text(response);
+                                } else {
+                                    var logOutForm = document.getElementById('logoutForm');
+                                    if (logOutForm) {
+                                        logOutForm.submit();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                fetchProcessingTime();
+                setInterval(fetchProcessingTime, 60000);
                 if (!_this.errorCategories || _this.errorCategories.length === 0) {
                     $http.get(ROOTURL + "Audits/GetErrorCategories").then(function (response) {
                         _this.errorCategories = response.data;

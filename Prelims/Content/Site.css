@@ -1,4 +1,4 @@
-body {
+﻿body {
     margin: 0;
     padding-top: 56px;
     padding-bottom: 28px;
@@ -362,12 +362,26 @@ input[type="submit"][value="Yes"].btn-danger:hover {
 .table-striped > tbody > tr:nth-child(even) > td,
 .table-striped > tbody > tr:nth-child(even) > th,
 .table > tbody > tr:hover > td,
-.table > tbody > tr:hover > th,
+.table > tbody > tr:hover > th {
+    background: transparent;
+}
+
 .table > tbody > tr.danger > td,
 .table > tbody > tr.danger > th,
+.table-striped > tbody > tr.danger > td,
+.table-striped > tbody > tr.danger > th,
+.table-striped > tbody > tr.danger:nth-of-type(odd) > td,
+.table-striped > tbody > tr.danger:nth-of-type(odd) > th,
+.table-striped > tbody > tr.danger:nth-of-type(even) > td,
+.table-striped > tbody > tr.danger:nth-of-type(even) > th {
+    background-color: #f2dede !important;
+}
+
+.table-hover > tbody > tr.danger:hover > td,
+.table-hover > tbody > tr.danger:hover > th,
 .table > tbody > tr.danger:hover > td,
 .table > tbody > tr.danger:hover > th {
-    background: transparent;
+    background-color: #ebcccc !important;
 }
 
 .table > tbody > tr:first-child > th,

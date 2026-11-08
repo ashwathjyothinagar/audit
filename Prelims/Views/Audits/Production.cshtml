@@ -1,4 +1,4 @@
-@model Prelims.Models.AuditProductionModel
+﻿@model Prelims.Models.AuditProductionModel
 
 @{
     ViewBag.PageTitle = "ORDER PRODUCTION";
@@ -39,6 +39,12 @@
     </div>
 
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="row">
+        <div style="position: fixed; top: 93px; float: right; color: #ef3b5b; margin-left: 15px; z-index: 1000;">
+            <span style="font-size: 30px; font-weight: bold;" id="timeElapsed"></span>
+        </div>
+    </div>
 
     <div class="row production-row">
 
@@ -622,6 +628,28 @@
                 $btn.attr('href', '#').addClass('disabled');
             }
         });
+
+        // Real-time Processing Time (similar to Prelims Tracker)
+        function updateTimeElapsed() {
+            $.ajax({
+                url: '@Url.Action("GetTimeElapsed", "Audits")',
+                type: 'GET',
+                success: function (response) {
+                    if (response && response.length < 10) {
+                        if (response !== "TIMEOUT") {
+                            $('#timeElapsed').text(response);
+                        } else {
+                            var logOutForm = document.getElementById('logoutForm');
+                            if (logOutForm) {
+                                logOutForm.submit();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        updateTimeElapsed();
+        setInterval(updateTimeElapsed, 60000);
     });
 </script>
 
