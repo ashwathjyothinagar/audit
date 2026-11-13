@@ -1,0 +1,348 @@
+@{
+    ViewBag.PageTitle = "SHIFT ALLOWANCE ATTENDANCE REPORT";
+}
+
+<style>
+    .office-multiselect {
+        border: 1px solid #f3f3f3;
+        padding: 10px;
+        max-width: 300px;
+        overflow-y: auto;
+        max-height: 300px;
+    }
+    .user-select-wrapper { position: relative; }
+    .user-search-input {
+        width: 100%;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+    .user-dropdown-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-top: none;
+        background: #fff;
+        position: absolute;
+        width: 100%;
+        z-index: 1000;
+        display: none;
+    }
+    .user-dropdown-list.open { display: block; }
+    .user-dropdown-list .user-option { padding: 6px 12px; cursor: pointer; }
+    .user-dropdown-list .user-option:hover { background-color: #f0f0f0; }
+    .user-dropdown-list .user-option.selected { background-color: #337ab7; color: #fff; }
+
+    /* Report table */
+    #shiftAllowanceTable th {
+        background-color: #1a472a;
+        color: #fff;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    #shiftAllowanceTable td { text-align: center; vertical-align: middle; }
+    #shiftAllowanceTable td:nth-child(3),
+    #shiftAllowanceTable td:nth-child(4),
+    #shiftAllowanceTable td:nth-child(5) { text-align: left; }
+
+    .clickable-cell {
+        cursor: pointer;
+        color: #1a6496;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+    .clickable-cell:hover { color: #c0392b; }
+
+    .leave-cell   { background-color: #ffe0e0; }
+    .present-cell { background-color: #e8f5e9; }
+
+    .modal-date-list { max-height: 350px; overflow-y: auto; }
+    .modal-date-list li { padding: 4px 0; border-bottom: 1px solid #eee; }
+
+    .header-group { text-align: center; background-color: #2c5f8a !important; }
+
+    /* Loader Overlay */
+    .loader-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #1a472a;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .loader-text {
+        margin-top: 15px;
+        font-size: 18px;
+        color: #1a472a;
+        font-weight: bold;
+    }
+</style>
+
+<form name="shiftAllowanceSearchForm">
+    <div ng-controller="ShiftAllowanceReportController as $ctrl">
+
+        <!-- Loader Overlay -->
+        <div class="loader-overlay" ng-show="$ctrl.loading">
+            <div class="spinner"></div>
+            <div class="loader-text">Loading report data, please wait...</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-10">
+
+                <!-- Start Date -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Start Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="startDate" id="sarStartDate" class="form-control"
+                                       uib-datepicker-popup="dd/MM/yyyy" style="width:180px"
+                                       ng-model="$ctrl.userFilter.startDate"
+                                       ng-click="$ctrl.openStartPopup()"
+                                       is-open="$ctrl.startOpened"
+                                       datepicker-options="$ctrl.dateOptions"
+                                       ng-required="true" close-text="Close"
+                                       alt-input-formats="altInputFormats" required />
+                                <span style="color:red;" ng-show="shiftAllowanceSearchForm.startDate.$touched && shiftAllowanceSearchForm.startDate.$error.required">Start Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" style="width:70px;display:inline;" ng-model="$ctrl.userFilter.startDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" style="width:70px;display:inline;" ng-model="$ctrl.userFilter.startDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- End Date -->
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">End Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="endDate" id="sarEndDate" class="form-control"
+                                       uib-datepicker-popup="dd/MM/yyyy" style="width:180px"
+                                       ng-model="$ctrl.userFilter.endDate"
+                                       ng-click="$ctrl.openEndPopup()"
+                                       is-open="$ctrl.endOpened"
+                                       datepicker-options="$ctrl.dateOptions"
+                                       ng-required="true" close-text="Close"
+                                       alt-input-formats="altInputFormats" required />
+                                <span style="color:red;" ng-show="shiftAllowanceSearchForm.endDate.$touched && shiftAllowanceSearchForm.endDate.$error.required">End Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" style="width:70px;display:inline;" ng-model="$ctrl.userFilter.endDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" style="width:70px;display:inline;" ng-model="$ctrl.userFilter.endDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Location</label>
+                            <div class="col-md-5">
+                                <select class="form-control" ng-model="$ctrl.userFilter.location" ng-change="$ctrl.filterUsersByLocation()">
+                                    <option value="">ALL</option>
+                                    <option value="BANGALORE">BANGALORE</option>
+                                    <option value="CHENNAI">CHENNAI</option>
+                                    <option value="HOSPET">HOSPET</option>
+                                    <option value="VENDOR">VENDOR</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User -->
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">User</label>
+                            <div class="col-md-5">
+                                <div class="user-select-wrapper">
+                                    <input type="text" class="user-search-input" placeholder="Search user..."
+                                           ng-model="$ctrl.userSearchText"
+                                           ng-focus="$ctrl.showUserDropdown = true"
+                                           ng-keyup="$ctrl.showUserDropdown = true" />
+                                    <div class="user-dropdown-list" ng-class="{'open': $ctrl.showUserDropdown && $ctrl.filteredUsers.length > 0}">
+                                        <div class="user-option" ng-class="{'selected': $ctrl.selectedUserId == ''}"
+                                             ng-click="$ctrl.selectedUserId = ''; $ctrl.userSearchText = 'ALL'; $ctrl.showUserDropdown = false;">ALL</div>
+                                        <div class="user-option"
+                                             ng-repeat="u in $ctrl.filteredUsers | filter:{name: $ctrl.userSearchText}"
+                                             ng-class="{'selected': $ctrl.selectedUserId == u.id}"
+                                             ng-click="$ctrl.selectedUserId = u.id; $ctrl.userSearchText = u.name; $ctrl.showUserDropdown = false;">
+                                            {{u.name}} <small style="color:#999;">({{u.location}})</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="row" style="padding-top:10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <div class="col-md-10">
+                                <input type="button" class="btn btn-success" ng-click="$ctrl.loadReport()"
+                                       value="Search" ng-disabled="!shiftAllowanceSearchForm.$valid || $ctrl.loading" />
+                                <button type="button" class="btn btn-primary" style="margin-left:10px;"
+                                        ng-click="$ctrl.exportToExcel()" ng-show="$ctrl.hasData">
+                                    <i class="fa fa-file-excel-o"></i> Export to Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-2"></div>
+        </div>
+
+        <!-- Report Table -->
+        <div class="row" style="padding-top:15px;" ng-show="$ctrl.searched">
+            <div class="col-lg-12">
+                <div ng-show="!$ctrl.hasData" class="alert alert-info">No data found for the selected criteria.</div>
+
+                <div ng-show="$ctrl.hasData" style="overflow-x:auto;">
+                    <table id="shiftAllowanceTable" class="table table-condensed table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">S.No</th>
+                                <th rowspan="2">Emp Code</th>
+                                <th rowspan="2">Name</th>
+                                <th rowspan="2">Process</th>
+                                <th rowspan="2">Location</th>
+                                <th colspan="6" class="header-group">Shift Allowance Report — {{$ctrl.periodLabel}}</th>
+                            </tr>
+                            <tr>
+                                <th>Total Working Days</th>
+                                <th># of Leaves Availed</th>
+                                <th>Day Shift</th>
+                                <th>Night Shift</th>
+                                <th>NSA</th>
+                                <th>Prod %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="row in $ctrl.reportData">
+                                <td>{{row.SerialNumber}}</td>
+                                <td>{{row.EmpCode}}</td>
+                                <td style="text-align:left;">{{row.Name}}</td>
+                                <td style="text-align:left;">{{row.Process}}</td>
+                                <td style="text-align:left;">{{row.Location}}</td>
+                                <td>{{row.TotalWorkingDays}}</td>
+
+                                <!-- Leaves -->
+                                <td ng-class="row.LeavesAvailed > 0 ? 'leave-cell' : ''">
+                                    <span ng-if="row.LeavesAvailed > 0"
+                                          class="clickable-cell"
+                                          ng-click="$ctrl.showPopup('leave', row)">{{row.LeavesAvailed}}</span>
+                                    <span ng-if="row.LeavesAvailed == 0">0</span>
+                                </td>
+
+                                <!-- Day Shift -->
+                                <td ng-class="row.DayShiftCount > 0 ? 'present-cell' : ''">
+                                    <span ng-if="row.DayShiftCount > 0"
+                                          class="clickable-cell"
+                                          ng-click="$ctrl.showPopup('day', row)">{{row.DayShiftCount}}</span>
+                                    <span ng-if="row.DayShiftCount == 0">0</span>
+                                </td>
+
+                                <!-- Night Shift -->
+                                <td ng-class="row.NightShiftCount > 0 ? 'present-cell' : ''">
+                                    <span ng-if="row.NightShiftCount > 0"
+                                          class="clickable-cell"
+                                          ng-click="$ctrl.showPopup('night', row)">{{row.NightShiftCount}}</span>
+                                    <span ng-if="row.NightShiftCount == 0">0</span>
+                                </td>
+
+                                <!-- NSA -->
+                                <td ng-class="row.NSACount > 0 ? 'present-cell' : ''">
+                                    <span ng-if="row.NSACount > 0"
+                                          class="clickable-cell"
+                                          ng-click="$ctrl.showPopup('nsa', row)">{{row.NSACount}}</span>
+                                    <span ng-if="row.NSACount == 0">0</span>
+                                </td>
+
+                                <td><strong>{{row.ProdPercent}}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup Modal -->
+        <div class="modal fade" id="sarDetailModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#1a472a; color:#fff;">
+                        <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                        <h4 class="modal-title">{{$ctrl.modalTitle}}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Employee:</strong> {{$ctrl.modalEmployee}}</p>
+                        <p><strong>Count:</strong> {{$ctrl.modalDates.length}}</p>
+                        <ul class="modal-date-list list-unstyled">
+                            <li ng-repeat="d in $ctrl.modalDates track by $index">
+                                <i class="fa fa-calendar" style="margin-right:6px; color:#555;"></i>{{d}}
+                            </li>
+                        </ul>
+                        <div ng-show="$ctrl.modalDates.length === 0" class="text-muted">No dates to display.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<script>
+    // Close user dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.user-select-wrapper')) {
+            var el = document.querySelector('[ng-controller="ShiftAllowanceReportController as $ctrl"]');
+            if (el) {
+                var scope = angular.element(el).scope();
+                if (scope && scope.$ctrl) {
+                    scope.$ctrl.showUserDropdown = false;
+                    scope.$applyAsync();
+                }
+            }
+        }
+    });
+</script>

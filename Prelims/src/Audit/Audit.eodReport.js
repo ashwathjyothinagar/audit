@@ -7,6 +7,8 @@ var App;
 
             _this.CrnId = 0;
             _this.Crns = [];
+            _this.shift = '';
+            _this.shifts = [];
             this.init = function () {
 
                 this.getCrns().then(function (response) {
@@ -22,15 +24,26 @@ var App;
 
                 this.endDateHour = "23";
                 this.endDateMinute = "59";
+
+                var reqShifts = {
+                    method: 'GET',
+                    url: BASE_URI + "Home/GetShifts"
+                };
+
+                $http(reqShifts).then(function (response) {
+                    if (response.data && response.data.length > 0) {
+                        _this.shifts = response.data;
+                    }
+                });
             };
 
             this.getCrns = function () {
                 var req = {
                     method: 'GET',
                     url: BASE_URI + "api/Crns"
-                }
+                };
 
-                return $http(req)
+                return $http(req);
             };
 
             this.init();
@@ -42,8 +55,23 @@ var App;
                 $(invisibleLink).attr("href", BASE_URI + "Audits/ExportEOD?startDateTime=" + ReportLookupService.getISODate(_this.startDate) + "T" + this.startDateHour + ":" + this.startDateMinute + "&endDateTime=" + ReportLookupService.getISODate(_this.endDate) + "T" + this.endDateHour + ":" + this.endDateMinute + "&groupName=" + groupName + "&crnId=" + crnId);
                 document.body.appendChild(invisibleLink);
                 invisibleLink.click();
-            }
+            };
 
+            this.sendDialyProducitonReport = function () {
+                var userId = $('#UserInfos').val();
+                var reportDate = $('#ReportDate').val();
+
+                var req = {
+                    method: 'GET',
+                    url: BASE_URI + "Audits/SendDialyProducitonReport?shift=" + _this.shift + "&userId=" + userId + "&reportDate=" + reportDate
+                };
+
+                $http(req).then(function (response) {
+                    alert('Report sent');
+                }, function (error) {
+                    alert('Error sending report');
+                });
+            };
 
             this.dateOptions = {
                 dateDisabled: false,
@@ -57,11 +85,11 @@ var App;
 
             this.openEndPopup = function () {
                 this.endOpened = true;
-            }
+            };
 
             this.openStartPopup = function () {
                 this.startOpened = true;
-            }
+            };
         }
         return EodReportController;
     }());

@@ -1,0 +1,268 @@
+@model List<Prelims.Models.Reports.AttendanceReportViewModel>
+@{
+    ViewBag.PageTitle = "LOGIN LOGOUT REPORT";
+}
+<style>
+    .office-multiselect {
+        border: 1px solid #f3f3f3;
+        padding: 10px;
+        max-width: 300px;
+        overflow-y: auto;
+        max-height: 300px;
+    }
+
+    .group {
+        margin-bottom: 10px;
+    }
+
+        .group label {
+            font-weight: bold;
+        }
+
+    .options {
+        margin-left: 20px;
+    }
+
+    .user-select-wrapper {
+        position: relative;
+    }
+
+    .user-search-input {
+        width: 100%;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+
+    .user-dropdown-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-top: none;
+        background: #fff;
+        position: absolute;
+        width: 100%;
+        z-index: 1000;
+        display: none;
+    }
+
+    .user-dropdown-list.open {
+        display: block;
+    }
+
+    .user-dropdown-list .user-option {
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+
+    .user-dropdown-list .user-option:hover {
+        background-color: #f0f0f0;
+    }
+
+    .user-dropdown-list .user-option.selected {
+        background-color: #337ab7;
+        color: #fff;
+    }
+</style>
+
+<form name="attendanceSearchForm">
+    <div ng-controller="AttendanceReportController as $ctrl">
+        <input type="hidden" value="" name="startDateTime" id="startDateTime" />
+        <input type="hidden" value="" name="endDateTime" id="endDateTime" />
+        <input type="hidden" value="" name="selectedUserId" id="selectedUserId" />
+        <input type="hidden" value="" name="reportingManagerIds" id="reportingManagerIds" />
+        <input type="hidden" value="" name="LOCATION" id="LOCATION" />
+
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-10">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Start Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="startDate" id="startDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.userFilter.startDate" ng-click="$ctrl.openStartPopup()" is-open="$ctrl.startOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="attendanceSearchForm.startDate.$touched && attendanceSearchForm.startDate.$error.required">Start Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.startDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.startDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">End Date</label>
+                            <div class="col-md-3">
+                                <input type="text" name="endDate" id="endDate" class="form-control" uib-datepicker-popup="dd/MM/yyyy" style="width: 180px" ng-model="$ctrl.userFilter.endDate" ng-click="$ctrl.openEndPopup()" is-open="$ctrl.endOpened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close" alt-input-formats="altInputFormats" required />
+                                <span style="color: red;" ng-show="attendanceSearchForm.endDate.$touched && attendanceSearchForm.endDate.$error.required">End Date is required.</span>
+                            </div>
+                            <div class="col-md-7">
+                                <select class="form-control" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.endDateHour">
+                                    <option ng-repeat="option in $ctrl.hours" value="{{option}}">{{option}}</option>
+                                </select>
+                                <select class="form-control" style="width: 70px; display:inline;" ng-model="$ctrl.userFilter.endDateMinute">
+                                    <option ng-repeat="option in $ctrl.minutes" value="{{option}}">{{option}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Location</label>
+                            <div class="col-md-5">
+                                <select class="form-control" ng-model="$ctrl.userFilter.location" ng-change="$ctrl.filterUsers()">
+                                    <option value="">ALL</option>
+                                    <option value="BANGALORE">BANGALORE</option>
+                                    <option value="CHENNAI">CHENNAI</option>
+                                    <option value="HOSPET">HOSPET</option>
+                                    <option value="VENDOR">VENDOR</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Reporting Manager</label>
+                            <div class="col-md-5">
+                                <div class="multiselect-wrapper" style="position:relative;">
+                                    <button type="button" class="btn btn-default form-control" style="text-align:left; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;" ng-click="$ctrl.toggleManagerDropdown($event)">
+                                        {{$ctrl.selectedManagerLabel()}}
+                                        <span class="caret" style="float:right; margin-top:8px;"></span>
+                                    </button>
+                                    <div class="multiselect-dropdown" ng-show="$ctrl.managerDropdownOpen" style="position:absolute; z-index:2000; background:#fff; border:1px solid #ccc; width:100%; max-height:250px; overflow-y:auto; box-shadow:0 4px 8px rgba(0,0,0,0.15);">
+                                        <div style="padding:6px 10px; border-bottom:1px solid #eee; background:#f9f9f9;">
+                                            <label style="font-weight:normal; margin:0; cursor:pointer;">
+                                                <input type="checkbox" ng-model="$ctrl.allManagersSelected" ng-change="$ctrl.toggleAllManagers()" />
+                                                &nbsp;<strong>ALL</strong>
+                                            </label>
+                                        </div>
+                                        <div ng-repeat="manager in $ctrl.reportingManagers" style="padding:5px 10px; cursor:pointer;" ng-class="{'bg-info': $ctrl.isManagerSelected(manager.id)}">
+                                            <label style="font-weight:normal; margin:0; cursor:pointer; width:100%;">
+                                                <input type="checkbox" ng-model="$ctrl.selectedManagerIds[manager.id]" ng-change="$ctrl.onManagerChange()" />
+                                                &nbsp;{{manager.name}}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2">User</label>
+                            <div class="col-md-5">
+                                <div class="user-select-wrapper">
+                                    <input type="text" class="user-search-input" placeholder="ALL (Search user...)" ng-model="$ctrl.userSearchText" ng-focus="$ctrl.showUserDropdown = true" ng-keyup="$ctrl.showUserDropdown = true" />
+                                    <div class="user-dropdown-list" ng-class="{'open': $ctrl.showUserDropdown}">
+                                        <div class="user-option" ng-class="{'selected': $ctrl.selectedUserId == ''}" ng-click="$ctrl.selectedUserId = ''; $ctrl.userSearchText = ''; $ctrl.showUserDropdown = false;">
+                                            ALL
+                                        </div>
+                                        <div class="user-option" ng-repeat="u in $ctrl.filteredUsers | filter:$ctrl.userSearchText" ng-class="{'selected': $ctrl.selectedUserId == u.id}" ng-click="$ctrl.selectedUserId = u.id; $ctrl.userSearchText = u.name; $ctrl.showUserDropdown = false;">
+                                            {{u.name}} <small style="color:#999;">({{u.location}})</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <div class="col-md-10">
+                                <input type="button" class="btn btn-success" ng-click="$ctrl.loadReport()" value="Search" ng-disabled="!attendanceSearchForm.$valid" />
+                                <button type="button" class="btn btn-primary exportToExcelButton" table-id="attendanceReportTable" file-name="Login Logout Report" style="margin-left: 10px;">
+                                    <i class="fa fa-file-excel-o"></i> Export to Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2"></div>
+        </div>
+        <div class="row" style="padding-top: 10px;">
+            <div class="col-lg-12" id="attendanceReportTable">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee Code</th>
+                            <th>Employee Name</th>
+                            <th>Project Manager</th>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>Shift Timing (IST)</th>
+                            <th>Login Time (IST)</th>
+                            <th>Order Start Time (IST)</th>
+                            <th>Total Break Duration</th>
+                            <th>Logout Time (IST)</th>
+                            <th>
+                                Total Orders
+                                <div class="pull-right">
+                                    <i class="fa fa-file-excel-o exportToExcelButton" table-id="attendanceReportTable" title="Export to Excel" aria-hidden="true" file-name="Login Logout Report"></i>
+                                </div>
+                            </th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.EmployeeCode</td>
+                                    <td>@item.EmployeeName</td>
+                                    <td>@item.ProjectManager</td>
+                                    <td>@item.Date</td>
+                                    <td>@item.Shift</td>
+                                    <td>@item.ShiftTiming</td>
+                                    <td>@item.LoginTime</td>
+                                    <td>@item.OrderStartTime</td>
+                                    <td>@item.TotalBreakDuration</td>
+                                    <td>@item.LogoutTime</td>
+                                    <td style="text-align:center;">@item.TotalOrders</td>
+                                    <td>@item.Comments</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    // Close user dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        var el = document.querySelector('[ng-controller="AttendanceReportController as $ctrl"]');
+        if (!el) return;
+        var scope = angular.element(el).scope();
+        if (!scope || !scope.$ctrl) return;
+
+        if (!e.target.closest('.user-select-wrapper')) {
+            scope.$ctrl.showUserDropdown = false;
+        }
+        if (!e.target.closest('.multiselect-wrapper')) {
+            scope.$ctrl.managerDropdownOpen = false;
+        }
+        scope.$applyAsync();
+    });
+</script>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -23,11 +23,12 @@ using System.Data.OleDb;
 using System.ComponentModel.Design;
 using System.Drawing;
 using System.Globalization;
+using System.Reflection;
 
 namespace Prelims.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class AuditsController : Controller
+    public partial class AuditsController : Controller
     {
         private FntEntities db = new FntEntities();
 
@@ -227,13 +228,21 @@ namespace Prelims.Controllers
         }
 
         // GET: Audits/Details/5
-        public ActionResult Details(int? id)
+        public ActionResult Details(int? id, string orderNo = null)
         {
-            if (id == null)
+            if (id == null && string.IsNullOrEmpty(orderNo))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Audit Audit = db.Audits.Find(id);
+            Audit Audit = null;
+            if (id.HasValue)
+            {
+                Audit = db.Audits.Find(id);
+            }
+            else if (!string.IsNullOrEmpty(orderNo))
+            {
+                Audit = db.Audits.FirstOrDefault(x => x.OrderNo == orderNo);
+            }
             if (Audit == null)
             {
                 return HttpNotFound();

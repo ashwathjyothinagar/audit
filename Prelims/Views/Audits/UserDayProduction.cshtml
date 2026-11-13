@@ -1,0 +1,95 @@
+﻿
+@{
+    ViewBag.PageTitle = "SEND SHIFT PRODUCTION REPORT";
+}
+
+<style>
+    .office-multiselect {
+        border: 1px solid #f3f3f3;
+        padding: 10px;
+        max-width: 300px;
+        overflow-y: auto;
+        max-height: 300px;
+    }
+
+    .group {
+        margin-bottom: 10px;
+    }
+
+        .group label {
+            font-weight: bold;
+        }
+
+    .options {
+        margin-left: 20px;
+    }
+</style>
+<form name="searchForm">
+    <div class="row" ng-controller="EodReportController as $ctrl">
+        <div ng-init="$ctrl.shift = '@(ViewBag.ShiftName ?? "")'">
+        </div>
+        <div class="col-lg-2"></div>
+        <div class="col-lg-10">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="BranchCity">Shift</label>
+                        <div class="col-md-3">
+                            <select class="form-control col-md-2 list-box tri-state"
+                                    id="Shift"
+                                    name="Shift"
+                                    ng-model="$ctrl.shift"
+                                    ng-options="shift.ShiftName as shift.ShiftName for shift in $ctrl.shifts"
+                                    required>
+                            </select>
+
+                            @*<select class="form-control col-md-2 list-box tri-state" id="Shift" name="Shift" ng-model="$ctrl.shift" required>
+                            <option value=""></option>
+                            <option value="Morning">Morning</option>
+                            <option value="General">General</option>
+                            <option value="Afternoon Shift">Afternoon Shift</option>
+                            <option value="Night">Night</option>
+                        </select>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (ViewBag.ShowUserAndDate != null && ViewBag.ShowUserAndDate == true)
+            {
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">User</label>
+                            <div class="col-md-3">
+                                @Html.DropDownList("UserInfos", null, "Select", htmlAttributes: new { @class = "form-control" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <div class="col-lg-8">
+                        <div class="form-group">
+                            <label class="control-label col-md-2" for="BranchCity">Date</label>
+                            <div class="col-md-3">
+                                <input type="datetime-local" name="ReportDate" id="ReportDate" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="row" style="padding-top: 10px;">
+                <div class="col-lg-8">
+                    <div class="form-group">
+                        <label class="control-label col-md-2" for="SenderId"></label>
+                        <div class="col-md-10">
+                            <input type="button" class="btn btn-success" ng-click="$ctrl.sendDialyProducitonReport()" value="Send" ng-disabled="!$ctrl.shift" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2"></div>
+    </div>
+
+</form>

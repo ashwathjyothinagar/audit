@@ -32,12 +32,17 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li>@Html.ActionLink("EOD", "EOD", "Audits")</li>
-                                <li>@Html.ActionLink("Production + QC", "ProductionReport", "Audits")</li>
-                                <li>@Html.ActionLink("Uploaded Orders", "OrderCompleted", "Audits")</li>
+                                <li>@Html.ActionLink("Production", "ProductionReport", "Audits")</li>
+                                <li>@Html.ActionLink("Production Metrics", "ProductionMetrics", "Audits")</li>
                                 <li>@Html.ActionLink("Completed Orders", "OrderCompleted", "Audits")</li>
                                 <li>@Html.ActionLink("User Report", "UserReport", "Audits")</li>
-                                <li>@Html.ActionLink("Hourly Count  Report", "HourTasks", "Audits")</li>
-
+                                <li>@Html.ActionLink("Hourly Count Report", "HourTasks", "Audits")</li>
+                                <li>@Html.ActionLink("Active Users", "ShowActiveUsers", "Home")</li>
+                                <li>@Html.ActionLink("Work Time Tracker", "WorkTimeTracker", "Home")</li>
+                                <li>@Html.ActionLink("User Day Production", "UserDayProduction", "Audits", new { showUserAndDate = true }, null)</li>
+                                <li>@Html.ActionLink("Pending Orders", "PendingOrdersReport", "Audits")</li>
+                                <li>@Html.ActionLink("Login Logout", "AttendanceReport", "Audits")</li>
+                                <li>@Html.ActionLink("Shift Allowance", "ShiftAllowanceReport", "Audits")</li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -192,5 +197,9 @@
     <script src="~/src/Audit/Audit.userReport.js"></script>
     <script src="~/src/Audit/Audit.hourlyTaskReport.js"></script>
     <script src="~/src/Audit/Audit.editErrors.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/src/Audit/Audit.productionMetrics.js"></script>
+    <script src="~/src/Audit/Audit.attendanceReport.js"></script>
+    <script src="~/src/Audit/Audit.shiftAllowanceReport.js"></script>
+    <script src="~/src/Audit/Audit.pendingOrdersReport.js"></script>
 </body>
 </html>

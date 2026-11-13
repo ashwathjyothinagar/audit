@@ -1,0 +1,144 @@
+@{
+    ViewBag.Title = "Production Metrics";
+}
+
+<div class="row" ng-controller="ProductionMetricsController as $ctrl" ng-init="$ctrl.init()">
+    <div class="col-xs-12">
+        <div class="page-title-box">
+            <h4 class="page-title">Production Metrics Report</h4>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+
+    <div class="col-xs-12">
+        <div class="card-box">
+            <form class="form-inline" name="reportForm">
+                
+                <div class="form-group m-r-10">
+                    <label>Report Type: </label>
+                    <select class="form-control" ng-model="$ctrl.reportType" ng-change="$ctrl.onReportTypeChange()">
+                        <option value="Daily">Daily</option>
+                        <option value="Monthly">Monthly</option>
+                    </select>
+                </div>
+
+                <div class="form-group m-r-10">
+                    <label>Start Date: </label>
+                    <input type="date" class="form-control" ng-model="$ctrl.startDate">
+                </div>
+                
+                <div class="form-group m-r-10">
+                    <label>End Date: </label>
+                    <input type="date" class="form-control" ng-model="$ctrl.endDate">
+                </div>
+
+                <div class="form-group m-r-10">
+                    <label>Start Time: </label>
+                    <input type="time" class="form-control" ng-model="$ctrl.startTime" placeholder="HH:mm">
+                </div>
+
+                <div class="form-group m-r-10">
+                    <label>End Time: </label>
+                    <input type="time" class="form-control" ng-model="$ctrl.endTime" placeholder="HH:mm">
+                </div>
+                
+                <div class="form-group m-r-10">
+                    <label>Offices</label>
+                    <select class="form-control" multiple="multiple" id="officeSelect" ng-model="$ctrl.selectedOffices" style="min-width:200px; height: 100px;">
+                        @foreach (var office in ViewBag.Offices)
+                        {
+                            <option value="@office.CRNID">@office.CRNNAME</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group m-r-10">
+                    <label>Location</label>
+                    <select class="form-control" ng-model="$ctrl.selectedLocation">
+                        <option value="">-- All --</option>
+                        @foreach (var loc in ViewBag.Locations)
+                        {
+                            <option value="@loc">@loc</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-primary" style="vertical-align: top;" ng-click="$ctrl.generateReport()">Generate</button>
+                <button type="button" class="btn btn-success" style="vertical-align: top;" ng-click="$ctrl.exportToExcel()" ng-show="$ctrl.hasData">Export to Excel</button>
+            </form>
+
+            <hr />
+
+            <div class="table-responsive" ng-show="$ctrl.hasData" style="overflow-x: auto; width: 100%;">
+                <table id="metricsTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>SL.No</th>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Achieved %</th>
+                            <th ng-repeat="col in $ctrl.dynamicColumns">{{col}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="row in $ctrl.reportData">
+                            <td>{{row.SerialNumber}}</td>
+                            <td>{{row.Name}}</td>
+                            <td>{{row.Location}}</td>
+                            <td ng-style="{'background-color': row.AchievedPercent >= 90 ? '#d4edda' : '#f8d7da', 'color': row.AchievedPercent >= 90 ? 'green' : 'red', 'font-weight': 'bold'}">
+                                {{row.AchievedPercentDisplay}}
+                            </td>
+                            <td ng-repeat="col in $ctrl.dynamicColumns">
+                                <a href="javascript:void(0)" ng-if="row.TaskCounts[col]" ng-click="$ctrl.showOrders(row.TaskCounts[col].OrderNumbers, row.Name, col)">
+                                    {{row.TaskCounts[col].Count}}
+                                </a>
+                                <span ng-if="!row.TaskCounts[col]">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div ng-show="!$ctrl.hasData && $ctrl.searched">
+                <p>No data found for the selected criteria.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Modal -->
+    <div id="ordersModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Orders for {{ $ctrl.modalUser }} ({{ $ctrl.modalTask }})</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped" ng-if="$ctrl.modalOrders.length > 0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Order No</th>
+                                <th>Office</th>
+                                <th>Product Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="order in $ctrl.modalOrders">
+                                <td>{{$index + 1}}</td>
+                                <td>
+                                    <a ng-href="/Audits/Details?orderNo={{order.OrderNumber}}" target="_blank">{{order.OrderNumber}}</a>
+                                </td>
+                                <td>{{order.OfficeName}}</td>
+                                <td>{{order.ProductType}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

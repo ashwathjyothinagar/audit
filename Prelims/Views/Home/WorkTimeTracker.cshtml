@@ -1,0 +1,210 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml"; // enforce layout
+    ViewBag.PageTitle = "Work Time Tracker";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="well">
+            <div class="form-inline">
+                <div class="form-group">
+                    <label>From Date</label>
+                    <input id="fromDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>To Date</label>
+                    <input id="toDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Users</label>
+                    <select id="userSelect" multiple class="form-control" style="min-width:200px;"></select>
+                </div>
+                <div class="form-group">
+                    <button id="searchBtn" class="btn btn-primary">Search</button>
+                    <button id="exportBtn" class="btn btn-default" table-id="reportTable" file-name="WorkTimeTracker">Export to CSV</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="reportArea" style="display:none;">
+            <table id="reportTable" class="table table-condensed table-striped compact-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Employee Code</th>
+                        <th>User Full Name</th>
+                        <th>Email</th>
+                        <th>Reporting Manager</th>
+                        <th>Total Logged-in Hours</th>
+                        <th>Break Duration (min)</th>
+                        <th>Break Count</th>
+                        <th>Logged Hours (Net)</th>
+                        <th>Logged Hours (With Break)</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody"></tbody>
+            </table>
+
+            <div id="paginationControls" style="margin-top:10px; display:flex; align-items:center;">
+                <button id="prevPage" class="btn btn-default" style="margin-right:8px;">Prev</button>
+                <span id="pageInfo" style="margin-right:8px;"></span>
+                <button id="nextPage" class="btn btn-default">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Drilldown modal -->
+<div id="breakModalReport" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Break Details</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table table-condensed">
+            <thead><tr><th>Start Time</th><th>End Time</th><th>Duration (min)</th><th>Reason</th></tr></thead>
+            <tbody id="breakDetailsBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section scripts {
+<script>
+    $(function(){
+        // default From Date and To Date to today
+        var today = new Date().toISOString().slice(0,10);
+        $('#fromDate').val(today);
+        $('#toDate').val(today);
+
+        var currentPage = 1;
+        var pageSize = 15; // fixed page size requirement
+        var totalPages = 0;
+        var lastQuery = null;
+
+        // load users into select
+        $.getJSON(ROOTURL + 'Home/GetUsers', function(data){
+            var sel = $('#userSelect');
+            data.forEach(function(u){
+                sel.append('<option value="'+u.id+'">'+u.name+'</option>');
+            });
+        });
+
+        function renderRows(items) {
+            var tbody = $('#reportBody'); tbody.empty();
+            (items || []).forEach(function(row){
+                var tr = $('<tr>');
+                tr.append($('<td>').text(row.Date));
+                tr.append($('<td>').text(row.EmployeeCode));
+                tr.append($('<td>').text(row.FullName));
+                tr.append($('<td>').text(row.Email));
+                tr.append($('<td>').text(row.ReportingManager));
+                tr.append($('<td>').text(row.TotalLoggedHours));
+                tr.append($('<td>').text(row.BreakDurationMinutes));
+                var breakCountCell = $('<td>').html('<a href="#" class="break-drill" data-userid="'+row.UserId+'" data-date="'+row.Date+'">'+row.BreakCount+'</a>');
+                tr.append(breakCountCell);
+                tr.append($('<td>').text(row.LoggedWithBreak));
+                tr.append($('<td>').text(row.LoggedNet));
+                tbody.append(tr);
+            });
+        }
+
+        function loadPage(page) {
+            if (!lastQuery) return;
+            currentPage = page || 1;
+            $('#reportArea').hide();
+            var params = $.extend({}, lastQuery, { page: currentPage, pageSize: pageSize });
+            $.getJSON(ROOTURL + 'Home/GetWorkTimeTracker', params, function(resp){
+                if (resp.error) { alert(resp.error); return; }
+
+                var items = resp.data || [];
+                renderRows(items);
+
+                if (resp.total !== undefined) {
+                    var total = resp.total;
+                    totalPages = Math.max(1, Math.ceil(total / pageSize));
+                    $('#pageInfo').text('Page ' + resp.page + ' of ' + totalPages + ' (Total records: ' + total + ')');
+                    $('#prevPage').prop('disabled', resp.page <= 1);
+                    $('#nextPage').prop('disabled', resp.page >= totalPages);
+                } else {
+                    $('#pageInfo').text('');
+                    $('#prevPage').prop('disabled', true);
+                    $('#nextPage').prop('disabled', true);
+                }
+
+                $('#reportArea').show();
+            }).fail(function() { alert('Failed to load report'); });
+        }
+
+        $('#searchBtn').off('click').on('click', function(){
+            var from = $('#fromDate').val();
+            var to = $('#toDate').val();
+            var users = $('#userSelect').val();
+
+            if (!from || !to || !users || users.length === 0) {
+                alert('Please enter all filters (From Date, To Date and at least one User).');
+                return;
+            }
+
+            lastQuery = { fromDate: from, toDate: to, userIds: users.join(',') };
+            currentPage = 1;
+            loadPage(currentPage);
+        });
+
+        $('#prevPage').on('click', function(){
+            if (currentPage > 1) { currentPage--; loadPage(currentPage); }
+        });
+        $('#nextPage').on('click', function(){
+            if (currentPage < totalPages) { currentPage++; loadPage(currentPage); }
+        });
+
+        // server-side export - download full CSV for the current filters
+        $('#exportBtn').on('click', function(e){
+            e.preventDefault();
+            var from = $('#fromDate').val();
+            var to = $('#toDate').val();
+            var users = $('#userSelect').val();
+            if (!from || !to || !users || users.length === 0) {
+                alert('Please enter filters (From Date, To Date and at least one User) before exporting.');
+                return;
+            }
+            var qs = '?fromDate=' + encodeURIComponent(from) + '&toDate=' + encodeURIComponent(to) + '&userIds=' + encodeURIComponent(users.join(','));
+            window.location = ROOTURL + 'Home/ExportWorkTimeTracker' + qs;
+        });
+
+        // drilldown
+        $(document).on('click', '.break-drill', function(e){
+            e.preventDefault();
+            var userId = $(this).data('userid');
+            var date = $(this).data('date');
+            var from = date;
+            var to = date;
+            $('#breakDetailsBody').empty();
+            $.getJSON(ROOTURL + 'Home/GetUserBreakDetails', { userId: userId, fromDate: from, toDate: to }, function(resp){
+                if (resp.error) { alert(resp.error); return; }
+                resp.forEach(function(b){
+                    // parse ISO date strings reliably
+                    var start = b.StartTime ? new Date(b.StartTime) : null;
+                    var end = b.EndTime ? new Date(b.EndTime) : null;
+                    var startText = start ? start.toLocaleString() : '';
+                    var endText = end ? end.toLocaleString() : '';
+                    var dur = b.ActualDurationMinutes || b.PlannedDurationMinutes || '';
+                    var tr = $('<tr>');
+                    tr.append($('<td>').text(startText));
+                    tr.append($('<td>').text(endText));
+                    tr.append($('<td>').text(dur));
+                    tr.append($('<td>').text(b.BreakReason));
+                    $('#breakDetailsBody').append(tr);
+                });
+                $('#breakModalReport').modal('show');
+            });
+        });
+    });
+</script>
+}

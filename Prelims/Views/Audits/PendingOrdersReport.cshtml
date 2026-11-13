@@ -1,0 +1,121 @@
+@{
+    ViewBag.PageTitle = "PENDING ORDERS REPORT";
+}
+
+<div class="row" ng-controller="PendingOrdersReportController as $ctrl">
+    <div class="col-lg-12">
+        <input type="hidden" id="SelectedOffices" name="SelectedOffices" />
+
+        <div class="row" style="margin-bottom: 15px;">
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label class="control-label" for="statusFilter">Filter by Status</label>
+                    <select class="form-control multipselect" id="statusFilter" ng-model="$ctrl.selectedStatuses" ng-change="$ctrl.loadReport()" multiple size="3">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="On Hold">On Hold</option>
+                    </select>
+                    <span class="help-block">Leave all unselected to show every status.</span>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="form-group">
+                    <label class="control-label" for="office-multiselect">Office Name</label>
+                    <div id="office-multiselect" class="office-multiselect" style="max-height: 220px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                        @foreach (var group in ((List<CRN>)ViewBag.Offices).GroupBy(x => x.GroupName))
+                        {
+                            var groupKey = string.IsNullOrWhiteSpace(group.Key) ? "Other" : group.Key.Replace(" ", "");
+                            var groupName = string.IsNullOrWhiteSpace(group.Key) ? "Other" : group.Key;
+                            <div class="group" style="margin-bottom: 10px;">
+                                <label>
+                                    <input type="checkbox" class="group-checkbox" data-group="@groupKey">
+                                    @groupName
+                                </label>
+                                <div class="options" style="padding-left: 15px;">
+                                    @foreach (var office in group)
+                                    {
+                                        <label style="display: block; font-weight: normal;"><input type="checkbox" class="office-checkbox" data-group="@groupKey" value="@office.CRNID"> @office.CRNNAME</label>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="form-group">
+                    <label class="control-label">&nbsp;</label>
+                    <div>
+                        <button type="button" class="btn btn-primary" ng-click="$ctrl.loadReport()">
+                            <i class="fa fa-filter"></i> Apply Filters
+                        </button>
+                        <button type="button" class="btn btn-success" ng-click="$ctrl.exportReport()">
+                            <i class="fa fa-file-excel-o"></i> Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pendingOrdersReportTable">
+            <table class="table table-striped table-condensed table-bordered">
+                <thead>
+                    <tr>
+                        <th style="width:5%;">Sl No</th>
+                        <th>Order No</th>
+                        <th>Office Name</th>
+                        <th>Received Date</th>
+                        <th>Product Type</th>
+                        <th>Requested By</th>
+                        <th>Task</th>
+                        <th>User</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-if="$ctrl.loading">
+                        <td colspan="11" class="text-center">
+                            <i class="fa fa-spinner fa-spin"></i> Loading...
+                        </td>
+                    </tr>
+                    <tr ng-if="!$ctrl.loading && $ctrl.filteredOrders.length === 0">
+                        <td colspan="11" class="text-center text-muted">No pending orders found.</td>
+                    </tr>
+                    <tr ng-repeat="order in $ctrl.filteredOrders track by order.id"
+                        ng-class="{'warning': order.status === 'On Hold', 'info': order.status === 'In Progress'}">
+                        <td>{{$index + 1}}</td>
+                        <td>
+                            <a href="@Url.Content("~/Audits/Details/"){{order.id}}" target="_blank">{{order.orderNo}}</a>
+                        </td>
+                        <td>{{order.officeName}}</td>
+                        <td>{{order.receivedDate}}</td>
+                        <td>{{order.productType}}</td>
+                        <td>{{order.requestedBy}}</td>
+                        <td>{{order.task}}</td>
+                        <td>{{order.assignedUser}}</td>
+                        <td>
+                            <span ng-class="{
+                                'label label-warning': order.status === 'On Hold',
+                                'label label-primary': order.status === 'In Progress',
+                                'label label-default': order.status === 'Pending'
+                            }">{{order.status}}</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot ng-if="!$ctrl.loading && $ctrl.filteredOrders.length > 0">
+                    <tr>
+                        <td colspan="11">
+                            Pending: <strong>{{$ctrl.countByStatus('Pending')}}</strong>
+                            &nbsp;|&nbsp;
+                            In Progress: <strong>{{$ctrl.countByStatus('In Progress')}}</strong>
+                            &nbsp;|&nbsp;
+                            On Hold: <strong>{{$ctrl.countByStatus('On Hold')}}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+

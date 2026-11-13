@@ -1,0 +1,872 @@
+@model  List<Prelims.Models.UserStatusReportModel>
+
+@{
+    ViewBag.PageTitle = "ACTIVE USERS";
+}
+
+<style>
+    .panel-heading {
+        cursor: pointer;
+    }
+
+        .panel-heading span {
+            margin-top: -20px;
+            font-size: 15px;
+        }
+
+    .panel-heading {
+        padding: 5px 12px;
+        border-bottom: 1px solid transparent;
+        border-top-right-radius: 3px;
+        border-top-left-radius: 3px;
+    }
+
+    .sort-icon {
+        padding-left: 5px;
+        transform: translateY(-50%);
+    }
+
+    /* UPDATED: Break status styling - fixed positioning */
+    .break-status {
+        background: linear-gradient(135deg, #ffc107, #ff8c00);
+        color: #212529;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+        margin-right: 5px;
+        position: relative;
+    }
+
+    .break-info {
+        font-size: 11px;
+        color: #666;
+        margin-top: 2px;
+        position: static;
+        background: none;
+        box-shadow: none;
+        padding: 0;
+        border: none;
+    }
+
+    /* UPDATED: Enhanced break stats cell styling with proper centering */
+    .break-stats-cell {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 8px 4px;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 12px;
+        margin: 0 auto;
+        min-width: 70px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+        display: inline-block;
+    }
+
+    /* UPDATED: Better styling for break stats table cells */
+    .break-stats-td {
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 8px !important;
+        min-width: 90px;
+    }
+
+    .break-count {
+        font-weight: bold;
+        color: #17a2b8;
+        font-size: 16px;
+        display: block;
+        line-height: 1.2;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .break-minutes {
+        font-weight: bold;
+        color: #28a745;
+        font-size: 16px;
+        display: block;
+        line-height: 1.2;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .break-label {
+        font-size: 9px;
+        color: #6c757d;
+        margin-top: 2px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .current-break-duration {
+        background: #dc3545;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        margin-left: 5px;
+        display: inline-block;
+    }
+
+    .status-on-break {
+        background: #ffc107 !important;
+        color: #212529 !important;
+    }
+
+    /* UPDATED: Header centering for break columns */
+    .break-header {
+        text-align: center !important;
+        vertical-align: middle !important;
+        min-width: 90px;
+    }
+
+    /* ADDED: Status cell styling */
+    .status-cell {
+        min-width: 150px;
+        vertical-align: top !important;
+    }
+
+    /* ADDED: Compact table styling */
+    .compact-table {
+        font-size: 12px;
+    }
+
+        .compact-table td, .compact-table th {
+            padding: 6px !important;
+            vertical-align: middle !important;
+        }
+
+    /* ADDED: User name column styling */
+    .user-name-cell {
+        font-weight: bold;
+        color: #495057;
+    }
+
+    /* NEW: Real-time status indicators */
+    .live-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #28a745;
+        border-radius: 50%;
+        margin-right: 5px;
+        animation: pulse 2s infinite;
+    }
+
+        .live-indicator.disconnected {
+            background: #dc3545;
+            animation: none;
+        }
+
+    /* FIXED: Escape the keyframes rule for Razor */
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .last-updated {
+        font-size: 11px;
+        color: #6c757d;
+        text-align: right;
+        margin-bottom: 10px;
+    }
+
+    .status-panel {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        padding: 8px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        border-radius: 4px;
+    }
+</style>
+
+<!-- Add connection status indicator -->
+@*<div class="status-panel">
+    <div><strong>Real-time Status Monitor</strong></div>
+    <div id="connectionStatus">🔄 Initializing...</div>
+    <div id="lastUpdated">⏱️ Last updated: Loading...</div>
+    <div id="monitorStatus" style="font-size: 11px; color: #666; margin-top: 5px;">📊 Monitor Status: Initializing...</div>
+</div>*@
+
+<!-- Add SignalR script references -->
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+<script src="~/signalr/hubs"></script>
+
+<script>
+    let sortOrders = [];
+    let signalRConnection = null;
+    let isConnected = false;
+    let isMonitoringActive = false;
+    let updateInterval = null;
+    let heartbeatInterval = null;
+    let updateCounter = 0;
+    let lastUpdateTime = null;
+
+    // MAIN ENTRY POINT: Page load initialization
+    $(document).ready(function () {
+        console.log('ShowActiveUsers page loaded - initializing monitoring');
+        updateMonitorStatus('Page loaded - starting initialization...');
+
+        // Initialize SignalR connection
+        initializeSignalR();
+
+        // Start fallback polling as backup
+        startPollingFallback();
+
+        // Register page-specific event handlers
+        registerPageEventHandlers();
+    });
+
+    function registerPageEventHandlers() {
+        // Handle page unload - ensure we clean up monitoring
+        $(window).on('beforeunload', function() {
+            console.log('Page unloading - cleaning up monitoring');
+            stopMonitoring();
+            return null; // Don't show confirmation dialog
+        });
+
+        // Handle browser tab visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('Page hidden - pausing monitoring');
+                pauseMonitoring();
+            } else {
+                console.log('Page visible - resuming monitoring');
+                resumeMonitoring();
+            }
+        });
+
+        // Handle window focus/blur for additional safety
+        $(window).on('focus', function() {
+            if (!document.hidden) {
+                console.log('Window focused - ensuring monitoring is active');
+                resumeMonitoring();
+            }
+        });
+
+        $(window).on('blur', function() {
+            // Don't stop monitoring on blur, only on visibility change
+            console.log('Window blurred - monitoring continues');
+        });
+    }
+
+    function initializeSignalR() {
+        try {
+            if (!$.connection || !$.connection.activeUsersHub) {
+                console.warn('SignalR hub not available, using polling only');
+                updateConnectionStatus('polling');
+                updateMonitorStatus('SignalR not available - using polling fallback');
+                return;
+            }
+
+            signalRConnection = $.connection.activeUsersHub;
+
+            // Define client-side methods that server can call
+            signalRConnection.client.updateActiveUsers = function (data) {
+                updateActiveUsersDisplay(data);
+                updateConnectionStatus('signalr');
+            };
+
+            // Connection state handlers
+            $.connection.hub.stateChanged(function (change) {
+                console.log('SignalR state changed:', change.oldState, '->', change.newState);
+
+                if (change.newState === $.signalR.connectionState.connected) {
+                    isConnected = true;
+                    console.log('SignalR connected - joining monitoring group');
+
+                    // Join monitoring when connected
+                    signalRConnection.server.joinMonitoring()
+                        .done(function() {
+                            isMonitoringActive = true;
+                            updateConnectionStatus('signalr');
+                            updateMonitorStatus('✅ Active monitoring via SignalR - Database polling optimized');
+                            startHeartbeat();
+                            // Reduce polling frequency since SignalR is working
+                            updatePollingFrequency(30000); // Poll every 30 seconds as backup
+                        })
+                        .fail(function(error) {
+                            console.error('Failed to join monitoring group:', error);
+                            updateConnectionStatus('polling');
+                            updateMonitorStatus('⚠️ SignalR connected but failed to join monitoring - using polling');
+                        });
+
+                } else if (change.newState === $.signalR.connectionState.disconnected) {
+                    isConnected = false;
+                    isMonitoringActive = false;
+                    stopHeartbeat();
+                    updateConnectionStatus('polling');
+                    updateMonitorStatus('🔄 SignalR disconnected - using polling fallback');
+
+                    // Increase polling frequency when SignalR is down
+                    updatePollingFrequency(5000); // Poll every 5 seconds
+
+                    // Auto-reconnect after 5 seconds if page is still visible
+                    setTimeout(function() {
+                        if (!isConnected && !document.hidden) {
+                            console.log('Attempting SignalR reconnection...');
+                            $.connection.hub.start();
+                        }
+                    }, 5000);
+                }
+            });
+
+            // Start the connection
+            console.log('Starting SignalR connection...');
+            $.connection.hub.start()
+                .done(function () {
+                    console.log('SignalR connection started successfully');
+                })
+                .fail(function (error) {
+                    console.error('SignalR connection failed:', error);
+                    updateConnectionStatus('polling');
+                    updateMonitorStatus('❌ SignalR failed to start - using polling only');
+                    updatePollingFrequency(5000);
+                });
+
+        } catch (error) {
+            console.error('SignalR initialization error:', error);
+            updateConnectionStatus('polling');
+            updateMonitorStatus('❌ SignalR initialization failed - using polling only');
+            updatePollingFrequency(5000);
+        }
+    }
+
+    function startHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+        }
+
+        // Send heartbeat every 30 seconds to keep the monitor registered
+        heartbeatInterval = setInterval(function() {
+            if (isConnected && signalRConnection && isMonitoringActive) {
+                try {
+                    signalRConnection.server.heartbeat();
+                    console.log('Heartbeat sent');
+                } catch (error) {
+                    console.error('Heartbeat error:', error);
+                }
+            }
+        }, 30000); // 30 seconds
+    }
+
+    function stopHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+            console.log('Heartbeat stopped');
+        }
+    }
+
+    function pauseMonitoring() {
+        if (isConnected && signalRConnection && isMonitoringActive) {
+            try {
+                signalRConnection.server.leaveMonitoring()
+                    .done(function() {
+                        isMonitoringActive = false;
+                        console.log('Left monitoring group - monitoring paused');
+                        updateMonitorStatus('⏸️ Monitoring paused (page hidden) - Database polling stopped');
+                    })
+                    .fail(function(error) {
+                        console.error('Error leaving monitoring group:', error);
+                    });
+            } catch (error) {
+                console.error('Error pausing monitoring:', error);
+            }
+        }
+
+        stopHeartbeat();
+        updatePollingFrequency(60000); // Reduce to 1 minute when hidden
+    }
+
+    function resumeMonitoring() {
+        if (isConnected && signalRConnection && !isMonitoringActive) {
+            try {
+                signalRConnection.server.joinMonitoring()
+                    .done(function() {
+                        isMonitoringActive = true;
+                        console.log('Rejoined monitoring group - monitoring resumed');
+                        updateMonitorStatus('✅ Monitoring resumed - Database polling reactivated');
+                        startHeartbeat();
+                    })
+                    .fail(function(error) {
+                        console.error('Error rejoining monitoring group:', error);
+                    });
+            } catch (error) {
+                console.error('Error resuming monitoring:', error);
+            }
+        }
+
+        updatePollingFrequency(isConnected ? 30000 : 5000); // Resume normal polling
+    }
+
+    function stopMonitoring() {
+        console.log('Stopping all monitoring activities...');
+
+        // Leave SignalR monitoring group
+        if (isConnected && signalRConnection && isMonitoringActive) {
+            try {
+                // Use synchronous approach for page unload
+                signalRConnection.server.leaveMonitoring();
+                isMonitoringActive = false;
+                console.log('Left monitoring group');
+            } catch (error) {
+                console.error('Error leaving monitoring group:', error);
+            }
+        }
+
+        // Clean up intervals
+        if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+
+        stopHeartbeat();
+
+        updateMonitorStatus('🛑 Monitoring stopped - Page closing');
+    }
+
+    function updateConnectionStatus(type) {
+        var connectionStatus = document.getElementById('connectionStatus');
+        if (!connectionStatus) return;
+
+        if (type === 'signalr' && isConnected) {
+            connectionStatus.innerHTML = '🟢 Live Updates Active (SignalR Real-time)';
+        } else {
+            connectionStatus.innerHTML = '🔵 Live Updates Active (Polling fallback)';
+        }
+    }
+
+    function updateMonitorStatus(message) {
+        var monitorStatus = document.getElementById('monitorStatus');
+        if (monitorStatus) {
+            monitorStatus.innerHTML = '📊 Monitor Status: ' + message;
+            console.log('Monitor Status:', message);
+        }
+    }
+
+    function updatePollingFrequency(interval) {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+
+        console.log('Setting polling interval to', interval, 'ms');
+        updateInterval = setInterval(function () {
+            fetchActiveUsersData();
+        }, interval);
+    }
+
+    function startPollingFallback() {
+        console.log('Starting polling fallback...');
+        updateMonitorStatus('🔄 Starting polling fallback...');
+
+        // Initial fetch
+        fetchActiveUsersData();
+
+        // Set up initial polling every 5 seconds (will be adjusted based on SignalR status)
+        updatePollingFrequency(5000);
+        updateConnectionStatus('polling');
+    }
+
+    function fetchActiveUsersData() {
+        lastUpdateTime = new Date();
+
+        $.ajax({
+            url: '@Url.Action("GetActiveUsersRealTime", "Home")',
+            type: 'GET',
+            timeout: 10000,
+            cache: false,
+            success: function (data) {
+                updateActiveUsersDisplay(data);
+                if (!isConnected) {
+                    updateConnectionStatus('polling');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching active users data: ', xhr, status, error);
+            }
+        });
+    }
+
+    function updateActiveUsersDisplay(data) {
+        try {
+            updateLastUpdatedTime();
+
+            // Update Chennai table
+            if (data.chennai) {
+                updateLocationTable('Chennai', data.chennai, 'inProgressOrdersTableIdChennai');
+            }
+
+            // Update Hospet table
+            if (data.hospet) {
+                updateLocationTable('Hospet', data.hospet, 'inProgressOrdersTableIdHostpet');
+            }
+        } catch (error) {
+            console.error('Error updating display: ', error);
+        }
+    }
+
+    function updateLocationTable(location, users, tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+
+        var tbody = table.getElementsByTagName('tbody')[0];
+        if (!tbody) return;
+
+        // Clear existing rows
+        tbody.innerHTML = '';
+
+        // Add new rows
+        users.forEach(function (user, index) {
+            var row = createUserRow(user, index + 1);
+            tbody.appendChild(row);
+        });
+    }
+
+    function createUserRow(user, serialNumber) {
+        var row = document.createElement('tr');
+
+        var formatDateTime = function(dateString) {
+            if (!dateString) return '';
+            var date = new Date(dateString);
+            return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', { hour12: false }).substring(0, 5);
+        };
+
+        var formatTime = function(dateString) {
+            if (!dateString) return '';
+            var date = new Date(dateString);
+            return date.toLocaleTimeString('en-GB', { hour12: false }).substring(0, 5);
+        };
+
+        var statusHtml = '';
+        if (user.IsOnBreak) {
+            statusHtml = '<span class="label status-on-break">On Break';
+            if (user.CurrentBreakDuration) {
+                statusHtml += '<span class="current-break-duration">' + user.CurrentBreakDuration + ' min</span>';
+            }
+            statusHtml += '</span>';
+            if (user.BreakStartTime || user.BreakReason) {
+                statusHtml += '<div class="break-info">';
+                if (user.BreakStartTime) {
+                    statusHtml += 'Started: ' + formatTime(user.BreakStartTime) + '<br />';
+                }
+                if (user.BreakReason) {
+                    statusHtml += 'Reason: ' + user.BreakReason;
+                }
+                statusHtml += '</div>';
+            }
+        } else if (user.Status === "Available") {
+            statusHtml = '<span class="label label-warning">Available</span>';
+        } else {
+            statusHtml = user.Status || '';
+        }
+
+        var logoutButton = '';
+        if (user.UserTimeEntryId) {
+            logoutButton = '<a href="@Url.Action("End", "UserTimeEntries")?entryId=' + user.UserTimeEntryId + '" class="btn btn-warning btn-sm">Logout</a>';
+        }
+
+        row.innerHTML =
+            '<td style="text-align:center;">' + serialNumber + '</td>' +
+            '<td class="user-name-cell">' + (user.UserName || '') + '</td>' +
+            '<td>' + formatDateTime(user.LoggedInTime) + '</td>' +
+            '<td>' + (user.Office || '') + '</td>' +
+            '<td>' + (user.Task || '') + '</td>' +
+            '<td class="status-cell">' + statusHtml + '</td>' +
+            '<td class="break-stats-td">' +
+                '<div class="break-stats-cell">' +
+                    '<span class="break-count">' + (user.TodayBreakCount || 0) + '</span>' +
+                    '<div class="break-label">breaks today</div>' +
+                '</div>' +
+            '</td>' +
+            '<td class="break-stats-td">' +
+                '<div class="break-stats-cell">' +
+                    '<span class="break-minutes">' + (user.TodayTotalBreakMinutes || 0) + '</span>' +
+                    '<div class="break-label">minutes total</div>' +
+                '</div>' +
+            '</td>' +
+            '<td>' + formatDateTime(user.LastOrderCompletedDate) + '</td>' +
+            '<td>' + logoutButton + '</td>';
+
+        return row;
+    }
+
+    function updateLastUpdatedTime() {
+        var now = new Date();
+        var timeString = now.toLocaleTimeString('en-GB');
+        var lastUpdatedElement = document.getElementById('lastUpdated');
+        if (lastUpdatedElement) {
+            lastUpdatedElement.innerHTML = '⏱️ Last updated: <strong>' + timeString + '</strong>';
+        }
+    }
+
+    function sortTable(columnIndex, tableName) {
+        let table, rows, switching, i, x, y, shouldSwitch;
+        table = document.getElementById(tableName);
+        switching = true;
+
+        // Toggle sort order
+        if (sortOrders[columnIndex] === undefined) {
+            sortOrders[columnIndex] = 'asc';
+        } else if (sortOrders[columnIndex] === 'asc') {
+            sortOrders[columnIndex] = 'desc';
+        } else {
+            sortOrders[columnIndex] = 'asc';
+        }
+
+        // Remove existing sort icons
+        let sortIcons = document.querySelectorAll('.sort-icon');
+        sortIcons.forEach(icon => {
+            icon.innerHTML = '';
+        });
+
+        // Set sort icon for the clicked column
+        let sortIcon = document.createElement('i');
+
+        sortIcon.classList.add('glyphicon');
+        if (sortOrders[columnIndex] === 'asc') {
+            sortIcon.classList.add('glyphicon-arrow-up');
+        } else {
+            sortIcon.classList.add('glyphicon-arrow-down');
+        }
+
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("td")[columnIndex];
+                y = rows[i + 1].getElementsByTagName("td")[columnIndex];
+
+                let xValue = x.innerHTML.toLowerCase();
+                let yValue = y.innerHTML.toLowerCase();
+
+                if (sortOrders[columnIndex] === 'asc') {
+                    if (xValue > yValue) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else {
+                    if (xValue < yValue) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+            }
+        }
+    }
+</script>
+
+<div id="inprogressChennaiTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="inprogressChennaiTable=true">
+    <div>
+        <div ng-click="inprogressChennaiTable=!inprogressChennaiTable">
+            <i class="glyphicon glyphicon-chevron-right" ng-if="!inprogressChennaiTable"></i>
+            <i class="glyphicon glyphicon-chevron-down" ng-if="!inprogressChennaiTable"></i>
+            CHENNAI
+        </div>
+    </div>
+    <div id="inProgressOrdersTableChennai">
+        <table style="margin-top: 10px" class="table table-condensed table-striped compact-table" id="inProgressOrdersTableIdChennai" ng-if="inprogressChennaiTable">
+            <thead>
+                <tr>
+                    <th style="text-align:center;">SL No</th>
+                    <th>User Name</th>
+                    <th>Logged In Time</th>
+                    <th onclick="sortTable(3,'inProgressOrdersTableIdChennai')">Office Name <span class="sort-icon"></span></th>
+                    <th style="cursor:pointer;" onclick="sortTable(4, 'inProgressOrdersTableIdChennai')">Task <span class="sort-icon"></span></th>
+                    <th>Status</th>
+                    <th class="break-header">Break Count</th>
+                    <th class="break-header">Break Duration</th>
+                    <th>Last order completed</th>
+                    <th>
+                        <div class="pull-right">
+                            <i class="fa fa-file-excel-o exportToExcelButton" table-id="inProgressOrdersTableChennai" title="Export to Excel" aria-hidden="true" file-name="InProgressOrders"></i>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ var serialNumberIndex = 1; }
+                @foreach (var item in Model.Where(x => x.Location == "CHENNAI"))
+                {
+                    <tr>
+                        <td style="text-align:center;">
+                            @serialNumberIndex.ToString()
+                        </td>
+                        <td class="user-name-cell">
+                            @item.UserName
+                        </td>
+                        <td>
+                            @(item.LoggedInTime?.ToString("dd-MM-yyyy HH:mm") ?? "")
+                        </td>
+                        <td>
+                            @item.Office
+                        </td>
+                        <td>
+                            @item.Task
+                        </td>
+                        <td class="status-cell">
+                            @if (item.IsOnBreak)
+                            {
+                                <span class="label status-on-break">
+                                    On Break
+                                    <span class="current-break-duration">@item.CurrentBreakDuration min</span>
+                                </span>
+                                <div class="break-info">
+                                    Started: @(item.BreakStartTime?.ToString("HH:mm") ?? "")<br />
+                                    Reason: @(item.BreakReason ?? "")
+                                </div>
+                            }
+                            else if (@item.Status == "Available")
+                            {
+                                <span class="label label-warning">Available</span>
+                            }
+                            else
+                            {
+                                @item.Status
+                            }
+                        </td>
+                        <td class="break-stats-td">
+                            <div class="break-stats-cell">
+                                <span class="break-count">@item.TodayBreakCount</span>
+                                <div class="break-label">breaks today</div>
+                            </div>
+                        </td>
+                        <td class="break-stats-td">
+                            <div class="break-stats-cell">
+                                <span class="break-minutes">@item.TodayTotalBreakMinutes</span>
+                                <div class="break-label">minutes total</div>
+                            </div>
+                        </td>
+                        <td>
+                            @(item.LastOrderCompletedDate?.ToString("dd-MM-yyyy HH:mm") ?? "")
+                        </td>
+                        <td>
+                            @if (item.UserTimeEntryId.HasValue)
+                            {
+                                @Html.ActionLink("Logout", "End", "UserTimeEntries", new { entryId = item.UserTimeEntryId }, new { @class = "btn btn-warning btn-sm" })
+                            }
+                        </td>
+                    </tr>
+                    serialNumberIndex++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="inprogressHospetTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="inprogressHospetTable=true">
+    <div>
+        <div ng-click="inprogressHospetTable=!inprogressHospetTable">
+            <i class="glyphicon glyphicon-chevron-right" ng-if="!inprogressHospetTable"></i>
+            <i class="glyphicon glyphicon-chevron-down" ng-if="!inprogressHospetTable"></i>
+            HOSPET
+        </div>
+    </div>
+    <div id="inProgressOrdersTableHospet">
+        <table style="margin-top: 10px" class="table table-condensed table-striped compact-table" id="inProgressOrdersTableIdHostpet" ng-if="inprogressHospetTable">
+            <thead>
+                <tr>
+                    <th style="text-align:center;">SL No</th>
+                    <th>User Name</th>
+                    <th>Logged In Time</th>
+                    <th onclick="sortTable(3,'inProgressOrdersTableIdHostpet')">Office Name <span class="sort-icon"></span></th>
+                    <th style="cursor:pointer;" onclick="sortTable(4,'inProgressOrdersTableIdHostpet')">Task <span class="sort-icon"></span></th>
+                    <th>Status</th>
+                    <th class="break-header">Break Count</th>
+                    <th class="break-header">Break Duration</th>
+                    <th>Last order completed</th>
+                    <th>
+                        <div class="pull-right">
+                            <i class="fa fa-file-excel-o exportToExcelButton" table-id="inProgressOrdersTableHospet" title="Export to Excel" aria-hidden="true" file-name="InProgressOrders"></i>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ var serialNumberIndexhospet = 1; }
+                @foreach (var item in Model.Where(x => x.Location == "HOSPET"))
+                {
+                    <tr>
+                        <td style="text-align:center;">
+                            @serialNumberIndexhospet.ToString()
+                        </td>
+                        <td class="user-name-cell">
+                            @item.UserName
+                        </td>
+                        <td>
+                            @(item.LoggedInTime?.ToString("dd-MM-yyyy HH:mm") ?? "")
+                        </td>
+                        <td>
+                            @item.Office
+                        </td>
+                        <td>
+                            @item.Task
+                        </td>
+                        <td class="status-cell">
+                            @if (item.IsOnBreak)
+                            {
+                                <span class="label status-on-break">
+                                    On Break
+                                    <span class="current-break-duration">@item.CurrentBreakDuration min</span>
+                                </span>
+                                <div class="break-info">
+                                    Started: @(item.BreakStartTime?.ToString("HH:mm") ?? "")<br />
+                                    Reason: @(item.BreakReason ?? "")
+                                </div>
+                            }
+                            else if (@item.Status == "Available")
+                            {
+                                <span class="label label-warning">Available</span>
+                            }
+                            else
+                            {
+                                @item.Status
+                            }
+                        </td>
+                        <td class="break-stats-td">
+                            <div class="break-stats-cell">
+                                <span class="break-count">@item.TodayBreakCount</span>
+                                <div class="break-label">breaks today</div>
+                            </div>
+                        </td>
+                        <td class="break-stats-td">
+                            <div class="break-stats-cell">
+                                <span class="break-minutes">@item.TodayTotalBreakMinutes</span>
+                                <div class="break-label">minutes total</div>
+                            </div>
+                        </td>
+                        <td>
+                            @(item.LastOrderCompletedDate?.ToString("dd-MM-yyyy HH:mm") ?? "")
+                        </td>
+                        <td>
+                            @if (item.UserTimeEntryId.HasValue)
+                            {
+                                @Html.ActionLink("Logout", "End", "UserTimeEntries", new { entryId = item.UserTimeEntryId }, new { @class = "btn btn-warning btn-sm" })
+                            }
+                        </td>
+                    </tr>
+                    serialNumberIndexhospet++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
