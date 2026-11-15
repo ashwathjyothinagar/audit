@@ -378,6 +378,11 @@ namespace Prelims.Controllers
 
             if (!string.IsNullOrEmpty(shift))
             {
+                if (string.Equals(shift, "Off", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new JsonResult() { Data = "Shift is Off", JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+                }
+
                 var data = GetTaskSummary(targetUserId, shift, targetDate);
                 StringBuilder sb = new StringBuilder();
 
@@ -471,6 +476,12 @@ namespace Prelims.Controllers
 
             var user = db.USERINFOes.Find(userId);
             if (user == null) return response;
+
+            if (string.Equals(shift, "Off", StringComparison.OrdinalIgnoreCase))
+            {
+                response.StartDateTime = reportDate.Date;
+                return response;
+            }
 
             DateTime shiftStart = reportDate.Date.AddHours(6);
             DateTime shiftEnd = reportDate.Date.AddHours(15);
