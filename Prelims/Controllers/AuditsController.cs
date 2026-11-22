@@ -35,7 +35,7 @@ namespace Prelims.Controllers
         private const string regionCode = "Audits";
         private const string AuditUiFilter = "UIFilter";
         // GET: Audits
-        public ActionResult Index(int? crnId, int? taskId, int? requestTypeId, string groupName)
+        public ActionResult Index(int? crnId, int? taskId, int? requestTypeId, string groupName, int? pageSize)
         {
             USERINFO userInfo = (USERINFO)Session["UserInfo"];
             if (userInfo == null)
@@ -149,9 +149,54 @@ namespace Prelims.Controllers
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
             ViewBag.Crns = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => new { x.CRNID, x.CRNNAME, x.GroupName }).ToList();
             ViewBag.GroupName = groupName;
+            // Calculate total orders across all tasks in the Audit Tracker
+            var allTasksQuery = (from k in db.Audits
+                                 where k.StatusId != 3 && k.StatusId != 4 && k.StatusId != 5 && !k.AuditTimeEntries.Any(x => x.IsInprogress) && k.UserAssigned == null
+                                 select k).AsQueryable();
+
+            if (crnId.HasValue)
+            {
+                allTasksQuery = allTasksQuery.Where(x => x.CrnId == crnId.Value);
+            }
+            else
+            {
+                allTasksQuery = allTasksQuery.Where(x => allowedCrnIdsForThisUser.Contains(x.CrnId));
+            }
+
+            if (requestTypeId.HasValue)
+            {
+                allTasksQuery = allTasksQuery.Where(x => x.RequestTypeId == requestTypeId.Value);
+            }
+
+            // Exclude blocked orders across all tasks
+            try
+            {
+                var allBlockedIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+
+                if (allBlockedIds.Count > 0)
+                {
+                    allTasksQuery = allTasksQuery.Where(x => !allBlockedIds.Contains(x.Id));
+                }
+            }
+            catch { }
+
+            ViewBag.TotalAllTasksCount = allTasksQuery.Count();
+            ViewBag.PageSize = pageSize ?? 50;
+
             var auditList = Audits.ToList();
             PopulateAuditTitleOrderDetails(auditList);
             auditList = auditList.OrderByDescending(x => x.IsRushOrder).ThenBy(x => x.DateCreated).ToList();
+
+            if (pageSize.HasValue && pageSize.Value > 0)
+            {
+                auditList = auditList.Take(pageSize.Value).ToList();
+            }
+
             return View(auditList);
         }
 
@@ -259,7 +304,14 @@ namespace Prelims.Controllers
 
             if (Audit.StatusId != 3 && Audit.StatusId != 4 && Audit.StatusId != 5)
             {
-                ViewBag.PreviousTasks = db.AuditTasks.Where(x => x.SortOrder < Audit.AuditTask.SortOrder).OrderBy(x => x.SortOrder).ToList();
+                var prevTasksList = db.AuditTasks.Where(x => x.SortOrder < Audit.AuditTask.SortOrder).OrderBy(x => x.SortOrder).ToList();
+                var reqType = Audit.AuditRequestType ?? db.AuditRequestTypes.Find(Audit.RequestTypeId);
+                string reqName = reqType != null ? (reqType.Name ?? "").Trim().ToUpperInvariant() : "";
+                if (!reqName.Contains("RESALE"))
+                {
+                    prevTasksList = prevTasksList.Where(x => x.Id != 4).ToList();
+                }
+                ViewBag.PreviousTasks = prevTasksList;
             }
 
             ViewBag.IsInprogress = false;
@@ -856,8 +908,28 @@ namespace Prelims.Controllers
                 }
                 else if (Audit.TaskId == 3)
                 {
-                    // Task 3: GI -> Move to Task 4: Starter
-                    Audit.TaskId = 4;
+                    // Task 3: GI -> Refinance and JLP orders bypass Starter Code (Task 4) and move directly to Audit Proofing (Task 5).
+                    // Only Resale orders route through Starter Code (Task 4).
+                    bool isResale = false;
+                    var reqType = Audit.AuditRequestType ?? db.AuditRequestTypes.Find(Audit.RequestTypeId);
+                    if (reqType != null && !string.IsNullOrEmpty(reqType.Name))
+                    {
+                        var reqName = reqType.Name.Trim().ToUpperInvariant();
+                        if (reqName.Contains("RESALE"))
+                        {
+                            isResale = true;
+                        }
+                    }
+
+                    if (isResale)
+                    {
+                        Audit.TaskId = 4; // Starter
+                    }
+                    else
+                    {
+                        Audit.TaskId = 5; // Audit Proofing
+                    }
+
                     Audit.StatusId = 1;
                     SaveAuditFiles(Audit.Id, this.Request.Files);
                 }
@@ -1662,8 +1734,18 @@ namespace Prelims.Controllers
                 // Suppress if TitleOrders query fails
             }
 
+            var assignedUserIds = auditList.Where(a => a.UserAssigned.HasValue).Select(a => a.UserAssigned.Value).Distinct().ToList();
+            var assignedUsersMap = assignedUserIds.Count > 0
+                ? db.USERINFOes.Where(u => assignedUserIds.Contains(u.USERID)).ToDictionary(u => u.USERID, u => !string.IsNullOrEmpty(u.FULLNAME) ? u.FULLNAME : u.USERNAME)
+                : new Dictionary<int, string>();
+
             foreach (var audit in auditList)
             {
+                if (audit.UserAssigned.HasValue && string.IsNullOrEmpty(audit.UserAssignedName) && assignedUsersMap.ContainsKey(audit.UserAssigned.Value))
+                {
+                    audit.UserAssignedName = assignedUsersMap[audit.UserAssigned.Value];
+                }
+
                 TitleOrderInfoDto info = null;
                 if (audit.TitleOrderId.HasValue && byId.TryGetValue(audit.TitleOrderId.Value, out info))
                 {
@@ -2072,6 +2154,19 @@ namespace Prelims.Controllers
             List<TaskWisePendingReportViewModel> listItemToReturn = new List<TaskWisePendingReportViewModel>();
             var listOfCrn = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
 
+            // Exclude orders that are blocked waiting for Prelims tasks
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
+
             foreach(var crnItem in listOfCrn)
             {
                 TaskWisePendingReportViewModel taskPendingReportViewModel = new TaskWisePendingReportViewModel();
@@ -2084,12 +2179,16 @@ namespace Prelims.Controllers
 
                 taskPendingReportViewModel.PICount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 2);
                 taskPendingReportViewModel.GICount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 3);
-                taskPendingReportViewModel.StarterCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 4);
-                taskPendingReportViewModel.NotesCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 5);
+                taskPendingReportViewModel.StarterCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 4 && (!blockedAuditIds.Contains(x.Id)));
+                taskPendingReportViewModel.NotesCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 5 && (!blockedAuditIds.Contains(x.Id)));
                 taskPendingReportViewModel.HoldCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.CrnId == crnItem.CRNID && x.StatusId == 3);
-                taskPendingReportViewModel.Total = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.CrnId == crnItem.CRNID);
+                taskPendingReportViewModel.Total = taskPendingReportViewModel.TaxesCount + taskPendingReportViewModel.LVCount + taskPendingReportViewModel.PICount + taskPendingReportViewModel.GICount + taskPendingReportViewModel.StarterCount + taskPendingReportViewModel.NotesCount + taskPendingReportViewModel.HoldCount;
 
-                listItemToReturn.Add(taskPendingReportViewModel);
+                // Only display offices available in the Audit Tracker
+                if (taskPendingReportViewModel.Total > 0)
+                {
+                    listItemToReturn.Add(taskPendingReportViewModel);
+                }
             }
 
             return View(listItemToReturn);
@@ -2098,6 +2197,23 @@ namespace Prelims.Controllers
         public ActionResult TaskWisePendingDetail(int? taskId, int? crnId, bool? showHold, bool? showCrnTotal, string crnGroupName)
         {
             var Audits = db.Audits.Where(x => x.StatusId != 4 && x.StatusId != 5 );
+
+            // Exclude orders that are blocked waiting for Prelims tasks
+            try
+            {
+                var blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+
+                if (blockedAuditIds.Count > 0)
+                {
+                    Audits = Audits.Where(x => !blockedAuditIds.Contains(x.Id));
+                }
+            }
+            catch { }
 
             if (taskId.HasValue)
             {
@@ -2856,7 +2972,25 @@ namespace Prelims.Controllers
         {
             List<RushOrderReportViewModel> viewModel = new List<RushOrderReportViewModel>();
 
-            var groupByCrn = (from k in db.Audits.Where(x => x.IsRushOrder == true && x.StatusId != 4 && x.StatusId != 5)
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
+
+            var rushAudits = db.Audits.Where(x => x.IsRushOrder == true && x.StatusId != 4 && x.StatusId != 5);
+            if (blockedAuditIds.Count > 0)
+            {
+                rushAudits = rushAudits.Where(x => !blockedAuditIds.Contains(x.Id));
+            }
+
+            var groupByCrn = (from k in rushAudits
                               group k by k.CrnId into grp
                               select new { key = grp.Key, Count = grp.Count() }).ToList();
 
@@ -2875,7 +3009,10 @@ namespace Prelims.Controllers
                 {
                     rushOrder.Count = 0;
                 }
-                viewModel.Add(rushOrder);
+                if (rushOrder.Count > 0)
+                {
+                    viewModel.Add(rushOrder);
+                }
             }
 
             return View(viewModel);
@@ -2883,7 +3020,23 @@ namespace Prelims.Controllers
 
         public ActionResult RushOrderDetails(int? crnId)
         {
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
+
             var titleOrders = db.Audits.Where(x => x.IsRushOrder == true && x.StatusId != 4 && x.StatusId != 5);
+            if (blockedAuditIds.Count > 0)
+            {
+                titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+            }
 
             if (crnId.HasValue)
             {
@@ -2944,6 +3097,35 @@ namespace Prelims.Controllers
             else
             {
                 titleOrders = titleOrders.Where(x => x.TaskId == taskId.Value);
+            }
+
+            if (taskId.HasValue && taskId.Value == 4)
+            {
+                var blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.TaskId = 4 
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))").ToList();
+
+                if (blockedAuditIds.Count > 0)
+                {
+                    titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                }
+            }
+            else if (taskId.HasValue && taskId.Value == 5)
+            {
+                var blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.TaskId = 5 
+                        AND t.StatusId != 6
+                        AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))").ToList();
+
+                if (blockedAuditIds.Count > 0)
+                {
+                    titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                }
             }
 
             if (requestTypeId.HasValue)
@@ -3107,7 +3289,18 @@ namespace Prelims.Controllers
             int? titleOrderId = audit.TitleOrderId;
             if (!titleOrderId.HasValue && !string.IsNullOrEmpty(audit.OrderNo))
             {
-                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo).FirstOrDefault();
+                titleOrderId = db.Database.SqlQuery<int?>("SELECT TOP 1 Id FROM TitleOrders WHERE OrderNo = @p0", audit.OrderNo.Trim()).FirstOrDefault();
+
+                if (!titleOrderId.HasValue)
+                {
+                    var cleanOrderNo = audit.OrderNo.Trim();
+                    try
+                    {
+                        titleOrderId = db.Database.SqlQuery<int?>(
+                            "SELECT TOP 1 Id FROM TitleOrders WHERE @p0 LIKE '%' + OrderNo + '%' OR OrderNo LIKE '%' + @p0 + '%'", cleanOrderNo).FirstOrDefault();
+                    }
+                    catch { }
+                }
             }
 
             var titleTaskEmployees = GetTaskEmployeesFromTitleOrder(titleOrderId);
@@ -3116,14 +3309,14 @@ namespace Prelims.Controllers
             // Add email of employee who did the error
             foreach (var err in errorDeObject)
             {
-                if (!string.IsNullOrWhiteSpace(err.ErrorDoneByEmail))
+                if (!string.IsNullOrWhiteSpace(err.ErrorDoneByEmail) && IsValidEmail(err.ErrorDoneByEmail))
                 {
                     recipientEmails.Add(err.ErrorDoneByEmail.Trim());
                 }
                 else if (err.ErrorDoneById.HasValue)
                 {
                     var user = db.USERINFOes.FirstOrDefault(u => u.USERID == err.ErrorDoneById.Value);
-                    if (user != null && !string.IsNullOrWhiteSpace(user.EMAIL))
+                    if (user != null && !string.IsNullOrWhiteSpace(user.EMAIL) && IsValidEmail(user.EMAIL))
                     {
                         recipientEmails.Add(user.EMAIL.Trim());
                     }
@@ -3141,9 +3334,9 @@ namespace Prelims.Controllers
 
             // Determine FLM based on office-wise segregation
             string flmEmails = GetFlmEmailForOrder(audit, titleTaskEmployees.Values);
-            foreach (var flm in flmEmails.Split(';'))
+            foreach (var flm in flmEmails.Split(';', ','))
             {
-                if (!string.IsNullOrWhiteSpace(flm))
+                if (!string.IsNullOrWhiteSpace(flm) && IsValidEmail(flm))
                 {
                     recipientEmails.Add(flm.Trim());
                 }
@@ -3166,33 +3359,101 @@ namespace Prelims.Controllers
             sendMail(mailTo, holdEmailFrom, subject, emailContent, null, true);
         }
 
+        private static bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return false;
+            email = email.Trim();
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email && email.Contains("@") && email.Contains(".");
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private string GetFlmEmailForOrder(Audit audit, IEnumerable<TaskEmployeeDto> involvedEmployees)
         {
             var flmEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             string octFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-OCT") ?? "octflm@firstfocusbpo.com";
             string mtcFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-MTC") ?? "mtcflm@firstfocusbpo.com";
+            string cwltFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-CWLT") ?? ConfigurationManager.AppSettings.Get("FLM-EMAIL-COMMONWEALTH") ?? "cwltflm@firstfocusbpo.com";
+            string lawyersFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-LAWYERS") ?? ConfigurationManager.AppSettings.Get("FLM-EMAIL-LTIC") ?? "lawyersflm@firstfocusbpo.com";
+            string ticorFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-TICOR") ?? "ticorflm@firstfocusbpo.com";
+            string fnfFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-FNF") ?? ConfigurationManager.AppSettings.Get("FLM-EMAIL-DEFAULT") ?? "ffaudit@firstfocusbpo.com";
             string hospetFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-HOSPET") ?? "hospetflm@firstfocusbpo.com";
             string defaultFlm = ConfigurationManager.AppSettings.Get("FLM-EMAIL-DEFAULT") ?? "ffaudit@firstfocusbpo.com";
+            string managersEmail = ConfigurationManager.AppSettings.Get("ERROREMAIL-TO") ?? "managers@firstfocusbpo.com";
 
             string groupName = audit.CRN != null ? (audit.CRN.GroupName ?? "") : "";
             string crnName = audit.CRN != null ? (audit.CRN.CRNNAME ?? "") : "";
 
+            // Check office-specific email configured on CRN master
+            if (audit.CRN != null && !string.IsNullOrWhiteSpace(audit.CRN.ErrorEmailTo))
+            {
+                foreach (var em in audit.CRN.ErrorEmailTo.Split(';', ','))
+                {
+                    if (IsValidEmail(em)) flmEmails.Add(em.Trim());
+                }
+            }
+
+            // 1. Orange Coast Title
             if (groupName.IndexOf("ORANGE COAST", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 crnName.IndexOf("ORANGE COAST", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                groupName.IndexOf("OCT", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                crnName.IndexOf("OCT", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 audit.CrnId == 37)
             {
                 flmEmails.Add(octFlm);
             }
+            // 2. Monarch Title Company
             else if (groupName.IndexOf("MONARCH", StringComparison.OrdinalIgnoreCase) >= 0 ||
                      crnName.IndexOf("MONARCH", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     groupName.IndexOf("MTC", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("MTC", StringComparison.OrdinalIgnoreCase) >= 0 ||
                      audit.CrnId == 38)
             {
                 flmEmails.Add(mtcFlm);
             }
+            // 3. Commonwealth
+            else if (groupName.IndexOf("COMMONWEALTH", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("COMMONWEALTH", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     groupName.IndexOf("CWLT", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("CWLT", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                flmEmails.Add(cwltFlm);
+            }
+            // 4. Lawyers Title Company
+            else if (groupName.IndexOf("LAWYERS", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("LAWYERS", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     groupName.IndexOf("LTIC", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("LTIC", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                flmEmails.Add(lawyersFlm);
+            }
+            // 5. Ticor Title
+            else if (groupName.IndexOf("TICOR", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     crnName.IndexOf("TICOR", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                flmEmails.Add(ticorFlm);
+            }
+            // 6. FNF Office / Default
             else
             {
-                flmEmails.Add(defaultFlm);
+                flmEmails.Add(fnfFlm);
+            }
+
+            // Always add default audit team and managers for guaranteed delivery
+            flmEmails.Add(defaultFlm);
+            if (!string.IsNullOrWhiteSpace(managersEmail))
+            {
+                foreach (var m in managersEmail.Split(';', ','))
+                {
+                    if (IsValidEmail(m)) flmEmails.Add(m.Trim());
+                }
             }
 
             if (involvedEmployees != null && involvedEmployees.Any(e => string.Equals(e.Location, "HOSPET", StringComparison.OrdinalIgnoreCase)))
@@ -3207,10 +3468,7 @@ namespace Prelims.Controllers
         {
             var result = new Dictionary<string, TaskEmployeeDto>(StringComparer.OrdinalIgnoreCase);
 
-            if (!titleOrderId.HasValue)
-            {
-                titleOrderId = db.Database.SqlQuery<int?>(@"SELECT TOP 1 Id FROM TitleOrders WHERE ExaminingDoneBy IS NOT NULL ORDER BY Id DESC").FirstOrDefault();
-            }
+            if (!titleOrderId.HasValue) return result;
 
             if (!titleOrderId.HasValue) return result;
 
@@ -3378,48 +3636,71 @@ namespace Prelims.Controllers
 
         private void sendMail(string mailTo, string from, string subject, string bodyContent, string mailCC = null, bool isHtml = false)
         {
-            var emailMessage = new MailMessage();
-
-            emailMessage.From = new MailAddress(from);
-
-            foreach (var emailAddressItem in mailTo.Split(';'))
-            {
-                emailMessage.To.Add(new MailAddress(emailAddressItem));
-            }
-
-            if (!string.IsNullOrEmpty(mailCC))
-            {
-                foreach (var emailAddressItem in mailCC.Split(';'))
-                {
-                    emailMessage.CC.Add(new MailAddress(emailAddressItem));
-                }
-            }
-
-            var smtpServerConfig = ConfigurationManager.AppSettings.Get("SMTP-SERVERNAME");
-            var smtpUserConfig = ConfigurationManager.AppSettings.Get("SMTP-USERNAME");
-            var smtpPasswordConfig = ConfigurationManager.AppSettings.Get("SMTP-PASSWORD");
-
-            string smtpServer = !string.IsNullOrEmpty(smtpServerConfig) ? smtpServerConfig : "";
-            string smtpUser = !string.IsNullOrEmpty(smtpUserConfig) ? smtpUserConfig : "";
-            string smtpPassword = !string.IsNullOrEmpty(smtpPasswordConfig) ? smtpPasswordConfig : "";
-
-            var smtpEmailClient = new SmtpClient(smtpServer);
-            smtpEmailClient.Port = 587;
-            smtpEmailClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-            smtpEmailClient.EnableSsl = true;
-            smtpEmailClient.Credentials = new NetworkCredential(smtpUser, smtpPassword);
-
-            emailMessage.Subject = subject;
-            emailMessage.Body = bodyContent;
-            emailMessage.IsBodyHtml = isHtml;
-
             try
             {
-                System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
+                var emailMessage = new MailMessage();
 
+                if (string.IsNullOrWhiteSpace(from) || !IsValidEmail(from))
+                {
+                    from = ConfigurationManager.AppSettings.Get("ERROREMAIL-FROM") ?? "notifications@firstfocusbpo.com";
+                }
+                emailMessage.From = new MailAddress(from.Trim());
+
+                int validToCount = 0;
+                foreach (var emailAddressItem in (mailTo ?? "").Split(';', ','))
+                {
+                    var trimmed = emailAddressItem.Trim();
+                    if (IsValidEmail(trimmed))
+                    {
+                        emailMessage.To.Add(new MailAddress(trimmed));
+                        validToCount++;
+                    }
+                }
+
+                if (validToCount == 0)
+                {
+                    string defaultTo = ConfigurationManager.AppSettings.Get("ERROREMAIL-TO") ?? "ffaudit@firstfocusbpo.com";
+                    emailMessage.To.Add(new MailAddress(defaultTo.Trim()));
+                }
+
+                if (!string.IsNullOrEmpty(mailCC))
+                {
+                    foreach (var emailAddressItem in mailCC.Split(';', ','))
+                    {
+                        var trimmed = emailAddressItem.Trim();
+                        if (IsValidEmail(trimmed))
+                        {
+                            emailMessage.CC.Add(new MailAddress(trimmed));
+                        }
+                    }
+                }
+
+                var smtpServerConfig = ConfigurationManager.AppSettings.Get("SMTP-SERVERNAME");
+                var smtpUserConfig = ConfigurationManager.AppSettings.Get("SMTP-USERNAME");
+                var smtpPasswordConfig = ConfigurationManager.AppSettings.Get("SMTP-PASSWORD");
+
+                string smtpServer = !string.IsNullOrEmpty(smtpServerConfig) ? smtpServerConfig : "smtp-mail.outlook.com";
+                string smtpUser = !string.IsNullOrEmpty(smtpUserConfig) ? smtpUserConfig : "notifications@firstfocusbpo.com";
+                string smtpPassword = !string.IsNullOrEmpty(smtpPasswordConfig) ? smtpPasswordConfig : "Title@#1234";
+
+                var smtpEmailClient = new SmtpClient(smtpServer);
+                smtpEmailClient.Port = 587;
+                smtpEmailClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+                smtpEmailClient.EnableSsl = true;
+                smtpEmailClient.UseDefaultCredentials = false;
+                smtpEmailClient.Credentials = new NetworkCredential(smtpUser, smtpPassword);
+
+                emailMessage.Subject = subject;
+                emailMessage.Body = bodyContent;
+                emailMessage.IsBodyHtml = isHtml;
+
+                System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
                 smtpEmailClient.Send(emailMessage);
             }
-            catch (Exception exe) { }
+            catch (Exception exe)
+            {
+                System.Diagnostics.Trace.TraceError("sendMail error: " + exe.ToString());
+            }
         }
 
         public JsonResult GetErrorCategories()

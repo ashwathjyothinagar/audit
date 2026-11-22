@@ -1,0 +1,577 @@
+@model Prelims.Models.BreakWidgetViewModel
+
+@* Break widget partial: simplified, positioned safely inside navbar, scripts inline so they run when partial is included via @Html.Action *@
+<style>
+
+    /* ADDED: Break Statistics Enhanced Styling */
+    .break-stats {
+        margin-top: 10px;
+        margin-left: 10px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #2c3e50;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        display: inline-block;
+        vertical-align: middle;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+
+        .break-stats .stat-item {
+            display: inline-block;
+            margin: 0 6px;
+        }
+
+        .break-stats .stat-label {
+            color: #495057;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .break-stats .stat-value {
+            color: #17a2b8;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 3px;
+        }
+
+        .break-stats .separator {
+            color: #6c757d;
+            margin: 0 4px;
+            font-weight: normal;
+        }
+
+    /* Break Modal Styles - Enhanced Centering */
+    .break-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 2000;
+        animation: fadeIn 0.3s ease;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+        .break-modal.show {
+            display: flex !important;
+        }
+
+    .break-modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        max-width: 450px;
+        width: 100%;
+        max-height: 90vh;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transform: scale(0.7);
+        animation: modalSlideIn 0.3s ease forwards;
+        position: relative;
+        margin: auto;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes modalSlideIn {
+        to {
+            transform: scale(1);
+        }
+    }
+
+    .break-modal h3 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .break-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin: 25px 0;
+    }
+
+    /* Updated: match markup .bw-option tiles */
+    .bw-option {
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 56px;
+        user-select: none;
+    }
+
+        .bw-option:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+
+        .bw-option.selected {
+            border-color: #007bff;
+            background: #007bff;
+            color: white;
+            box-shadow: 0 6px 18px rgba(0,123,255,0.18);
+        }
+
+        .bw-option i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    .break-custom-input {
+        margin-top: 15px;
+        display: none;
+    }
+
+        .break-custom-input.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .break-custom-input input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .break-actions {
+        margin-top: 25px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn-break {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+
+    .btn-break-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+
+        .btn-break-primary:hover {
+            background: linear-gradient(135deg, #0056b3, #003d82);
+            transform: translateY(-2px);
+        }
+
+    .btn-break-secondary {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 2px solid #dee2e6;
+    }
+
+        .btn-break-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+    /* Single Break Warning Overlay - Only show one global message */
+    .global-break-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1500;
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .global-break-overlay.active {
+            display: flex;
+        }
+
+    .global-break-message {
+        background: linear-gradient(135deg, #ffc107, #ff8c00);
+        color: #212529;
+        padding: 30px 40px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        animation: bounceIn 0.5s ease;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    @@keyframes bounceIn {
+        0% {
+            transform: scale(0.3);
+            opacity: 0;
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .global-break-message h2 {
+        margin: 0 0 15px 0;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .global-break-message p {
+        margin: 0 0 20px 0;
+        font-size: 18px;
+        line-height: 1.4;
+    }
+
+    .global-break-message .resume-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+        .global-break-message .resume-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+    /* Remove old break warning styles */
+    .disabled-overlay {
+        position: relative;
+    }
+
+        .disabled-overlay.on-break {
+            pointer-events: none;
+            opacity: 0.3;
+            filter: blur(1px);
+        }
+
+    /* Responsive adjustments for smaller screens */
+    @@media (max-width: 768px) {
+        .break-modal-content {
+            width: 95%;
+            padding: 20px;
+            max-width: none;
+        }
+
+        .break-options {
+            grid-template-columns: 1fr;
+        }
+
+        .break-actions {
+            flex-direction: column;
+        }
+
+        .global-break-message {
+            padding: 20px;
+            margin: 20px;
+        }
+
+            .global-break-message h2 {
+                font-size: 24px;
+            }
+
+            .global-break-message p {
+                font-size: 16px;
+            }
+
+        .break-stats {
+            margin-left: 5px;
+            margin-top: 5px;
+            display: block;
+            font-size: 12px;
+        }
+    }
+
+    /* Ensure modal appears above all other content */
+    .break-modal {
+        backdrop-filter: blur(2px);
+    }
+
+</style>
+
+@{
+    // Provide URLs via data-attributes to avoid embedding Razor expressions inside JS (prevents Razor parsing issues)
+    var breakInUrl = Url.Action("BreakIn", "UserTimeEntries");
+    var breakOutUrl = Url.Action("BreakOut", "UserTimeEntries");
+    var getStatusUrl = Url.Action("GetBreakStatus", "UserTimeEntries");
+}
+
+<div id="breakWidgetRoot"
+     data-breakin-url="@breakInUrl"
+     data-breakout-url="@breakOutUrl"
+     data-getstatus-url="@getStatusUrl">
+    <div class="break-widget-inline" role="navigation" aria-label="Break widget">
+
+
+        @if (Model != null && Model.IsLoggedIn)
+        {
+
+            <button id="bwToggleBtn" class="btn btn-info" type="button" style="margin-top: 10px; margin-left: 100px;">
+                <i class="fa fa-coffee"></i> <span id="bwButtonText">Take Break</span>
+            </button>
+
+            <span class="break-stats">
+                <span class="stat-item"><span class="stat-label">TOTAL BREAKS:</span> <span class="stat-value">@Model.TotalBreakCount</span></span>
+                <span class="separator">|</span>
+                <span class="stat-item"><span class="stat-label">TOTAL MINUTES:</span> <span class="stat-value">@Model.TotalBreakMinutes</span></span>
+            </span>
+        }
+    </div>
+
+    <!-- Overlay -->
+    <div id="bwGlobalOverlay" class="global-break-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; align-items:center; justify-content:center;">
+        <div class="global-break-message" style="background:linear-gradient(135deg,#ffc107,#ff8c00);padding:30px 40px;border-radius:12px;text-align:center;">
+            <h2><i class="fa fa-coffee"></i> You're Currently on Break</h2>
+            <p>You must end your break to access orders and continue working.</p>
+            <div id="bwGlobalTime" style="font-weight:bold; margin:8px 0;">00:00</div>
+            <button id="bwResumeBtn" class="resume-btn btn btn-success"><i class="fa fa-play"></i> Resume Work Now</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="bwModal" class="break-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; align-items:center; justify-content:center;">
+        <div class="break-modal-content" style="background:white;border-radius:10px;padding:20px;max-width:420px;margin:auto;text-align:center;">
+            <h3><i class="fa fa-coffee"></i> Take a Break</h3>
+            <p>How long would you like your break to be?</p>
+
+            <div class="break-options" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 0;">
+                <div class="bw-option" data-duration="5" style="padding:12px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;">5 Minutes<br /><small>Quick</small></div>
+                <div class="bw-option" data-duration="15" style="padding:12px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;">15 Minutes<br /><small>Coffee</small></div>
+                <div class="bw-option" data-duration="30" style="padding:12px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;">30 Minutes<br /><small>Lunch</small></div>
+                <div class="bw-option" data-duration="custom" style="padding:12px;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;">Custom<br /><small>Set your own</small></div>
+            </div>
+
+            <div id="bwCustomInput" style="display:none; margin-top:8px;">
+                <input id="bwCustomMinutes" type="number" min="1" max="120" placeholder="Minutes" class="form-control" />
+            </div>
+
+            <div style="margin-top:18px;">
+                <button id="bwCancelBtn" class="btn btn-default">Cancel</button>
+                <button id="bwStartBtn" class="btn btn-primary" style="margin-left:8px;"><i class="fa fa-pause"></i> Start Break</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        // Read URLs from data attributes to avoid Razor-in-JS parsing errors
+        var root = document.getElementById('breakWidgetRoot');
+        var breakInUrl = root ? root.getAttribute('data-breakin-url') : null;
+        var breakOutUrl = root ? root.getAttribute('data-breakout-url') : null;
+        var getStatusUrl = root ? root.getAttribute('data-getstatus-url') : null;
+
+        var isOnBreak = false;
+        var breakStart = null;
+        var breakTimer = null;
+        function formatTime(mins, secs) { return (mins < 10 ? '0' + mins : mins) + ':' + (secs < 10 ? '0' + secs : secs); }
+
+        var toggleBtn = document.getElementById('bwToggleBtn');
+        var modal = document.getElementById('bwModal');
+        var overlay = document.getElementById('bwGlobalOverlay');
+        var resumeBtn = document.getElementById('bwResumeBtn');
+        var options = Array.prototype.slice.call(document.querySelectorAll('#breakWidgetRoot .bw-option') || []);
+        var customInput = document.getElementById('bwCustomInput');
+        var customMinutes = document.getElementById('bwCustomMinutes');
+        var cancelBtn = document.getElementById('bwCancelBtn');
+        var startBtn = document.getElementById('bwStartBtn');
+        var globalTime = document.getElementById('bwGlobalTime');
+        var buttonText = document.getElementById('bwButtonText');
+
+        function openModal() { if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; } }
+        function closeModal() { if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; clearSelection(); } }
+        function clearSelection() { options.forEach(function (o) { o.classList.remove('selected'); }); if (customInput) customInput.style.display = 'none'; if (customMinutes) customMinutes.value = ''; }
+
+        function updateUI() {
+            if (overlay && toggleBtn) {
+                if (isOnBreak) {
+                    overlay.style.display = 'flex';
+                    toggleBtn.className = 'btn btn-warning';
+                    if (buttonText) buttonText.textContent = 'End Break';
+                } else {
+                    overlay.style.display = 'none';
+                    toggleBtn.className = 'btn btn-info';
+                    if (buttonText) buttonText.textContent = 'Take Break';
+                }
+            }
+        }
+
+        function startTimer() {
+            stopTimer();
+            breakTimer = setInterval(function () {
+                if (!breakStart) return;
+                var elapsed = Math.floor((new Date() - breakStart) / 1000);
+                var mins = Math.floor(elapsed / 60);
+                var secs = elapsed % 60;
+                if (globalTime) globalTime.textContent = formatTime(mins, secs);
+            }, 1000);
+        }
+        function stopTimer() { if (breakTimer) { clearInterval(breakTimer); breakTimer = null; } }
+
+        options.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+                options.forEach(function (o) { o.classList.remove('selected'); });
+                this.classList.add('selected');
+                if (this.dataset.duration === 'custom') {
+                    if (customInput) customInput.style.display = 'block';
+                    if (customMinutes) customMinutes.focus();
+                } else {
+                    if (customInput) customInput.style.display = 'none';
+                }
+            });
+        });
+
+        if (toggleBtn) toggleBtn.addEventListener('click', function () {
+            if (isOnBreak) {
+                if (confirm('End break and resume work?')) {
+                    doBreakOut();
+                }
+            } else {
+                openModal();
+            }
+        });
+
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        if (resumeBtn) resumeBtn.addEventListener('click', function () {
+            if (confirm('End break and resume work?')) doBreakOut();
+        });
+
+        if (startBtn) startBtn.addEventListener('click', function () {
+            var sel = document.querySelector('#breakWidgetRoot .bw-option.selected');
+            if (!sel) { alert('Please select a break duration.'); return; }
+            var duration = sel.dataset.duration;
+            var reason = '';
+            if (duration === 'custom') {
+                var v = parseInt(customMinutes.value, 10);
+                if (!v || v <= 0) { alert('Enter valid minutes'); return; }
+                duration = v;
+                reason = 'Custom Break';
+            } else {
+                duration = parseInt(duration, 10);
+                reason = sel.innerText.trim();
+            }
+
+            if (!breakInUrl) { alert('BreakIn URL not configured'); return; }
+
+            fetch(breakInUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ breakDurationMinutes: duration, breakReason: reason })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.success) {
+                        isOnBreak = true;
+                        breakStart = new Date();
+                        startTimer();
+                        updateUI();
+                        closeModal();
+                    } else {
+                        alert('Failed to start break: ' + (data && data.message ? data.message : 'unknown'));
+                    }
+                })
+                .catch(function (err) { console.error(err); alert('Error starting break'); });
+        });
+
+        function doBreakOut() {
+            if (!breakOutUrl) { alert('BreakOut URL not configured'); return; }
+
+            fetch(breakOutUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.success) {
+                        isOnBreak = false;
+                        breakStart = null;
+                        stopTimer();
+                        updateUI();
+                        setTimeout(function () { location.reload(); }, 900);
+                    } else {
+                        alert('Failed to end break: ' + (data && data.message ? data.message : 'unknown'));
+                    }
+                })
+                .catch(function (err) { console.error(err); alert('Error ending break'); });
+        }
+
+        // on load: check server status
+        if (getStatusUrl) {
+            fetch(getStatusUrl)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.isOnBreak) {
+                        isOnBreak = true;
+                        breakStart = new Date(data.breakStartTime);
+                        startTimer();
+                        updateUI();
+                    }
+                })
+                .catch(function (err) { console.error('GetBreakStatus error', err); });
+        }
+
+        // close modal on escape or clicking outside
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal && modal.style.display === 'flex') closeModal(); });
+        if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+
+        // expose for debug
+        window.breakWidget = { openModal: openModal, closeModal: closeModal };
+    })();
+</script>

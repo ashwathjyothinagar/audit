@@ -528,12 +528,12 @@ namespace Prelims.Controllers
 
             try
             {
-                var breaks = db.UserBreakEntries
-                    .Where(b => b.UserId == userId &&
-                                b.StartTime >= shiftStart &&
-                                b.StartTime < shiftEnd)
-                    .OrderBy(b => b.StartTime)
-                    .ToList();
+                var breaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                    @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                      FROM UserBreakEntries
+                      WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2
+                      ORDER BY StartTime",
+                    userId, shiftStart, shiftEnd).ToList();
 
                 foreach (var b in breaks)
                 {
@@ -681,7 +681,8 @@ namespace Prelims.Controllers
             }
 
             SetOfficeFields(userInfo);
-            ViewBag.Offices = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
+            var activeCrnIds = db.Audits.Where(x => x.StatusId != 4 && x.StatusId != 5).Select(x => x.CrnId).Distinct().ToList();
+            ViewBag.Offices = db.CRNs.Where(x => x.IsVisibleInMainApplication == true && activeCrnIds.Contains(x.CRNID)).ToList();
 
             return View();
         }
@@ -719,6 +720,18 @@ namespace Prelims.Controllers
                     if (!string.IsNullOrWhiteSpace(s)) statusFilters.Add(s.Trim());
             }
 
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
+
             var query = db.Audits
                 .Where(x => x.StatusId != 4 && x.StatusId != 5)
                 .Include(x => x.CRN)
@@ -727,6 +740,11 @@ namespace Prelims.Controllers
                 .Include(x => x.AuditStatus)
                 .Include(x => x.AuditTimeEntries.Select(t => t.USERINFO))
                 .Include(x => x.AuditHolds.Select(h => h.USERINFO));
+
+            if (blockedAuditIds.Count > 0)
+            {
+                query = query.Where(x => !blockedAuditIds.Contains(x.Id));
+            }
 
             if (officeIds.Any())
             {
@@ -803,6 +821,18 @@ namespace Prelims.Controllers
                     if (!string.IsNullOrWhiteSpace(s)) statusFilters.Add(s.Trim());
             }
 
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
+
             var query = db.Audits
                 .Where(x => x.StatusId != 4 && x.StatusId != 5)
                 .Include(x => x.CRN)
@@ -811,6 +841,11 @@ namespace Prelims.Controllers
                 .Include(x => x.AuditStatus)
                 .Include(x => x.AuditTimeEntries.Select(t => t.USERINFO))
                 .Include(x => x.AuditHolds.Select(h => h.USERINFO));
+
+            if (blockedAuditIds.Count > 0)
+            {
+                query = query.Where(x => !blockedAuditIds.Contains(x.Id));
+            }
 
             if (officeIds.Any())
             {
@@ -924,15 +959,20 @@ namespace Prelims.Controllers
                          && x.StartTime < fetchEnd)
                 .ToList();
 
-            var breakEntries = new List<UserBreakEntry>();
+            var breakEntries = new List<Prelims.Models.UserBreakEntryDto>();
             try
             {
-                breakEntries = db.UserBreakEntries.AsNoTracking()
-                    .Where(b => userIds.Contains(b.UserId)
-                             && b.StartTime >= fetchStart
-                             && b.StartTime < fetchEnd
-                             && b.EndTime.HasValue)
-                    .ToList();
+                if (userIds.Count > 0)
+                {
+                    var userIdsStr = string.Join(",", userIds);
+                    breakEntries = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                        $@"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                           FROM UserBreakEntries
+                           WHERE UserId IN ({userIdsStr})
+                             AND StartTime >= @p0 AND StartTime < @p1
+                             AND EndTime IS NOT NULL",
+                        fetchStart, fetchEnd).ToList();
+                }
             }
             catch { }
 

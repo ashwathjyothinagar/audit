@@ -4,12 +4,10 @@
     ViewBag.PageTitle = "ORDERS";
 }
 
-
-
 @using (Html.BeginForm("Index", "Audits", FormMethod.Get, new { @style = "padding-bottom:10px;" }))
 {
     <div class="row">
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <label for="exampleInputName2" class="control-label">Office Name</label>
             <div>
                 @Html.Partial("_OfficeSelection")
@@ -27,10 +25,23 @@
                 @Html.DropDownList("RequestTypeId", null, "ALL", htmlAttributes: new { @class = "form-control" })
             </div>
         </div>
+        <div class="col-lg-1">
+            <label for="exampleInputName2" class="control-label">Page Size</label>
+            <div>
+                <select class="form-control col-md-2 list-box" id="PageSize" name="PageSize">
+                    <option value="10" @(ViewBag.PageSize == 10 ? "selected=\"selected\"" : "")>10</option>
+                    <option value="50" @(ViewBag.PageSize == 50 ? "selected=\"selected\"" : "")>50</option>
+                    <option value="100" @(ViewBag.PageSize == 100 ? "selected=\"selected\"" : "")>100</option>
+                    <option value="500" @(ViewBag.PageSize == 500 ? "selected=\"selected\"" : "")>500</option>
+                    <option value="1000" @(ViewBag.PageSize == 1000 ? "selected=\"selected\"" : "")>1000</option>
+                </select>
+            </div>
+        </div>
         <div class="col-lg-2">
             <label for="exampleInputName2" class="control-label"></label>
             <div>
                 <button type="submit" class="btn btn-success" style="margin-top: 5px">Search</button>
+                <span class="label label-info" style="margin-left: 10px; margin-top: 10px; font-size: 17px; display: inline-block; vertical-align: middle;" title="Total orders across all tasks in Audit Tracker">Total : @(ViewBag.TotalAllTasksCount ?? Model.Count())</span>
             </div>
         </div>
         <div class="col-lg-2" >
@@ -44,43 +55,46 @@
     </div>
 }
 
-<table class="table table-striped">
+<table class="table table-striped table-condensed">
     <tr>
         <th>
-            @Html.DisplayNameFor(model => model.OrderNo)
+            Order No
         </th>
         <th>
-            Office Name
+            County
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.PropertyAddress)
+            Office
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.APNNo)
+            Order Type
         </th>
         <th>
-            Requested By
+            Priority
         </th>
         <th>
-            Requested By Email
+            Task
         </th>
         <th>
-            Recieved On
+            Received On
         </th>
         <th>
-            @Html.DisplayNameFor(model => model.AuditStatus.Name)
+            FF Assigned Date
         </th>
-        <th>Priority</th>
-
+        <th>
+            Order Assigned To
+        </th>
+        <th>
+            Comments
+        </th>
+        <th>
+            TAT
+        </th>
     </tr>
-    @{
-        var counter = 0;
-    }
     @foreach (var item in Model)
     {
         <tr class="@( item.IsRushOrder ? "danger"  : "" )">
             <td>
-
                 @if (ViewBag.InprogressAuditId != null)
                 {
                     <span>********</span>
@@ -95,46 +109,43 @@
                 }
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.CRN.CRNNAME)
+                @Html.DisplayFor(modelItem => item.County)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.PropertyAddress)
+                @(item.CRN != null ? item.CRN.CRNNAME : "")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.APNNo)
+                @(item.AuditRequestType != null ? item.AuditRequestType.Name : "")
             </td>
             <td>
-                @if (item.AuditSender != null)
-                {
-                    @item.AuditSender.Name;
-                }
+                @(item.IsRushOrder ? "Rush" : "Normal")
             </td>
             <td>
-                @if (item.AuditSender != null)
-                {
-                    @item.AuditSender.EmailAddress;
-                }
+                @(item.AuditTask != null ? item.AuditTask.Name : "")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.DateCreated)
+                @(item.DateCreated.HasValue ? item.DateCreated.Value.ToString("M/d/yyyy h:mm:ss tt") : "")
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.AuditStatus.Name)
+                @(item.FFAssignedDate.HasValue ? item.FFAssignedDate.Value.ToString("M/d/yyyy h:mm:ss tt") : "")
             </td>
             <td>
-                @(item.IsRushOrder ? "RUSH" : "Normal" )
+                @item.UserAssignedName
             </td>
-
+            <td>
+                @(string.IsNullOrWhiteSpace(item.RushOrderComments) ? item.OrderMovementComments : item.RushOrderComments)
+            </td>
+            <td>
+                @(item.TOT.HasValue ? item.TOT.Value.ToString("M/d/yyyy h:mm:ss tt") : "")
+            </td>
         </tr>
-        counter++;
     }
-
 </table>
+
 <script>
-        var officeNameDropdown = document.getElementById('CrnId');
+    var officeNameDropdown = document.getElementById('CrnId');
 
-        if (officeNameDropdown) {
-            officeNameDropdown.disabled = true
-        }
-
+    if (officeNameDropdown) {
+        officeNameDropdown.disabled = true;
+    }
 </script>

@@ -15,6 +15,74 @@ namespace Prelims.Controllers
     {
         private FntEntities db = new FntEntities();
 
+        [ChildActionOnly]
+        public ActionResult BreakWidget()
+        {
+            var vm = new Prelims.Models.BreakWidgetViewModel();
+
+            var userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null)
+            {
+                vm.IsLoggedIn = false;
+                vm.ActiveTime = TimeSpan.Zero;
+                vm.ActiveEntryId = null;
+                vm.TotalBreakCount = 0;
+                vm.TotalBreakMinutes = 0;
+                return PartialView("_BreakPartial", vm);
+            }
+
+            vm.IsLoggedIn = true;
+
+            // Active session
+            try
+            {
+                var activeSession = db.UserTimeEntries.AsNoTracking()
+                    .Where(entry => entry.UserId == userInfo.USERID && !entry.EndTime.HasValue)
+                    .OrderByDescending(entry => entry.StartTime)
+                    .FirstOrDefault();
+
+                if (activeSession != null)
+                {
+                    vm.ActiveEntryId = activeSession.Id;
+                    vm.ActiveTime = DateTime.Now - activeSession.StartTime;
+                }
+                else
+                {
+                    vm.ActiveEntryId = null;
+                    vm.ActiveTime = TimeSpan.Zero;
+                }
+            }
+            catch
+            {
+                vm.ActiveEntryId = null;
+                vm.ActiveTime = TimeSpan.Zero;
+            }
+
+            // Today's break stats
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+            try
+            {
+                var todayBreaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                    @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                      FROM UserBreakEntries
+                      WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2 AND EndTime IS NOT NULL",
+                    userInfo.USERID, today, tomorrow).ToList();
+
+                vm.TotalBreakCount = todayBreaks.Count;
+                vm.TotalBreakMinutes = todayBreaks
+                    .Where(b => b.ActualDurationMinutes.HasValue)
+                    .Sum(b => b.ActualDurationMinutes.Value);
+            }
+            catch
+            {
+                vm.TotalBreakCount = 0;
+                vm.TotalBreakMinutes = 0;
+            }
+
+            return PartialView("_BreakPartial", vm);
+        }
+
         public ActionResult Index()
         {
             USERINFO userInfo = (USERINFO)Session["UserInfo"];
@@ -149,7 +217,17 @@ namespace Prelims.Controllers
                               group k by k.CrnId into grp
                               select new { key = grp.Key, Count = grp.Count() }).ToList();
 
-
+            List<int> blockedAuditIds = new List<int>();
+            try
+            {
+                blockedAuditIds = db.Database.SqlQuery<int>(
+                    @"SELECT a.Id FROM Audits a
+                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                      WHERE a.StatusId NOT IN (4, 5)
+                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
+                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
+            }
+            catch { }
 
             foreach (var crn in db.CRNs.Where(x => x.IsVisibleInMainApplication == true))
             {
@@ -187,25 +265,34 @@ namespace Prelims.Controllers
                 liveStatusViewModel.GISellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3 && x.RequestTypeId == 1);
                 liveStatusViewModel.GICount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 3);
 
-                liveStatusViewModel.StarterBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 4);
-                liveStatusViewModel.StarterBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 2);
-                liveStatusViewModel.StarterSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 1);
-                liveStatusViewModel.StarterCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4);
+                liveStatusViewModel.StarterBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 4 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.StarterBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 2 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.StarterSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && x.RequestTypeId == 1 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.StarterCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 4 && (!blockedAuditIds.Contains(x.Id)));
 
-                liveStatusViewModel.NotesBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 4);
-                liveStatusViewModel.NotesBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 2);
-                liveStatusViewModel.NotesSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 1);
-                liveStatusViewModel.NotesCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5);
+                liveStatusViewModel.NotesBothCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 4 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.NotesBuyerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 2 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.NotesSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 1 && (!blockedAuditIds.Contains(x.Id)));
+                liveStatusViewModel.NotesCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && (!blockedAuditIds.Contains(x.Id)));
 
-                liveStatusItems.Add(liveStatusViewModel);
+                int liveTotal = liveStatusViewModel.TaxesCount + liveStatusViewModel.LVCount + liveStatusViewModel.PICount + liveStatusViewModel.GICount + liveStatusViewModel.StarterCount + liveStatusViewModel.NotesCount + liveStatusViewModel.HoldCount;
+                if (liveTotal > 0)
+                {
+                    liveStatusItems.Add(liveStatusViewModel);
+                }
             }
             homeViewModel.LiveStatusItems = liveStatusItems;
 
             var inprogressTitleOrderIds = db.AuditTimeEntries.Where(x => x.IsInprogress).Select(x => x.AuditId).ToList();
 
             int? userID = userInfo.USERID;
-            var myOrderList = (from k in db.Audits
-                               where k.StatusId != 3 && k.StatusId != 4 && k.StatusId != 5 && !inprogressTitleOrderIds.Any(x => x == k.Id) && k.UserAssigned == userID
+            var myOrdersQuery = db.Audits
+                .Where(k => k.StatusId != 3 && k.StatusId != 4 && k.StatusId != 5 && !inprogressTitleOrderIds.Any(x => x == k.Id) && k.UserAssigned == userID);
+            if (blockedAuditIds.Count > 0)
+            {
+                myOrdersQuery = myOrdersQuery.Where(k => !blockedAuditIds.Contains(k.Id));
+            }
+            var myOrderList = (from k in myOrdersQuery
                                select new MyOrder
                                {
                                    COUNTYNAME = k.County,
@@ -317,11 +404,14 @@ namespace Prelims.Controllers
                 }
 
                 // Check if user is currently on break
-                UserBreakEntry activeBreak = null;
+                Prelims.Models.UserBreakEntryDto activeBreak = null;
                 try
                 {
-                    activeBreak = db.UserBreakEntries
-                        .FirstOrDefault(b => b.UserId == userInfo.USERID && b.EndTime == null);
+                    activeBreak = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                        @"SELECT TOP 1 Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                          FROM UserBreakEntries
+                          WHERE UserId = @p0 AND EndTime IS NULL",
+                        userInfo.USERID).FirstOrDefault();
                 }
                 catch { }
 
@@ -368,11 +458,11 @@ namespace Prelims.Controllers
                 // Calculate today's break statistics for this user
                 try
                 {
-                    var todayBreaks = db.UserBreakEntries
-                        .Where(b => b.UserId == userInfo.USERID &&
-                                   DbFunctions.TruncateTime(b.StartTime) == today &&
-                                   b.EndTime.HasValue)
-                        .ToList();
+                    var todayBreaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                        @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                          FROM UserBreakEntries
+                          WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2 AND EndTime IS NOT NULL",
+                        userInfo.USERID, today, today.AddDays(1)).ToList();
 
                     statusItem.TodayBreakCount = todayBreaks.Count;
                     statusItem.TodayTotalBreakMinutes = todayBreaks
@@ -438,11 +528,14 @@ namespace Prelims.Controllers
                     statusItem.UserTimeEntryId = userTimeEntry.Id;
                 }
 
-                UserBreakEntry activeBreak = null;
+                Prelims.Models.UserBreakEntryDto activeBreak = null;
                 try
                 {
-                    activeBreak = db.UserBreakEntries
-                        .FirstOrDefault(b => b.UserId == userInfo.USERID && b.EndTime == null);
+                    activeBreak = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                        @"SELECT TOP 1 Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                          FROM UserBreakEntries
+                          WHERE UserId = @p0 AND EndTime IS NULL",
+                        userInfo.USERID).FirstOrDefault();
                 }
                 catch { }
 
@@ -485,13 +578,14 @@ namespace Prelims.Controllers
                     }
                 }
 
+                // Calculate today's break statistics for this user
                 try
                 {
-                    var todayBreaks = db.UserBreakEntries
-                        .Where(b => b.UserId == userInfo.USERID &&
-                                   DbFunctions.TruncateTime(b.StartTime) == today &&
-                                   b.EndTime.HasValue)
-                        .ToList();
+                    var todayBreaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                        @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                          FROM UserBreakEntries
+                          WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2 AND EndTime IS NOT NULL",
+                        userInfo.USERID, today, today.AddDays(1)).ToList();
 
                     statusItem.TodayBreakCount = todayBreaks.Count;
                     statusItem.TodayTotalBreakMinutes = todayBreaks
@@ -626,9 +720,12 @@ namespace Prelims.Controllers
                     int breakCount = 0;
                     try
                     {
-                        var breaks = db.UserBreakEntries
-                            .Where(b => b.UserId == u.USERID && DbFunctions.TruncateTime(b.StartTime) == d && b.EndTime.HasValue)
-                            .ToList();
+                        var nextD = d.AddDays(1);
+                        var breaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                            @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                              FROM UserBreakEntries
+                              WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2 AND EndTime IS NOT NULL",
+                            u.USERID, d, nextD).ToList();
 
                         foreach (var b in breaks)
                         {
@@ -727,10 +824,13 @@ namespace Prelims.Controllers
                     int breakCount = 0;
                     try
                     {
-                        var breaks = db.UserBreakEntries
-                            .Where(b => b.UserId == u.USERID && DbFunctions.TruncateTime(b.StartTime) == d && b.EndTime.HasValue)
-                            .OrderBy(b => b.StartTime)
-                            .ToList();
+                        var nextD = d.AddDays(1);
+                        var breaks = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                            @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                              FROM UserBreakEntries
+                              WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2 AND EndTime IS NOT NULL
+                              ORDER BY StartTime",
+                            u.USERID, d, nextD).ToList();
 
                         foreach (var b in breaks)
                         {
@@ -810,10 +910,13 @@ namespace Prelims.Controllers
 
             try
             {
-                var breakEntities = db.UserBreakEntries
-                    .Where(b => b.UserId == userId && DbFunctions.TruncateTime(b.StartTime) >= from && DbFunctions.TruncateTime(b.StartTime) <= to)
-                    .OrderBy(b => b.StartTime)
-                    .ToList();
+                var toNext = to.AddDays(1);
+                var breakEntities = db.Database.SqlQuery<Prelims.Models.UserBreakEntryDto>(
+                    @"SELECT Id, UserId, StartTime, EndTime, PlannedDurationMinutes, ActualDurationMinutes, BreakReason, CreatedDate
+                      FROM UserBreakEntries
+                      WHERE UserId = @p0 AND StartTime >= @p1 AND StartTime < @p2
+                      ORDER BY StartTime",
+                    userId, from, toNext).ToList();
 
                 var result = breakEntities.Select(b => new
                 {

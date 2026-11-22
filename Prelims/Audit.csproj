@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.0.0\build\Microsoft.Net.Compilers.props')" />
@@ -198,6 +198,7 @@
     <Compile Include="Shift.cs" />
     <Compile Include="ShiftAssignment.cs" />
     <Compile Include="Models\UserStatusReportModel.cs" />
+    <Compile Include="Models\BreakWidgetViewModel.cs" />
     <Compile Include="Models\UserDayProductionReportViewModel.cs" />
     <Compile Include="Models\Reports\ProductionMetricsViewModel.cs" />
     <Compile Include="Models\Reports\AttendanceReportViewModel.cs" />
@@ -456,6 +457,7 @@
     <Content Include="Views\Manage\VerifyPhoneNumber.cshtml" />
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\Shared\_BreakPartial.cshtml" />
     <Content Include="Views\Audits\Create.cshtml" />
     <Content Include="Views\Audits\Delete.cshtml" />
     <Content Include="Views\Audits\Details.cshtml" />

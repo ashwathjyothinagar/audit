@@ -13,6 +13,7 @@
                 You have been active for <span id="activeHours">@ViewBag.ActiveTime.Hours</span> hours and <span id="activeMinutes">@ViewBag.ActiveTime.Minutes</span> minutes
             </span>
             @Html.ActionLink("Logout", "End", "UserTimeEntries", new { entryId = @ViewBag.ActiveEntryId }, new { @class = "btn btn-warning", style = "font-size: 13px;" })
+            @Html.ActionLink("Send Shift Production Report", "UserDayProduction", "Audits", new { showUserAndDate = false }, new { @class = "btn btn-success", style = "font-size: 13px; margin-left: 8px;" })
         }
         else
         {
