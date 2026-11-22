@@ -342,15 +342,14 @@ namespace Prelims.Controllers
             var today = DateTime.Now.Date;
             try
             {
-                var shiftAssignment = db.ShiftAssignments.AsNoTracking().FirstOrDefault(x => x.UserId == userInfo.USERID && x.ShiftDate == today);
-                if (shiftAssignment != null && shiftAssignment.Shift != null)
-                {
-                    ViewBag.ShiftName = shiftAssignment.Shift.ShiftName;
-                }
-                else
-                {
-                    ViewBag.ShiftName = "Morning";
-                }
+                var shiftName = db.Database.SqlQuery<string>(
+                    @"SELECT TOP 1 s.ShiftName
+                      FROM ShiftAssignments sa
+                      INNER JOIN Shifts s ON sa.ShiftId = s.Id
+                      WHERE sa.UserId = @p0 AND sa.ShiftDate = @p1",
+                    userInfo.USERID, today).FirstOrDefault();
+
+                ViewBag.ShiftName = !string.IsNullOrEmpty(shiftName) ? shiftName : "Morning";
             }
             catch
             {
@@ -361,6 +360,42 @@ namespace Prelims.Controllers
             ViewBag.ShowUserAndDate = showUserAndDate;
 
             return View();
+        }
+
+        [AllowAnonymous]
+        public JsonResult GetShifts()
+        {
+            var shiftsList = new List<object>();
+            try
+            {
+                var dtos = db.Database.SqlQuery<ShiftDto>(
+                    @"SELECT Id AS ShiftId, ShiftName, StartTime, EndTime, IsActive
+                      FROM Shifts
+                      WHERE IsActive = 1
+                      ORDER BY Id").ToList();
+
+                if (dtos.Count > 0)
+                {
+                    shiftsList = dtos.Select(x => (object)new { ShiftId = x.ShiftId, ShiftName = x.ShiftName }).ToList();
+                }
+            }
+            catch
+            {
+            }
+
+            if (shiftsList.Count == 0)
+            {
+                shiftsList = new List<object>
+                {
+                    new { ShiftId = 1, ShiftName = "Morning" },
+                    new { ShiftId = 2, ShiftName = "General" },
+                    new { ShiftId = 3, ShiftName = "Afternoon Shift" },
+                    new { ShiftId = 4, ShiftName = "Night" },
+                    new { ShiftId = 5, ShiftName = "Off" }
+                };
+            }
+
+            return Json(shiftsList, JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult SendDialyProducitonReport(string shift, DateTime? reportDate, int? userId)
@@ -488,7 +523,10 @@ namespace Prelims.Controllers
 
             try
             {
-                var shiftObj = db.Shifts.FirstOrDefault(s => s.ShiftName == shift);
+                var shiftObj = db.Database.SqlQuery<ShiftDto>(
+                    @"SELECT Id AS ShiftId, ShiftName, StartTime, EndTime, IsActive
+                      FROM Shifts
+                      WHERE ShiftName = @p0", shift).FirstOrDefault();
                 if (shiftObj != null)
                 {
                     shiftStart = reportDate.Date.Add(shiftObj.StartTime);

@@ -275,11 +275,7 @@ namespace Prelims.Controllers
                 liveStatusViewModel.NotesSellerCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && x.RequestTypeId == 1 && (!blockedAuditIds.Contains(x.Id)));
                 liveStatusViewModel.NotesCount = db.Audits.Count(x => (x.StatusId == 1 || x.StatusId == 2) && x.CrnId == crn.CRNID && x.TaskId == 5 && (!blockedAuditIds.Contains(x.Id)));
 
-                int liveTotal = liveStatusViewModel.TaxesCount + liveStatusViewModel.LVCount + liveStatusViewModel.PICount + liveStatusViewModel.GICount + liveStatusViewModel.StarterCount + liveStatusViewModel.NotesCount + liveStatusViewModel.HoldCount;
-                if (liveTotal > 0)
-                {
-                    liveStatusItems.Add(liveStatusViewModel);
-                }
+                liveStatusItems.Add(liveStatusViewModel);
             }
             homeViewModel.LiveStatusItems = liveStatusItems;
 
@@ -652,18 +648,40 @@ namespace Prelims.Controllers
             };
         }
 
+        [AllowAnonymous]
         public JsonResult GetShifts()
         {
-            JsonResult jsonResult = new JsonResult() { JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+            var shiftsList = new List<object>();
             try
             {
-                jsonResult.Data = db.Shifts.Select(x => new { ShiftId = x.Id, ShiftName = x.ShiftName }).ToList();
+                var dtos = db.Database.SqlQuery<ShiftDto>(
+                    @"SELECT Id AS ShiftId, ShiftName, StartTime, EndTime, IsActive
+                      FROM Shifts
+                      WHERE IsActive = 1
+                      ORDER BY Id").ToList();
+
+                if (dtos.Count > 0)
+                {
+                    shiftsList = dtos.Select(x => (object)new { ShiftId = x.ShiftId, ShiftName = x.ShiftName }).ToList();
+                }
             }
             catch
             {
-                jsonResult.Data = new List<object>();
             }
-            return jsonResult;
+
+            if (shiftsList.Count == 0)
+            {
+                shiftsList = new List<object>
+                {
+                    new { ShiftId = 1, ShiftName = "Morning" },
+                    new { ShiftId = 2, ShiftName = "General" },
+                    new { ShiftId = 3, ShiftName = "Afternoon Shift" },
+                    new { ShiftId = 4, ShiftName = "Night" },
+                    new { ShiftId = 5, ShiftName = "Off" }
+                };
+            }
+
+            return Json(shiftsList, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult WorkTimeTracker()

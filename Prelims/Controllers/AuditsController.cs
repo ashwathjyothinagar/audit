@@ -3101,31 +3101,39 @@ namespace Prelims.Controllers
 
             if (taskId.HasValue && taskId.Value == 4)
             {
-                var blockedAuditIds = db.Database.SqlQuery<int>(
-                    @"SELECT a.Id FROM Audits a
-                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
-                      WHERE a.TaskId = 4 
-                        AND t.StatusId != 6
-                        AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))").ToList();
-
-                if (blockedAuditIds.Count > 0)
+                try
                 {
-                    titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                    var blockedAuditIds = db.Database.SqlQuery<int>(
+                        @"SELECT a.Id FROM Audits a
+                          INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                          WHERE a.TaskId = 4 
+                            AND t.StatusId != 6
+                            AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL))").ToList();
+
+                    if (blockedAuditIds.Count > 0)
+                    {
+                        titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                    }
                 }
+                catch { }
             }
             else if (taskId.HasValue && taskId.Value == 5)
             {
-                var blockedAuditIds = db.Database.SqlQuery<int>(
-                    @"SELECT a.Id FROM Audits a
-                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
-                      WHERE a.TaskId = 5 
-                        AND t.StatusId != 6
-                        AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))").ToList();
-
-                if (blockedAuditIds.Count > 0)
+                try
                 {
-                    titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                    var blockedAuditIds = db.Database.SqlQuery<int>(
+                        @"SELECT a.Id FROM Audits a
+                          INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
+                          WHERE a.TaskId = 5 
+                            AND t.StatusId != 6
+                            AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))").ToList();
+
+                    if (blockedAuditIds.Count > 0)
+                    {
+                        titleOrders = titleOrders.Where(x => !blockedAuditIds.Contains(x.Id));
+                    }
                 }
+                catch { }
             }
 
             if (requestTypeId.HasValue)

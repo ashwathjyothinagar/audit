@@ -5,10 +5,19 @@ var App;
         function EodReportController($log, $http, BASE_URI, ReportLookupService) {
             var _this = this;
 
+            var defaultShifts = [
+                { ShiftId: 1, ShiftName: "Morning" },
+                { ShiftId: 2, ShiftName: "General" },
+                { ShiftId: 3, ShiftName: "Afternoon Shift" },
+                { ShiftId: 4, ShiftName: "Night" },
+                { ShiftId: 5, ShiftName: "Off" }
+            ];
+
             _this.CrnId = 0;
             _this.Crns = [];
             _this.shift = '';
-            _this.shifts = [];
+            _this.shifts = defaultShifts;
+
             this.init = function () {
 
                 this.getCrns().then(function (response) {
@@ -33,7 +42,19 @@ var App;
                 $http(reqShifts).then(function (response) {
                     if (response.data && response.data.length > 0) {
                         _this.shifts = response.data;
+                    } else {
+                        _this.shifts = defaultShifts;
                     }
+                }, function (error) {
+                    $http.get(BASE_URI + "Audits/GetShifts").then(function (res2) {
+                        if (res2.data && res2.data.length > 0) {
+                            _this.shifts = res2.data;
+                        } else {
+                            _this.shifts = defaultShifts;
+                        }
+                    }, function () {
+                        _this.shifts = defaultShifts;
+                    });
                 });
             };
 
