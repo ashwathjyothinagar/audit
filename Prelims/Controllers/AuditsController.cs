@@ -2172,7 +2172,7 @@ namespace Prelims.Controllers
                 TaskWisePendingReportViewModel taskPendingReportViewModel = new TaskWisePendingReportViewModel();
 
                 taskPendingReportViewModel.OfficeName = crnItem.CRNNAME;
-                taskPendingReportViewModel.GroupName = crnItem.GroupName;
+                taskPendingReportViewModel.GroupName = string.IsNullOrWhiteSpace(crnItem.GroupName) ? "Other" : crnItem.GroupName;
                 taskPendingReportViewModel.CrnId = crnItem.CRNID;
                 taskPendingReportViewModel.TaxesCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 6);
                 taskPendingReportViewModel.LVCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.StatusId != 3 && x.CrnId == crnItem.CRNID && x.TaskId == 1);
@@ -2184,11 +2184,7 @@ namespace Prelims.Controllers
                 taskPendingReportViewModel.HoldCount = db.Audits.Count(x => x.StatusId != 4 && x.StatusId != 5 && x.CrnId == crnItem.CRNID && x.StatusId == 3);
                 taskPendingReportViewModel.Total = taskPendingReportViewModel.TaxesCount + taskPendingReportViewModel.LVCount + taskPendingReportViewModel.PICount + taskPendingReportViewModel.GICount + taskPendingReportViewModel.StarterCount + taskPendingReportViewModel.NotesCount + taskPendingReportViewModel.HoldCount;
 
-                // Only display offices available in the Audit Tracker
-                if (taskPendingReportViewModel.Total > 0)
-                {
-                    listItemToReturn.Add(taskPendingReportViewModel);
-                }
+                listItemToReturn.Add(taskPendingReportViewModel);
             }
 
             return View(listItemToReturn);

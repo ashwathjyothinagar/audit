@@ -3,105 +3,113 @@
     ViewBag.PageTitle = "Task Wise Pending";
 }
 
-@foreach (var liveStatusGroup in Model.GroupBy(x => x.GroupName))
+@if (Model == null || !Model.Any())
 {
-    var liveStatusTable = "liveStatusTable" + liveStatusGroup.Key.Replace(" ", "");
-    <div id="@liveStatusTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="@liveStatusTable=false">
-        <div>
-
-            <div ng-click="@liveStatusTable=!@liveStatusTable">
-                <i class="glyphicon glyphicon-chevron-right" ng-if="!@liveStatusTable"></i>
-                <i class="glyphicon glyphicon-chevron-down" ng-if="@liveStatusTable"></i>
-                @liveStatusGroup.Key
-            </div>
-        </div>
-        <div id="@liveStatusTable" ng-if="@liveStatusTable">
-
-            <table class="table table-condensed table-striped">
-                <tr>
-                    <th>
-                        Office Name
-                    </th>
-                    <th style="width: 10%; text-align:center;">
-                        Taxes
-                    </th>
-                    <th style="width: 10%; text-align:center;">
-                        L&amp;V
-                    </th>
-                    <th style="width: 10%; text-align:center;"> PI </th>
-                    <th style="width: 10%; text-align:center;">GI</th>
-                    <th style="width: 10%; text-align:center;">Starter</th>
-                    <th style="width: 10%; text-align:center;">Audit Proofing</th>
-                    <th style="width: 10%; text-align:center;">Hold</th>
-                    <th class="col-total" style="width: 10%; text-align:center;">Total</th>
-                </tr>
-
-                @foreach (var item in liveStatusGroup)
-                {
-                    <tr>
-                        <td>
-                            @item.OfficeName
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.TaxesCount.ToString(), "TaskWisePendingDetail", new { taskId = 6, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.LVCount.ToString(), "TaskWisePendingDetail", new { taskId = 1, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.PICount.ToString(), "TaskWisePendingDetail", new { taskId = 2, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.GICount.ToString(), "TaskWisePendingDetail", new { taskId = 3, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.StarterCount.ToString(), "TaskWisePendingDetail", new { taskId = 4, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.NotesCount.ToString(), "TaskWisePendingDetail", new { taskId = 5, crnId = item.CrnId })
-                        </td>
-                        <td style="text-align:center;">
-                            @Html.ActionLink(@item.HoldCount.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true })
-                        </td>
-                        <td class="col-total" style="text-align:center;">
-                            @Html.ActionLink(@item.Total.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true, showCrnTotal = true })
-                        </td>
-                    </tr>
-                }
-                <tr class="row-total">
-                    <th>
-                        Total
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.TaxesCount).ToString(), "TaskWisePendingDetail", new { taskId = 6, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.LVCount).ToString(), "TaskWisePendingDetail", new { taskId = 1, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.PICount).ToString(), "TaskWisePendingDetail", new { taskId = 2, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.GICount).ToString(), "TaskWisePendingDetail", new { taskId = 3, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.StarterCount).ToString(), "TaskWisePendingDetail", new { taskId = 4, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.NotesCount).ToString(), "TaskWisePendingDetail", new { taskId = 5, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.HoldCount).ToString(), "TaskWisePendingDetail", new { showHold = true, crnGroupName = liveStatusGroup.Key })
-                    </th>
-                    <th class="col-total" style="text-align:center;">
-                        @Html.ActionLink(liveStatusGroup.Sum(x => x.Total).ToString(), "TaskWisePendingDetail", new { crnGroupName = liveStatusGroup.Key  })
-                    </th>
-                </tr>
-
-            </table>
-
-        </div>
+    <div style="padding: 20px; font-size: 14px; color: #777;">
+        No pending orders found.
     </div>
 }
+else
+{
+    foreach (var liveStatusGroup in Model.GroupBy(x => string.IsNullOrWhiteSpace(x.GroupName) ? "Other" : x.GroupName))
+    {
+        var groupKey = string.IsNullOrWhiteSpace(liveStatusGroup.Key) ? "Other" : liveStatusGroup.Key;
+        var liveStatusTable = "liveStatusTable" + System.Text.RegularExpressions.Regex.Replace(groupKey, @"[^a-zA-Z0-9_]", "");
+        <div id="@liveStatusTable" style="padding: 10px; box-shadow: 1px 1px 2px #888888; margin-bottom: 5px; cursor: pointer; background-color: whitesmoke; " ng-init="@liveStatusTable=false">
+            <div>
 
+                <div ng-click="@liveStatusTable=!@liveStatusTable">
+                    <i class="glyphicon glyphicon-chevron-right" ng-if="!@liveStatusTable"></i>
+                    <i class="glyphicon glyphicon-chevron-down" ng-if="@liveStatusTable"></i>
+                    @groupKey
+                </div>
+            </div>
+            <div id="@liveStatusTable" ng-if="@liveStatusTable">
 
+                <table class="table table-condensed table-striped">
+                    <tr>
+                        <th>
+                            Office Name
+                        </th>
+                        <th style="width: 10%; text-align:center;">
+                            Taxes
+                        </th>
+                        <th style="width: 10%; text-align:center;">
+                            L&amp;V
+                        </th>
+                        <th style="width: 10%; text-align:center;"> PI </th>
+                        <th style="width: 10%; text-align:center;">GI</th>
+                        <th style="width: 10%; text-align:center;">Starter</th>
+                        <th style="width: 10%; text-align:center;">Audit Proofing</th>
+                        <th style="width: 10%; text-align:center;">Hold</th>
+                        <th class="col-total" style="width: 10%; text-align:center;">Total</th>
+                    </tr>
+
+                    @foreach (var item in liveStatusGroup)
+                    {
+                        <tr>
+                            <td>
+                                @item.OfficeName
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.TaxesCount.ToString(), "TaskWisePendingDetail", new { taskId = 6, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.LVCount.ToString(), "TaskWisePendingDetail", new { taskId = 1, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.PICount.ToString(), "TaskWisePendingDetail", new { taskId = 2, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.GICount.ToString(), "TaskWisePendingDetail", new { taskId = 3, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.StarterCount.ToString(), "TaskWisePendingDetail", new { taskId = 4, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.NotesCount.ToString(), "TaskWisePendingDetail", new { taskId = 5, crnId = item.CrnId })
+                            </td>
+                            <td style="text-align:center;">
+                                @Html.ActionLink(@item.HoldCount.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true })
+                            </td>
+                            <td class="col-total" style="text-align:center;">
+                                @Html.ActionLink(@item.Total.ToString(), "TaskWisePendingDetail", new { crnId = item.CrnId, showHold = true, showCrnTotal = true })
+                            </td>
+                        </tr>
+                    }
+                    <tr class="row-total">
+                        <th>
+                            Total
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.TaxesCount).ToString(), "TaskWisePendingDetail", new { taskId = 6, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.LVCount).ToString(), "TaskWisePendingDetail", new { taskId = 1, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.PICount).ToString(), "TaskWisePendingDetail", new { taskId = 2, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.GICount).ToString(), "TaskWisePendingDetail", new { taskId = 3, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.StarterCount).ToString(), "TaskWisePendingDetail", new { taskId = 4, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.NotesCount).ToString(), "TaskWisePendingDetail", new { taskId = 5, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.HoldCount).ToString(), "TaskWisePendingDetail", new { showHold = true, crnGroupName = liveStatusGroup.Key })
+                        </th>
+                        <th class="col-total" style="text-align:center;">
+                            @Html.ActionLink(liveStatusGroup.Sum(x => x.Total).ToString(), "TaskWisePendingDetail", new { crnGroupName = liveStatusGroup.Key })
+                        </th>
+                    </tr>
+
+                </table>
+
+            </div>
+        </div>
+    }
+}
