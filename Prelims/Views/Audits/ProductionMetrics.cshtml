@@ -2,7 +2,7 @@
     ViewBag.Title = "Production Metrics";
 }
 
-<div class="row" ng-controller="ProductionMetricsController as $ctrl" ng-init="$ctrl.init()">
+<div class="row" ng-controller="ProductionMetricsController as $ctrl" ng-init="$ctrl.init(@(ViewBag.IsManager == true ? "true" : "false"))">
     <div class="col-xs-12">
         <div class="page-title-box">
             <h4 class="page-title">Production Metrics Report</h4>
@@ -67,32 +67,83 @@
                 <button type="button" class="btn btn-success" style="vertical-align: top;" ng-click="$ctrl.exportToExcel()" ng-show="$ctrl.hasData">Export to Excel</button>
             </form>
 
+            <!-- Targets Table -->
+            <div class="panel panel-default" style="margin-top: 15px; margin-bottom: 20px;">
+                <div class="panel-heading" style="background-color: #0c3559; color: #fff; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 15px;">Targets</span>
+                    @if (ViewBag.IsManager == true)
+                    {
+                        <div>
+                            <button type="button" class="btn btn-xs btn-warning" ng-if="!$ctrl.isEditingTargets" ng-click="$ctrl.editTargets()">
+                                <i class="glyphicon glyphicon-edit"></i> Edit Targets
+                            </button>
+                            <button type="button" class="btn btn-xs btn-success" ng-if="$ctrl.isEditingTargets" ng-click="$ctrl.saveTargets()">
+                                <i class="glyphicon glyphicon-ok"></i> Save Targets
+                            </button>
+                            <button type="button" class="btn btn-xs btn-default" ng-if="$ctrl.isEditingTargets" ng-click="$ctrl.cancelEditTargets()" style="margin-left: 5px;">
+                                Cancel
+                            </button>
+                        </div>
+                    }
+                </div>
+                <div class="panel-body" style="padding: 0;">
+                    <table class="table table-bordered table-condensed text-center" style="margin-bottom: 0;">
+                        <thead style="background-color: #0c3559; color: #fff;">
+                            <tr>
+                                <th style="width: 130px; text-align: center; vertical-align: middle; background-color: #07223b;"></th>
+                                <th ng-repeat="t in $ctrl.targets" style="text-align: center; vertical-align: middle;">{{t.TaskName}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th style="background-color: #f4f5f7; text-align: center; vertical-align: middle;">Count</th>
+                                <td ng-repeat="t in $ctrl.targets" style="vertical-align: middle;">
+                                    <span ng-if="!$ctrl.isEditingTargets" style="font-weight: bold; font-size: 14px;">{{t.Count}}</span>
+                                    <input type="number" class="form-control input-sm text-center" style="display:inline-block; width: 85px;" ng-if="$ctrl.isEditingTargets" ng-model="t.Count" min="1" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="background-color: #f4f5f7; text-align: center; vertical-align: middle;">Time (min)</th>
+                                <td ng-repeat="t in $ctrl.targets" style="vertical-align: middle;">
+                                    <span ng-if="!$ctrl.isEditingTargets" style="font-weight: bold; font-size: 14px;">{{t.TimeMinutes}}</span>
+                                    <input type="number" step="0.5" class="form-control input-sm text-center" style="display:inline-block; width: 85px;" ng-if="$ctrl.isEditingTargets" ng-model="t.TimeMinutes" min="0.1" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <hr />
 
             <div class="table-responsive" ng-show="$ctrl.hasData" style="overflow-x: auto; width: 100%;">
                 <table id="metricsTable" class="table table-bordered table-striped">
                     <thead>
-                        <tr>
-                            <th>SL.No</th>
+                        <tr style="background-color: #0c3559; color: #fff;">
+                            <th style="text-align: center;">SL.No</th>
                             <th>Name</th>
-                            <th>Location</th>
-                            <th>Achieved %</th>
-                            <th ng-repeat="col in $ctrl.dynamicColumns">{{col}}</th>
+                            <th style="text-align: center;">Location</th>
+                            <th style="text-align: center; background-color: #07223b;">Hours Worked</th>
+                            <th style="text-align: center; background-color: #07223b;">Achieved %</th>
+                            <th ng-repeat="col in $ctrl.dynamicColumns" style="text-align: center;">{{col}}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="row in $ctrl.reportData">
-                            <td>{{row.SerialNumber}}</td>
+                            <td style="text-align: center;">{{row.SerialNumber}}</td>
                             <td>{{row.Name}}</td>
-                            <td>{{row.Location}}</td>
-                            <td ng-style="{'background-color': row.AchievedPercent >= 90 ? '#d4edda' : '#f8d7da', 'color': row.AchievedPercent >= 90 ? 'green' : 'red', 'font-weight': 'bold'}">
+                            <td style="text-align: center;">{{row.Location}}</td>
+                            <td style="font-weight: bold; text-align: center; background-color: #fff9e6; color: #b78103;">
+                                {{row.HoursWorkedDisplay}}
+                            </td>
+                            <td ng-style="{'background-color': row.AchievedPercent >= 90 ? '#d4edda' : '#f8d7da', 'color': row.AchievedPercent >= 90 ? 'green' : 'red', 'font-weight': 'bold', 'text-align': 'center'}">
                                 {{row.AchievedPercentDisplay}}
                             </td>
-                            <td ng-repeat="col in $ctrl.dynamicColumns">
-                                <a href="javascript:void(0)" ng-if="row.TaskCounts[col]" ng-click="$ctrl.showOrders(row.TaskCounts[col].OrderNumbers, row.Name, col)">
+                            <td ng-repeat="col in $ctrl.dynamicColumns" style="text-align: center;">
+                                <a href="javascript:void(0)" ng-if="row.TaskCounts[col] && row.TaskCounts[col].Count > 0" ng-click="$ctrl.showOrders(row.TaskCounts[col].OrderNumbers, row.Name, col)">
                                     {{row.TaskCounts[col].Count}}
                                 </a>
-                                <span ng-if="!row.TaskCounts[col]">-</span>
+                                <span ng-if="!row.TaskCounts[col] || row.TaskCounts[col].Count === 0">0</span>
                             </td>
                         </tr>
                     </tbody>

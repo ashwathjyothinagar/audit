@@ -27,8 +27,51 @@
         $ctrl.modalUser = '';
         $ctrl.modalTask = '';
 
-        $ctrl.init = function () {
+        $ctrl.isManager = false;
+        $ctrl.targets = [];
+        $ctrl.originalTargets = [];
+        $ctrl.isEditingTargets = false;
+
+        $ctrl.init = function (isManager) {
+            $ctrl.isManager = !!isManager;
             $ctrl.setDatesForReportType();
+            $ctrl.loadTargets();
+        };
+
+        $ctrl.loadTargets = function () {
+            $http.get('/Audits/GetProductionMetricsTargets')
+                .then(function (response) {
+                    if (response.data && response.data.success) {
+                        $ctrl.targets = response.data.targets;
+                    }
+                });
+        };
+
+        $ctrl.editTargets = function () {
+            $ctrl.originalTargets = angular.copy($ctrl.targets);
+            $ctrl.isEditingTargets = true;
+        };
+
+        $ctrl.cancelEditTargets = function () {
+            $ctrl.targets = angular.copy($ctrl.originalTargets);
+            $ctrl.isEditingTargets = false;
+        };
+
+        $ctrl.saveTargets = function () {
+            $http.post('/Audits/SaveProductionMetricsTargets', $ctrl.targets)
+                .then(function (response) {
+                    if (response.data && response.data.success) {
+                        $ctrl.isEditingTargets = false;
+                        alert("Targets saved successfully.");
+                        if ($ctrl.hasData) {
+                            $ctrl.generateReport();
+                        }
+                    } else {
+                        alert(response.data.message || "Failed to save targets.");
+                    }
+                }, function (error) {
+                    alert("Error saving targets: " + (error.statusText || error.status));
+                });
         };
 
         $ctrl.setDatesForReportType = function () {
@@ -59,7 +102,6 @@
 
         function formatTimeForApi(timeStr) {
             if (!timeStr) return '';
-            // Handle both string "HH:mm" and Date object from ng-model
             if (timeStr instanceof Date) {
                 var hh = String(timeStr.getHours()).padStart(2, '0');
                 var mm = String(timeStr.getMinutes()).padStart(2, '0');
@@ -100,6 +142,9 @@
                     if (response.data.success) {
                         $ctrl.reportData = response.data.data.UserRows;
                         $ctrl.dynamicColumns = response.data.data.DynamicTaskColumns;
+                        if (response.data.data.Targets && response.data.data.Targets.length > 0 && !$ctrl.isEditingTargets) {
+                            $ctrl.targets = response.data.data.Targets;
+                        }
                         $ctrl.hasData = $ctrl.reportData.length > 0;
                         
                         // Re-initialize DataTable if needed

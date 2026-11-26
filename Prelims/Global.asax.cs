@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -19,6 +19,15 @@ namespace Prelims
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            try
+            {
+                using (var db = new FntEntities())
+                {
+                    db.Database.ExecuteSqlCommand("UPDATE AuditRequestTypes SET Name = 'JLP' WHERE Name IN ('Other', 'Others')");
+                }
+            }
+            catch { }
         }
 
         protected void Application_PostAuthenticateRequest(Object sender, EventArgs e)

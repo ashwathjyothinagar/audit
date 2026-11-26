@@ -144,53 +144,22 @@ namespace Prelims.Controllers
             }
 
             ViewBag.TaskId = new SelectList(db.AuditTasks.OrderBy(x => x.SortOrder), "Id", "Name", taskId ?? 6);
-            ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", requestTypeId ?? 0);
+            var requestTypesList = db.AuditRequestTypes.ToList()
+                .Select(x => new { Id = x.Id, Name = (x.Name == "Other" || x.Name == "Others") ? "JLP" : x.Name })
+                .ToList();
+            ViewBag.RequestTypeId = new SelectList(requestTypesList, "Id", "Name", requestTypeId ?? 0);
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x => x.CRNID > 20), "CRNID", "CRNNAME", crnId);
             ViewBag.OfficeGroups = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => x.GroupName).Distinct().ToList();
             ViewBag.Crns = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).Select(x => new { x.CRNID, x.CRNNAME, x.GroupName }).ToList();
             ViewBag.GroupName = groupName;
-            // Calculate total orders across all tasks in the Audit Tracker
-            var allTasksQuery = (from k in db.Audits
-                                 where k.StatusId != 3 && k.StatusId != 4 && k.StatusId != 5 && !k.AuditTimeEntries.Any(x => x.IsInprogress) && k.UserAssigned == null
-                                 select k).AsQueryable();
-
-            if (crnId.HasValue)
-            {
-                allTasksQuery = allTasksQuery.Where(x => x.CrnId == crnId.Value);
-            }
-            else
-            {
-                allTasksQuery = allTasksQuery.Where(x => allowedCrnIdsForThisUser.Contains(x.CrnId));
-            }
-
-            if (requestTypeId.HasValue)
-            {
-                allTasksQuery = allTasksQuery.Where(x => x.RequestTypeId == requestTypeId.Value);
-            }
-
-            // Exclude blocked orders across all tasks
-            try
-            {
-                var allBlockedIds = db.Database.SqlQuery<int>(
-                    @"SELECT a.Id FROM Audits a
-                      INNER JOIN TitleOrders t ON (t.Id = a.TitleOrderId OR (a.TitleOrderId IS NULL AND t.OrderNo = a.OrderNo))
-                      WHERE a.StatusId NOT IN (4, 5)
-                        AND ((a.TaskId = 4 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7) OR (t.TaskId = 3 AND t.AuditEndTime IS NULL)))
-                          OR (a.TaskId = 5 AND t.StatusId != 6 AND (t.TaskId IN (1, 2, 7, 3, 4) OR (t.TaskId = 5 AND t.ProofingEndTime IS NULL))))").ToList();
-
-                if (allBlockedIds.Count > 0)
-                {
-                    allTasksQuery = allTasksQuery.Where(x => !allBlockedIds.Contains(x.Id));
-                }
-            }
-            catch { }
-
-            ViewBag.TotalAllTasksCount = allTasksQuery.Count();
             ViewBag.PageSize = pageSize ?? 50;
 
             var auditList = Audits.ToList();
             PopulateAuditTitleOrderDetails(auditList);
             auditList = auditList.OrderByDescending(x => x.IsRushOrder).ThenBy(x => x.DateCreated).ToList();
+
+            // TotalMatchingCount reflects the filtered count matching the current search criteria
+            ViewBag.TotalMatchingCount = auditList.Count;
 
             if (pageSize.HasValue && pageSize.Value > 0)
             {
@@ -220,6 +189,31 @@ namespace Prelims.Controllers
                 var allowedRoleIds = new HashSet<int> { 4, 23, 24, 26, 28, 35, 37, 40, 42, 43, 44, 46 };
                 return allowedRoleIds.Contains(userInfo.TitleOrderRoleId.Value);
             }
+        }
+
+        public bool IsManagerUser(USERINFO userInfo)
+        {
+            if (userInfo == null) return false;
+            if (string.Equals(userInfo.USERNAME, "Admin", StringComparison.OrdinalIgnoreCase)) return true;
+            if (string.Equals(userInfo.USERTYPE, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(userInfo.USERTYPE, "Manager", StringComparison.OrdinalIgnoreCase)) return true;
+            if (IsAuditFLM(userInfo)) return true;
+            if (userInfo.TitleOrderRoleId.HasValue)
+            {
+                try
+                {
+                    string roleName = db.Database.SqlQuery<string>("SELECT Name FROM TitleOrderRoles WHERE Id = @p0", userInfo.TitleOrderRoleId.Value).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(roleName) && (roleName.IndexOf("Manager", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                                            roleName.IndexOf("Lead", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                                            roleName.IndexOf("Admin", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                                            roleName.IndexOf("FLM", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        return true;
+                    }
+                }
+                catch { }
+            }
+            return false;
         }
 
         public ActionResult SearchOrder(string orderNo)
@@ -3174,7 +3168,10 @@ namespace Prelims.Controllers
             rushes.Add(new Rush(true, "Yes"));
 
             ViewBag.TaskId = new SelectList(db.AuditTasks.Where(x => allowedTaskIts.Contains(x.Id)).OrderBy(x => x.SortOrder), "Id", "Name", taskId ?? 1);
-            ViewBag.RequestTypeId = new SelectList(db.AuditRequestTypes, "Id", "Name", requestTypeId ?? 0);
+            var orderAssignmentReqTypes = db.AuditRequestTypes.ToList()
+                .Select(x => new { Id = x.Id, Name = (x.Name == "Other" || x.Name == "Others") ? "JLP" : x.Name })
+                .ToList();
+            ViewBag.RequestTypeId = new SelectList(orderAssignmentReqTypes, "Id", "Name", requestTypeId ?? 0);
             ViewBag.CrnId = new SelectList(db.CRNs.Where(x => x.IsVisibleInMainApplication == true), "CRNID", "CRNDISPLAYNAME", crnId ?? 0);
             ViewBag.IsRush = new SelectList(rushes, "Key", "Value", requestTypeId);
             ViewBag.UserInfos = new SelectList(db.USERINFOes.OrderBy(x => x.USERNAME).ToList(), "USERID", "USERNAME");

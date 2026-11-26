@@ -7,11 +7,13 @@ namespace Prelims.Models.Reports
     {
         public List<ProductionMetricsUserRow> UserRows { get; set; }
         public List<string> DynamicTaskColumns { get; set; }
+        public List<ProductionTargetItem> Targets { get; set; }
 
         public ProductionMetricsViewModel()
         {
             UserRows = new List<ProductionMetricsUserRow>();
             DynamicTaskColumns = new List<string>();
+            Targets = new List<ProductionTargetItem>();
         }
     }
 
@@ -21,6 +23,7 @@ namespace Prelims.Models.Reports
         public int UserId { get; set; }
         public string Name { get; set; }
         public string Location { get; set; }
+        public string HoursWorkedDisplay { get; set; }
         public string AchievedPercentDisplay { get; set; }
         public decimal AchievedPercent { get; set; }
 
@@ -60,5 +63,12 @@ namespace Prelims.Models.Reports
         public int TimePerFile { get; set; }
         public int TimeTakenMinutes { get; set; }
         public decimal ExpectedOutput { get; set; }
+    }
+
+    public class ProductionTargetItem
+    {
+        public string TaskName { get; set; }
+        public int Count { get; set; }
+        public decimal TimeMinutes { get; set; }
     }
 }

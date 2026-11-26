@@ -30,7 +30,79 @@ namespace Prelims.Controllers
             SetOfficeFields(userInfo);
             ViewBag.Offices = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
             ViewBag.Locations = db.USERINFOes.Where(x => x.LOCATION != null && x.LOCATION != "").Select(x => x.LOCATION).Distinct().OrderBy(x => x).ToList();
+            ViewBag.IsManager = IsManagerUser(userInfo);
             return View();
+        }
+
+        public static List<ProductionTargetItem> GetAuditProductionTargets(HttpServerUtilityBase server)
+        {
+            var path = server.MapPath("~/App_Data/AuditProductionTargets.json");
+            if (System.IO.File.Exists(path))
+            {
+                try
+                {
+                    var content = System.IO.File.ReadAllText(path);
+                    var list = JsonConvert.DeserializeObject<List<ProductionTargetItem>>(content);
+                    if (list != null && list.Count > 0) return list;
+                }
+                catch { }
+            }
+
+            var defaultTargets = new List<ProductionTargetItem>
+            {
+                new ProductionTargetItem { TaskName = "Taxes", Count = 240, TimeMinutes = 2 },
+                new ProductionTargetItem { TaskName = "L&V", Count = 96, TimeMinutes = 5 },
+                new ProductionTargetItem { TaskName = "PI", Count = 96, TimeMinutes = 5 },
+                new ProductionTargetItem { TaskName = "GI", Count = 96, TimeMinutes = 5 },
+                new ProductionTargetItem { TaskName = "Starter", Count = 48, TimeMinutes = 10 },
+                new ProductionTargetItem { TaskName = "Audit Proofing", Count = 55, TimeMinutes = 9 }
+            };
+
+            try
+            {
+                var dir = System.IO.Path.GetDirectoryName(path);
+                if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+                var json = JsonConvert.SerializeObject(defaultTargets, Formatting.Indented);
+                System.IO.File.WriteAllText(path, json);
+            }
+            catch { }
+
+            return defaultTargets;
+        }
+
+        [HttpGet]
+        public ActionResult GetProductionMetricsTargets()
+        {
+            var targets = GetAuditProductionTargets(Server);
+            return Json(new { success = true, targets = targets }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public ActionResult SaveProductionMetricsTargets(List<ProductionTargetItem> targets)
+        {
+            USERINFO userInfo = (USERINFO)Session["UserInfo"];
+            if (userInfo == null || !IsManagerUser(userInfo))
+            {
+                return Json(new { success = false, message = "Only users with Manager access have permission to modify targets." });
+            }
+
+            if (targets == null || targets.Count == 0)
+            {
+                return Json(new { success = false, message = "No target data provided." });
+            }
+
+            try
+            {
+                var path = Server.MapPath("~/App_Data/AuditProductionTargets.json");
+                var json = JsonConvert.SerializeObject(targets, Formatting.Indented);
+                System.IO.File.WriteAllText(path, json);
+                return Json(new { success = true, message = "Targets saved successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error saving targets: " + ex.Message });
+            }
         }
 
         [Authorize]
@@ -89,14 +161,18 @@ namespace Prelims.Controllers
                 }
 
                 // 1. Get targets from JSON
-                var jsonPath = Server.MapPath("~/App_Data/ProductionMetrics.json");
-                var jsonContent = System.IO.File.ReadAllText(jsonPath);
-                var targets = JsonConvert.DeserializeObject<List<ProductionMetricItem>>(jsonContent);
+                var targets = GetAuditProductionTargets(Server);
+                var targetMap = new Dictionary<string, ProductionTargetItem>(StringComparer.OrdinalIgnoreCase);
+                foreach (var t in targets)
+                {
+                    targetMap[t.TaskName] = t;
+                }
 
                 // 2. Query AuditTimeEntries
                 var timeEntriesQuery = db.AuditTimeEntries
                     .Include(x => x.Audit)
                     .Include(x => x.Audit.AuditRequestType)
+                    .Include(x => x.Audit.CRN)
                     .Include(x => x.AuditTask)
                     .Include(x => x.USERINFO)
                     .Where(x => (x.EndTime != null && x.EndTime >= dtStart && x.EndTime < dtEnd)
@@ -122,62 +198,69 @@ namespace Prelims.Controllers
                 var timeEntries = timeEntriesQuery.ToList();
 
                 var resultModel = new ProductionMetricsViewModel();
-                var crns = db.CRNs.Where(x => x.IsVisibleInMainApplication == true).ToList();
-                var requestTypeMap = db.AuditRequestTypes.ToDictionary(r => r.Id, r => r.Name);
-
-                Func<string, int, string> getJsonCrnName = (groupName, reqTypeId) => {
-                    if (string.IsNullOrEmpty(groupName)) return "FNF";
-                    var g = groupName.ToUpper();
-                    if (g == "FIDELITY NATIONAL FINANCIAL") return "FNF";
-                    if (g == "MONARCH TITLE COMPANY") return "MTC";
-                    if (g == "CHICAGO TITLE COMPANY") return "CTT";
-                    if (g == "ORANGE COAST TITLE") return "OCT";
-                    if (g == "COMMONWEALTH") return "CWLT";
-                    if (g == "TICOR TITLE") return "TICOR";
-                    if (g == "STEWART TITLE") return "STEWART";
-                    if (g == "LAWYERS TITLE COMPANY")
-                    {
-                        if (requestTypeMap.ContainsKey(reqTypeId))
-                        {
-                            var reqName = requestTypeMap[reqTypeId].ToUpper();
-                            if (reqName.Contains("REFI") || reqName.Contains("RE-FINANCE"))
-                                return "LTIC Refi";
-                        }
-                        return "LTIC Resale";
-                    }
-                    return groupName;
-                };
-
-                // Dynamic columns based on Audit tasks
-                var taskOrder = new List<string> { "Taxes", "L&V", "PI", "GI", "Starter", "Audit Proofing" };
-                var allAuditTasks = db.AuditTasks.OrderBy(x => x.SortOrder).Select(x => x.Name).ToList();
-                foreach (var t in taskOrder)
-                {
-                    if (allAuditTasks.Contains(t))
-                        resultModel.DynamicTaskColumns.Add(t);
-                }
-                foreach (var t in allAuditTasks)
-                {
-                    if (!resultModel.DynamicTaskColumns.Contains(t))
-                        resultModel.DynamicTaskColumns.Add(t);
-                }
+                resultModel.Targets = targets;
+                resultModel.DynamicTaskColumns = new List<string> { "Taxes", "L&V", "PI", "GI", "Starter", "Audit Proofing" };
 
                 Func<string, string> normalizeTaskName = (name) =>
                 {
-                    if (string.IsNullOrEmpty(name)) return name;
+                    if (string.IsNullOrEmpty(name)) return "";
                     var t = name.Trim();
-                    if (string.Equals(t, "Notes", StringComparison.OrdinalIgnoreCase)) return "Audit Proofing";
+                    if (string.Equals(t, "Notes", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "Audit Proofing", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "Proofing", StringComparison.OrdinalIgnoreCase)) return "Audit Proofing";
+                    if (string.Equals(t, "Starter Code", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "Starter", StringComparison.OrdinalIgnoreCase)) return "Starter";
+                    if (string.Equals(t, "L&V", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "LV", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "L & V", StringComparison.OrdinalIgnoreCase)) return "L&V";
+                    if (string.Equals(t, "Taxes", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(t, "Tax", StringComparison.OrdinalIgnoreCase)) return "Taxes";
+                    if (string.Equals(t, "PI", StringComparison.OrdinalIgnoreCase)) return "PI";
+                    if (string.Equals(t, "GI", StringComparison.OrdinalIgnoreCase)) return "GI";
                     return t;
                 };
 
-                var groupedByUser = timeEntries.GroupBy(t => t.UserId);
-                int slNo = 1;
+                // Group entries by user
+                var entriesByUser = timeEntries.GroupBy(t => t.UserId).ToDictionary(g => g.Key, g => g.ToList());
 
-                foreach (var userGroup in groupedByUser)
+                // Find candidate users to include in report
+                var candidateUserIds = new HashSet<int>(entriesByUser.Keys);
+
+                if (!string.IsNullOrEmpty(selectedLocation) || userId.HasValue)
                 {
-                    var uInfo = userGroup.First().USERINFO;
-                    if (uInfo == null) continue;
+                    var activeLocUsers = db.USERINFOes
+                        .Where(u => (u.ISDELETED == null || u.ISDELETED == 0) && (u.ISACTIVE == null || u.ISACTIVE == 1));
+                    if (!string.IsNullOrEmpty(selectedLocation))
+                        activeLocUsers = activeLocUsers.Where(u => u.LOCATION == selectedLocation);
+                    if (userId.HasValue)
+                        activeLocUsers = activeLocUsers.Where(u => u.USERID == userId.Value);
 
+                    foreach (var u in activeLocUsers.Select(u => u.USERID))
+                    {
+                        candidateUserIds.Add(u);
+                    }
+                }
+                else
+                {
+                    var loggedInUserIds = db.UserTimeEntries
+                        .Where(x => x.StartTime >= dtStart && x.StartTime < dtEnd)
+                        .Select(x => x.UserId)
+                        .Distinct()
+                        .ToList();
+                    foreach (var uid in loggedInUserIds)
+                    {
+                        candidateUserIds.Add(uid);
+                    }
+                }
+
+                var allUsers = db.USERINFOes
+                    .Where(u => candidateUserIds.Contains(u.USERID))
+                    .OrderBy(u => u.FIRSTNAME).ThenBy(u => u.LASTNAME).ThenBy(u => u.USERNAME)
+                    .ToList();
+
+                int slNo = 1;
+                foreach (var uInfo in allUsers)
+                {
                     var row = new ProductionMetricsUserRow
                     {
                         SerialNumber = slNo++,
@@ -188,58 +271,54 @@ namespace Prelims.Controllers
                     };
                     if (string.IsNullOrEmpty(row.Name)) row.Name = uInfo.USERNAME;
 
-                    var taskAggregates = new Dictionary<string, ProductionMetricsTaskDetail>();
-                    var orderCrnTaskMap = new Dictionary<string, List<OrderWithOffice>>();
-
-                    var entriesByOrder = userGroup
-                        .Where(t => t.Audit != null && !string.IsNullOrEmpty(t.Audit.OrderNo))
-                        .GroupBy(t => t.Audit.OrderNo);
-
-                    foreach (var orderGroup in entriesByOrder)
+                    var taskAggregates = new Dictionary<string, ProductionMetricsTaskDetail>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var col in resultModel.DynamicTaskColumns)
                     {
-                        var processedTasks = new HashSet<string>();
+                        taskAggregates[col] = new ProductionMetricsTaskDetail { Count = 0, OrderNumbers = new List<OrderWithOffice>() };
+                    }
 
-                        foreach (var entry in orderGroup)
+                    List<AuditTimeEntry> userEntries;
+                    if (entriesByUser.TryGetValue(uInfo.USERID, out userEntries))
+                    {
+                        var entriesByOrder = userEntries
+                            .Where(t => t.Audit != null && !string.IsNullOrEmpty(t.Audit.OrderNo))
+                            .GroupBy(t => t.Audit.OrderNo);
+
+                        foreach (var orderGroup in entriesByOrder)
                         {
-                            if (entry.AuditTask == null) continue;
+                            var processedTasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                            var crn = crns.FirstOrDefault(c => c.CRNID == entry.Audit.CrnId);
-                            string jsonCrnName = crn != null ? getJsonCrnName(crn.GroupName, entry.Audit.RequestTypeId) : "FNF";
-                            string normalizedTaskName = normalizeTaskName(entry.AuditTask.Name);
-
-                            string taskKey = jsonCrnName + " - " + normalizedTaskName;
-                            if (processedTasks.Contains(taskKey)) continue;
-                            processedTasks.Add(taskKey);
-
-                            if (!taskAggregates.ContainsKey(normalizedTaskName))
-                                taskAggregates[normalizedTaskName] = new ProductionMetricsTaskDetail { Count = 0, OrderNumbers = new List<OrderWithOffice>() };
-
-                            var orderWithOffice = new OrderWithOffice
+                            foreach (var entry in orderGroup)
                             {
-                                OrderNumber = orderGroup.Key,
-                                OfficeName = crn != null ? crn.CRNNAME : jsonCrnName,
-                                ProductType = entry.Audit.AuditRequestType != null ? entry.Audit.AuditRequestType.Name : ""
-                            };
+                                if (entry.AuditTask == null) continue;
 
-                            if (!taskAggregates[normalizedTaskName].OrderNumbers.Any(o => o.OrderNumber == orderGroup.Key))
-                            {
-                                taskAggregates[normalizedTaskName].OrderNumbers.Add(orderWithOffice);
-                                taskAggregates[normalizedTaskName].Count = taskAggregates[normalizedTaskName].OrderNumbers.Count;
-                            }
+                                string normalizedTaskName = normalizeTaskName(entry.AuditTask.Name);
+                                if (!taskAggregates.ContainsKey(normalizedTaskName)) continue;
 
-                            if (!orderCrnTaskMap.ContainsKey(taskKey))
-                                orderCrnTaskMap[taskKey] = new List<OrderWithOffice>();
+                                if (processedTasks.Contains(normalizedTaskName)) continue;
+                                processedTasks.Add(normalizedTaskName);
 
-                            if (!orderCrnTaskMap[taskKey].Any(o => o.OrderNumber == orderGroup.Key))
-                            {
-                                orderCrnTaskMap[taskKey].Add(orderWithOffice);
+                                var orderWithOffice = new OrderWithOffice
+                                {
+                                    OrderNumber = orderGroup.Key,
+                                    OfficeName = entry.Audit != null && entry.Audit.CRN != null ? entry.Audit.CRN.CRNNAME : "",
+                                    ProductType = entry.Audit != null && entry.Audit.AuditRequestType != null 
+                                        ? (entry.Audit.AuditRequestType.Name == "Other" || entry.Audit.AuditRequestType.Name == "Others" ? "JLP" : entry.Audit.AuditRequestType.Name) 
+                                        : ""
+                                };
+
+                                if (!taskAggregates[normalizedTaskName].OrderNumbers.Any(o => o.OrderNumber == orderGroup.Key))
+                                {
+                                    taskAggregates[normalizedTaskName].OrderNumbers.Add(orderWithOffice);
+                                    taskAggregates[normalizedTaskName].Count = taskAggregates[normalizedTaskName].OrderNumbers.Count;
+                                }
                             }
                         }
                     }
 
-                    foreach (var kvp in taskAggregates)
+                    foreach (var col in resultModel.DynamicTaskColumns)
                     {
-                        row.TaskCounts[kvp.Key] = kvp.Value;
+                        row.TaskCounts[col] = taskAggregates[col];
                     }
 
                     bool isMonthly = !string.IsNullOrEmpty(reportType) && reportType.Equals("Monthly", StringComparison.OrdinalIgnoreCase);
@@ -265,60 +344,41 @@ namespace Prelims.Controllers
                             }
                         }
                         catch { }
-
-                        decimal sumOfTaskAchievements = 0;
-                        bool hasValidTasks = false;
-
-                        foreach (var kvp in taskAggregates)
-                        {
-                            string taskName = kvp.Key;
-                            int actualCount = kvp.Value.Count;
-
-                            int dailyTarget = 0;
-                            foreach (var t in targets.Where(x => string.Equals(x.TaskName, taskName, StringComparison.OrdinalIgnoreCase) && x.TargetMinutes > 0))
-                            {
-                                if (t.TargetMinutes > dailyTarget)
-                                    dailyTarget = t.TargetMinutes;
-                            }
-                            if (dailyTarget == 0) dailyTarget = 40;
-
-                            decimal taskMTDTarget = (decimal)dailyTarget * userWorkingDays;
-                            decimal taskAchievedPct = (actualCount / taskMTDTarget) * 100.0m;
-                            sumOfTaskAchievements += taskAchievedPct;
-                            hasValidTasks = true;
-                        }
-
-                        if (hasValidTasks)
-                        {
-                            row.AchievedPercent = sumOfTaskAchievements;
-                            row.AchievedPercentDisplay = Math.Round(row.AchievedPercent, 0, MidpointRounding.AwayFromZero).ToString("0") + "%";
-                            resultModel.UserRows.Add(row);
-                        }
                     }
-                    else
+
+                    // Calculate total time used based on target values
+                    decimal totalTimeUsed = 0;
+                    foreach (var col in resultModel.DynamicTaskColumns)
                     {
-                        decimal totalTimeUsed = 0;
-                        bool hasValidTasks = false;
-
-                        foreach (var kvp in orderCrnTaskMap)
+                        ProductionMetricsTaskDetail detail;
+                        ProductionTargetItem targetItem;
+                        if (row.TaskCounts.TryGetValue(col, out detail) && detail.Count > 0)
                         {
-                            var parts = kvp.Key.Split(new[] { " - " }, StringSplitOptions.None);
-                            if (parts.Length < 2) continue;
-                            var targetInfo = targets.FirstOrDefault(x => string.Equals(x.CrnName, parts[0], StringComparison.OrdinalIgnoreCase) && string.Equals(x.TaskName, parts[1], StringComparison.OrdinalIgnoreCase));
-                            int timePerFile = targetInfo != null && targetInfo.TimePerFile > 0 ? targetInfo.TimePerFile : 12;
-
-                            totalTimeUsed += (decimal)kvp.Value.Count * timePerFile;
-                            hasValidTasks = true;
-                        }
-
-                        if (hasValidTasks)
-                        {
-                            decimal totalAvailableTime = 480.0m * workingDays;
-                            row.AchievedPercent = totalTimeUsed / totalAvailableTime * 100.0m;
-                            row.AchievedPercentDisplay = Math.Round(row.AchievedPercent, 0, MidpointRounding.AwayFromZero).ToString("0") + "%";
-                            resultModel.UserRows.Add(row);
+                            if (targetMap.TryGetValue(col, out targetItem) && targetItem.TimeMinutes > 0)
+                            {
+                                totalTimeUsed += detail.Count * targetItem.TimeMinutes;
+                            }
+                            else if (targetMap.TryGetValue(col, out targetItem) && targetItem.Count > 0)
+                            {
+                                totalTimeUsed += detail.Count * (480.0m / targetItem.Count);
+                            }
+                            else
+                            {
+                                totalTimeUsed += detail.Count * 5.0m;
+                            }
                         }
                     }
+
+                    decimal totalAvailableTime = 480.0m * userWorkingDays;
+                    row.AchievedPercent = totalAvailableTime > 0 ? (totalTimeUsed / totalAvailableTime) * 100.0m : 0;
+                    row.AchievedPercentDisplay = Math.Round(row.AchievedPercent, 0, MidpointRounding.AwayFromZero).ToString("0") + "%";
+
+                    int totalMinutesInt = (int)Math.Round(totalTimeUsed);
+                    int hours = totalMinutesInt / 60;
+                    int mins = totalMinutesInt % 60;
+                    row.HoursWorkedDisplay = string.Format("{0:D2}:{1:D2}", hours, mins);
+
+                    resultModel.UserRows.Add(row);
                 }
 
                 return Json(new { success = true, data = resultModel });
